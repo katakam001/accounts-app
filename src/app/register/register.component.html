@@ -1,0 +1,46 @@
+<div class="signup-container">
+  <div class="signup-background"></div>
+  <mat-card class="signup-card">
+    <mat-card-header>
+      <mat-card-title>Sign Up</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="fill">
+          <mat-label>Username</mat-label>
+          <mat-icon matPrefix>person</mat-icon>
+          <input matInput formControlName="username" required>
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label>Email</mat-label>
+          <mat-icon matPrefix>email</mat-icon>
+          <input matInput type="email" formControlName="email" required>
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label>Password</mat-label>
+          <mat-icon matPrefix>lock</mat-icon>
+          <input matInput type="password" formControlName="password" required>
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label>Confirm Password</mat-label>
+          <mat-icon matPrefix>lock</mat-icon>
+          <input matInput type="password" formControlName="confirmPassword" required>
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="submit" class="signup-button">
+          <mat-icon>person_add</mat-icon>
+          Sign Up
+        </button>
+      </form>
+      <mat-card *ngIf="isSuccessful" class="success-message">
+        <mat-card-content>
+          Registration successful! Redirecting to home...
+        </mat-card-content>
+      </mat-card>
+      <mat-card *ngIf="isSignUpFailed" class="error-message">
+        <mat-card-content>
+          {{errorMessage}}
+        </mat-card-content>
+      </mat-card>
+    </mat-card-content>
+  </mat-card>
+</div>

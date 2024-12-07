@@ -1,15 +1,31 @@
 <div class="login-container">
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-      <mat-form-field appearance="fill">
-        <mat-label>Username</mat-label>
-        <input matInput formControlName="username" required>
-      </mat-form-field>
-      <mat-form-field appearance="fill">
-        <mat-label>Password</mat-label>
-        <input matInput type="password" formControlName="password" required>
-      </mat-form-field>
-      <button mat-raised-button color="primary" type="submit">Login</button>
-    </form>
-  </div>
-  
-  
+  <div class="login-background"></div>
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>Login</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="fill">
+          <mat-label>Username</mat-label>
+          <mat-icon matPrefix>person</mat-icon>
+          <input matInput formControlName="username" required>
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label>Password</mat-label>
+          <mat-icon matPrefix>lock</mat-icon>
+          <input matInput type="password" formControlName="password" required>
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="submit" class="login-button">
+          <mat-icon>login</mat-icon>
+          Login
+        </button>
+      </form>
+      <mat-card *ngIf="errorMessage" class="error-message">
+        <mat-card-content>
+          {{ errorMessage }}
+        </mat-card-content>
+      </mat-card>
+    </mat-card-content>
+  </mat-card>
+</div>
