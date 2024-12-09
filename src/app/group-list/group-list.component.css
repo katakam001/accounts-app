@@ -1,0 +1,80 @@
+.group-list-container {
+    padding: 20px;
+  }
+  
+  mat-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .spacer {
+    flex: 1 1 auto;
+  }
+  
+  .group-card {
+    margin-top: 20px;
+    background-color: #e0e0e0; /* Light gray background */
+    border: 1px solid #bdbdbd; /* Gray border */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  }
+  
+  table {
+    width: 100%;
+  }
+  
+  th.mat-header-cell {
+    background-color: #3f51b5; /* Indigo background */
+    color: white;
+    font-weight: bold;
+  }
+  
+  td.mat-cell {
+    background-color: #e8eaf6; /* Light indigo background */
+  }
+  
+  button {
+    margin-right: 10px;
+  }
+  
+  button.mat-button {
+    font-weight: bold;
+  }
+  
+  .add-group-button {
+    background-color: #ff9800; /* Orange background */
+    color: white;
+    border-radius: 4px;
+    padding: 8px 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .add-group-button:hover {
+    background-color: #fb8c00; /* Darker orange on hover */
+  }
+  
+  .edit-button {
+    background-color: #4caf50; /* Green background */
+    color: white;
+    border-radius: 4px;
+    padding: 8px 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .edit-button:hover {
+    background-color: #388e3c; /* Darker green on hover */
+  }
+  
+  .delete-button {
+    background-color: #f44336; /* Red background */
+    color: white;
+    border-radius: 4px;
+    padding: 8px 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .delete-button:hover {
+    background-color: #d32f2f; /* Darker red on hover */
+  }
+  

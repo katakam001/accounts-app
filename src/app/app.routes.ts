@@ -6,6 +6,7 @@ import { HomeComponent } from './home/home.component';
 import { RegisterComponent } from './register/register.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { AccountListComponent } from './account-list/account-list.component';
+import { GroupListComponent } from './group-list/group-list.component';
 
 export const routes: Routes =
   [
@@ -14,6 +15,7 @@ export const routes: Routes =
     { path: 'register', component: RegisterComponent },
     { path: 'home', component: HomeComponent, title: 'Home page' },
     { path: 'accountList', component: AccountListComponent, title: 'Account List page' },
+    { path: 'groupList', component: GroupListComponent, title: 'Group List page' },
     { path: 'dashboard', component: DashboardComponent, title: 'Dashboard page', canActivate: [AuthGuard] },
     { path: 'details/:id', component: DetailsComponent, title: 'Home details', canActivate: [AuthGuard] }
   ];
