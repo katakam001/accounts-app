@@ -7,7 +7,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { BrowserAnimationsModule, provideAnimations } from '@angular/platform-browser/animations';
 import { SharedModule } from './shared/shared.module';
-import { AccountService } from './account.service';
+import { AccountService } from './services/account.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 

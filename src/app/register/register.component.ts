@@ -5,7 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { AuthService } from '../auth.service';
+import { AuthService } from '../services/auth.service';
 import { CommonModule } from '@angular/common';
 import { MatSelectModule } from '@angular/material/select';
 

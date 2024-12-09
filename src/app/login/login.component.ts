@@ -2,10 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
-import { AuthService } from '../auth.service';
+import { AuthService } from '../services/auth.service';
 import { MatCardModule } from '@angular/material/card'
 import { MatIconModule } from '@angular/material/icon';
-import { StorageService } from '../storage.service';
+import { StorageService } from '../services/storage.service';
 import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-login',

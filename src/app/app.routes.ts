@@ -5,8 +5,8 @@ import { AuthGuard } from './auth.guard';
 import { HomeComponent } from './home/home.component';
 import { RegisterComponent } from './register/register.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
-import { AccountListComponent } from './account-list/account-list.component';
-import { GroupListComponent } from './group-list/group-list.component';
+import { AccountListComponent } from './configuration/account-list/account-list.component';
+import { GroupListComponent } from './configuration/group-list/group-list.component';
 
 export const routes: Routes =
   [

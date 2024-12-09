@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
-import { GroupService } from '../services/group.service';
-import { Group } from '../models/group.interface';
-import { EditGroupDialogComponent } from '../dialogbox/edit-group-dialog/edit-group-dialog.component';
-import { AddGroupDialogComponent } from '../dialogbox/add-group-dialog/add-group-dialog.component';
+import { GroupService } from '../../services/group.service';
+import { Group } from '../../models/group.interface';
+import { EditGroupDialogComponent } from '../../dialogbox/edit-group-dialog/edit-group-dialog.component';
+import { AddGroupDialogComponent } from '../../dialogbox/add-group-dialog/add-group-dialog.component';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { StorageService } from '../storage.service';
+import { StorageService } from '../../services/storage.service';
 
 @Component({
   selector: 'app-group-list',

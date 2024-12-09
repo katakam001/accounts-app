@@ -1,9 +1,9 @@
 import {Component, inject} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {ActivatedRoute} from '@angular/router';
-import {HousingService} from '../housing.service';
-import {HousingLocation} from '../housinglocation';
-import {Data} from '../data';
+import {HousingService} from '../services/housing.service';
+import {HousingLocation} from '../services/housinglocation';
+import {Data} from '../models/data';
 import {FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import { MatRadioModule } from '@angular/material/radio';
 

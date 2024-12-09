@@ -1,14 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { Account } from '../models/account.interface';
-import { AccountService } from '../account.service';
+import { Account } from '../../models/account.interface';
+import { AccountService } from '../../services/account.service';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatCardModule } from '@angular/material/card';
-import { EditAccountDialogComponent } from '../dialogbox/edit-account-dialog/edit-account-dialog.component';
+import { EditAccountDialogComponent } from '../../dialogbox/edit-account-dialog/edit-account-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import { AddAccountDialogComponent } from '../dialogbox/add-account-dialog/add-account-dialog.component';
-import { StorageService } from '../storage.service';
+import { AddAccountDialogComponent } from '../../dialogbox/add-account-dialog/add-account-dialog.component';
+import { StorageService } from '../../services/storage.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -30,11 +30,11 @@ export class AccountListComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.fetchAccounts();
+    this.fetchAccounts(this.storageService.getUser().id);
   }
 
-  fetchAccounts(): void {
-    this.accountService.getAccounts().subscribe((data: Account[]) => {
+  fetchAccounts(userId: number): void {
+    this.accountService.getAccountsByUserId(userId).subscribe((data: Account[]) => {
       this.accounts.data = data;
       this.financialYears = [...new Set(data.map(account => account.financial_year))];
     });
@@ -51,7 +51,7 @@ export class AccountListComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       console.log("save the add account:" + result);
       this.accountService.addAccount(result).subscribe(() => {
-        this.fetchAccounts(); // Refresh the account list after adding a new account
+        this.fetchAccounts(this.storageService.getUser().id); // Refresh the account list after adding a new account
       });
     });
   }
@@ -82,7 +82,7 @@ export class AccountListComponent implements OnInit {
   deleteAccount(id: number): void {
     this.accountService.deleteAccount(id).subscribe(response => {
       console.log('Response status:', response.status);
-      this.fetchAccounts(); // Refresh the table by fetching the updated list of accounts
+      this.fetchAccounts(this.storageService.getUser().id); // Refresh the table by fetching the updated list of accounts
     });
   }
 

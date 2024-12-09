@@ -8,8 +8,8 @@ import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { CommonModule } from '@angular/common';
-import { StorageService } from './storage.service';
-import { AuthService } from './auth.service';
+import { StorageService } from './services/storage.service';
+import { AuthService } from './services/auth.service';
 
 
 

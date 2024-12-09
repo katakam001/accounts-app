@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HousingLocation } from './housinglocation';
-import { Data } from './data';
+import { Data } from '../models/data';
 import { HttpClient } from '@angular/common/http';
 
 @Injectable({
