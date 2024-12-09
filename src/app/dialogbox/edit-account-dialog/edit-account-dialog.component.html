@@ -1,0 +1,25 @@
+<h1 mat-dialog-title>Edit Account</h1>
+<div mat-dialog-content>
+  <form [formGroup]="editAccountForm" class="edit-account-form">
+    <mat-form-field appearance="fill">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name">
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Description</mat-label>
+      <input matInput formControlName="description">
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+        <mat-label>Balance</mat-label>
+        <input matInput formControlName="balance" type="number">
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Financial Year</mat-label>
+        <input matInput formControlName="financial_year">
+      </mat-form-field>
+  </form>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" class="save-button" (click)="onSave()">Save</button>
+</div>

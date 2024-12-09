@@ -3,8 +3,14 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background: linear-gradient(to right, #3f51b5, #2196f3);
-  position: relative;
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+}
+
+.signup-card {
+  width: 600px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 .signup-background {
@@ -13,66 +19,47 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: url("/assets/login-background.jpg") no-repeat center center;
+  background: url('https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') no-repeat center center;
   background-size: cover;
-  opacity: 0.5;
+  filter: blur(8px);
   z-index: -1;
 }
 
-.signup-card {
+.form-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.form-field {
+  width: 48%;
+}
+
+.signup-button {
   width: 100%;
-  max-width: 400px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  background-color: rgba(255, 255, 255, 0.9);
+  margin-top: 20px;
+}
+
+.success-message, .error-message {
+  margin-top: 20px;
 }
 
 mat-card-title {
   text-align: center;
   font-size: 24px;
   font-weight: bold;
+  color: #fff;
+}
+
+mat-card-header {
+  background: #2575fc;
+}
+
+mat-card-content {
+  padding: 20px;
 }
 
 mat-form-field {
-  width: 100%;
-  margin-bottom: 16px;
-}
-
-.signup-button {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: bold;
-  background: linear-gradient(to right, #ff4081, #f50057);
-  color: white;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: background 0.3s ease;
-}
-
-.signup-button mat-icon {
-  margin-right: 8px;
-}
-
-.signup-button:hover {
-  background: linear-gradient(to right, #f50057, #ff4081);
-}
-
-.success-message {
-  margin-top: 16px;
-  background-color: #dff0d8;
-  color: #3c763d;
-  text-align: center;
-  padding: 16px;
-  border-radius: 4px;
-}
-
-.error-message {
-  margin-top: 16px;
-  background-color: #f8d7da;
-  color: #721c24;
-  text-align: center;
-  padding: 16px;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 5px;
+  padding: 10px;
 }

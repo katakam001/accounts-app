@@ -7,9 +7,9 @@
 </mat-toolbar>
 <mat-sidenav-container class="example-sidenav-container" *ngIf="storageService.isLoggedIn()">
   <mat-sidenav #snav mode="side">
-    <mat-nav-list>Accounts
-      <a mat-list-item routerLink="/home" routerLinkActive="active">Home</a>
-      <a mat-list-item [routerLink]="['/details',1]">About</a>
+    <mat-nav-list>Configuration
+      <a mat-list-item routerLink="/groupList" routerLinkActive="active">Group Setting</a>
+      <a mat-list-item routerLink="/accountList" routerLinkActive="active">Account Setting</a>
     </mat-nav-list>
   </mat-sidenav>
 

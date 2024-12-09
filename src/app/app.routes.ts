@@ -5,6 +5,7 @@ import { AuthGuard } from './auth.guard';
 import { HomeComponent } from './home/home.component';
 import { RegisterComponent } from './register/register.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { AccountListComponent } from './account-list/account-list.component';
 
 export const routes: Routes =
   [
@@ -12,6 +13,7 @@ export const routes: Routes =
     { path: 'login', component: LoginComponent },
     { path: 'register', component: RegisterComponent },
     { path: 'home', component: HomeComponent, title: 'Home page' },
+    { path: 'accountList', component: AccountListComponent, title: 'Account List page' },
     { path: 'dashboard', component: DashboardComponent, title: 'Dashboard page', canActivate: [AuthGuard] },
     { path: 'details/:id', component: DetailsComponent, title: 'Home details', canActivate: [AuthGuard] }
   ];

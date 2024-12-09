@@ -7,10 +7,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../auth.service';
 import { CommonModule } from '@angular/common';
+import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-register',
-  imports: [MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule],
+  imports: [MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, MatSelectModule, CommonModule],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })
@@ -24,18 +25,21 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit(): void {
     this.signupForm = this.fb.group({
+      firstname: ['', Validators.required],
+      middlename: [''],
+      lastname: ['', Validators.required],
       username: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
-      confirmPassword: ['', Validators.required]
+      confirmPassword: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]]
     });
   }
 
   onSubmit(): void {
     if (this.signupForm.valid) {
-      const { username, email, password, confirmPassword } = this.signupForm.value;
+      const { firstname,middlename,lastname,username, email, password, confirmPassword } = this.signupForm.value;
       if (password === confirmPassword) {
-        this.authService.register(username, email, password).subscribe({
+        this.authService.register(firstname,middlename,lastname,username, email, password).subscribe({
           next: data => {
             console.log(data);
             this.isSuccessful = true;

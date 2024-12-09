@@ -32,10 +32,7 @@ export class StorageService {
       if (user) {
         return true;
       }
-      console.log('Window object is not available');
       // Code that uses the window object
-    } else {
-      console.log('Window object is available');
     }
     
     return false;

@@ -10,8 +10,8 @@ export class HousingService {
   constructor(private http: HttpClient) { }
 
 
-  url = 'http://localhost:3000/api/locations';
-  apiUrl = 'http://localhost:3000/api';
+  url = 'http://localhost:8080/api/locations';
+  apiUrl = 'http://localhost:8080/api';
   async getAllHousingLocations(): Promise<HousingLocation[]> {
     const data = await fetch(this.url);
     return (await data.json()) ?? [];

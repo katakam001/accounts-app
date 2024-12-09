@@ -1,0 +1,27 @@
+<h1 mat-dialog-title>Add Account</h1>
+<div mat-dialog-content>
+  <form [formGroup]="addAccountForm" class="add-account-form">
+    <mat-form-field appearance="fill">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name">
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Description</mat-label>
+      <input matInput formControlName="description">
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Balance</mat-label>
+      <input matInput formControlName="balance" type="number">
+    </mat-form-field>
+    <mat-form-field appearance="fill">
+      <mat-label>Financial Year Start</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="financial_year_start">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+  </form>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" class="save-button" (click)="onSave()">Save</button>
+</div>

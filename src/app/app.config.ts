@@ -6,36 +6,25 @@ import { BrowserModule, provideClientHydration, withEventReplay } from '@angular
 import { provideHttpClient } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { BrowserAnimationsModule, provideAnimations } from '@angular/platform-browser/animations';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatInputModule } from '@angular/material/input';
+import { SharedModule } from './shared/shared.module';
+import { AccountService } from './account.service';
 import { ReactiveFormsModule } from '@angular/forms';
-
-
+import { MatDialogModule } from '@angular/material/dialog';
 
 export const appConfig: ApplicationConfig = {
-  providers:
-    [
-      provideAnimations(),
-      provideHttpClient(),
-      provideZoneChangeDetection({ eventCoalescing: true }),
-      provideRouter(routes),
-      provideClientHydration(withEventReplay()),
-      provideHttpClient(),
-      provideAnimationsAsync(),
-      importProvidersFrom(MatNativeDateModule),
-      BrowserModule,
-      BrowserAnimationsModule,
-      MatSidenavModule,
-      MatToolbarModule,
-      MatIconModule,
-      MatListModule,
-      MatRadioModule,
-      MatInputModule,
-      ReactiveFormsModule
-    ]
+  providers: [
+    provideAnimations(),
+    provideHttpClient(),
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(routes),
+    provideClientHydration(withEventReplay()),
+    provideHttpClient(),
+    provideAnimationsAsync(),
+    importProvidersFrom(BrowserModule),
+    importProvidersFrom(BrowserAnimationsModule),
+    importProvidersFrom(MatDialogModule),
+    importProvidersFrom(ReactiveFormsModule),
+    importProvidersFrom(SharedModule),
+    AccountService, provideAnimationsAsync(), provideAnimationsAsync()
+  ]
 };
