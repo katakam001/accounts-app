@@ -17,6 +17,14 @@ export class JournalService {
     return this.http.get<JournalEntry[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}`);
   }
 
+  getJournalEntriesByAccount(accountName: string, userId: number, financialYear: string): Observable<any[]> {
+    return this.http.get<JournalEntry[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}&accountName=${accountName}`);
+  }
+
+  getJournalEntriesByGroup(groupName: string, userId: number, financialYear: string): Observable<any[]> {
+    return this.http.get<JournalEntry[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}&groupName=${groupName}`);
+  }
+
   getJournalEntriesByUserId(userId: number): Observable<JournalEntry[]> {
     return this.http.get<JournalEntry[]>(`${this.apiUrl}?userId=${userId}`);
   }

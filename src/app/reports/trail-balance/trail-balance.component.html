@@ -1,0 +1,26 @@
+<div class="trail-balance-container">
+  <h2 class="report-title">Trail Balance Report</h2>
+  <div *ngIf="financialYear" class="financial-year-container">
+    <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
+  </div>
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>Group Name</th>
+        <th>Account Name</th>
+        <th>Total Debit</th>
+        <th>Total Credit</th>
+        <th>Balance</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let entry of trailBalanceReport" (click)="navigateToJournalEntry(entry.accountName, entry.groupName)">
+        <td>{{ entry.groupName }}</td>
+        <td>{{ entry.accountName }}</td>
+        <td>{{ entry.totalDebit }}</td>
+        <td>{{ entry.totalCredit }}</td>
+        <td>{{ entry.balance }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
