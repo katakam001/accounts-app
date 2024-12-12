@@ -7,12 +7,9 @@
   
     <mat-card class="group-card">
       <mat-card-content>
-        <mat-form-field appearance="fill">
-          <mat-label>Filter by Financial Year</mat-label>
-          <mat-select [(value)]="selectedFinancialYear" (selectionChange)="applyFilter()">
-            <mat-option *ngFor="let year of financialYears" [value]="year">{{ year }}</mat-option>
-          </mat-select>
-        </mat-form-field>
+        <div *ngIf="financialYear" class="financial-year-container">
+          <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
+        </div>
   
         <table mat-table [dataSource]="groups" class="mat-elevation-z8">
   

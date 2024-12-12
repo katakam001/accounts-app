@@ -1,0 +1,56 @@
+/* financial-year-dialog.component.css */
+h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.mat-dialog-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mat-form-field {
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 20px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: center; /* Center align buttons */
+  gap: 20px; /* Add gap between buttons */
+  padding: 10px 0;
+}
+
+.dialog-actions button {
+  min-width: 12px; /* Increase button size */
+  padding: 10px 20px; /* Increase padding for larger buttons */
+  font-size: 16px; /* Increase font size */
+}
+
+.cancel-button {
+  background-color: #f44336; /* Red */
+  color: white;
+  border-radius: 8px; /* Rounded corners */
+  transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transition */
+}
+
+.save-button {
+  background-color: #4caf50; /* Green */
+  color: white;
+  border-radius: 8px; /* Rounded corners */
+  transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transition */
+}
+
+.cancel-button:hover {
+  background-color: #d32f2f; /* Darker Red */
+  transform: translateY(-2px); /* Slight lift on hover */
+}
+
+.save-button:hover {
+  background-color: #388e3c; /* Darker Green */
+  transform: translateY(-2px); /* Slight lift on hover */
+}

@@ -1,3 +1,8 @@
+<!-- app.component.html -->
+<button mat-button class="set-financial-year-button" (click)="openFinancialYearDialog()">Set Financial Year</button>
+<div *ngIf="financialYear" class="financial-year-container">
+  <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
+</div>
 <section>
   <form>
     <input type="text" placeholder="Filter by city" #filter />

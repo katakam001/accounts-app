@@ -1,0 +1,191 @@
+.journal-list-container {
+  margin: 20px;
+}
+
+.mat-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #3f51b5;
+  color: white;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.journal-card {
+  margin-top: 20px;
+}
+
+.mat-card-content {
+  padding: 20px;
+}
+
+.mat-elevation-z8 {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.mat-header-cell, .mat-cell {
+  padding: 10px;
+  text-align: left; /* Ensure text is left-aligned */
+}
+
+.mat-header-cell {
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+.mat-cell {
+  background-color: #ffffff;
+}
+
+button.mat-raised-button {
+  margin-right: 10px;
+  border-radius: 20px;
+  padding: 10px 20px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+button.mat-raised-button:hover {
+  transform: scale(1.05);
+}
+
+button.mat-raised-button.mat-primary {
+  background-color: #2196f3;
+  color: white;
+}
+
+button.mat-raised-button.mat-warn {
+  background-color: #f44336;
+  color: white;
+}
+
+button.mat-raised-button.mat-accent {
+  background-color: #ff4081;
+  color: white;
+}
+
+.items-panel {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.entry-panel {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.items-table {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.entry-table {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.edit-button {
+  background-color: #4caf50;
+  color: white;
+  border-radius: 20px;
+  padding: 10px 20px;
+  margin-right: 10px; /* Add margin to create space between buttons */
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.edit-button:hover {
+  background-color: #388e3c;
+  transform: scale(1.05);
+}
+
+.delete-button {
+  background-color: #f44336;
+  color: white;
+  border-radius: 20px;
+  padding: 10px 20px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.delete-button:hover {
+  background-color: #d32f2f;
+  transform: scale(1.05);
+}
+
+.nested-card {
+  margin-top: 10px;
+}
+
+.nested-card .mat-card-content {
+  padding: 10px;
+}
+
+.example-element-row {
+  cursor: pointer;
+}
+
+.example-detail-row {
+  background-color: #f9f9f9;
+}
+
+.add-button {
+  background-color: #ff4081;
+  color: white;
+  border-radius: 25px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.add-button:hover {
+  background-color: #e91e63;
+  transform: scale(1.05);
+}
+
+.mat-card-content table {
+  width: 100%; /* Ensure the table takes up the full width of the card */
+}
+
+.mat-card-content th, .mat-card-content td {
+  text-align: left; /* Ensure text is left-aligned */
+  padding: 8px; /* Add padding for better spacing */
+}
+
+.mat-card-content th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+.mat-card-content td {
+  background-color: #ffffff;
+}
+
+.mat-card-content .mat-header-row, .mat-card-content .mat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.financial-year-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #f0f4f8; /* Light background color */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  margin: 20px 0; /* Margin for spacing */
+}
+
+.financial-year-text {
+  font-size: 24px; /* Larger font size */
+  font-weight: bold; /* Bold text */
+  color: #333; /* Dark text color */
+}

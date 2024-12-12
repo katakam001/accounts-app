@@ -8,9 +8,15 @@ import { Account } from '../models/account.interface';
 })
 export class AccountService {
 
+
   private apiUrl = 'http://localhost:8080/api/accounts';
 
   constructor(private http: HttpClient) { }
+
+  // account.service.ts
+  getAccountsByUserIdAndFinancialYear(userId: number, financialYear: string): Observable<Account[]> {
+    return this.http.get<Account[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}`);
+  }
 
   getAccountsByUserId(userId: number): Observable<Account[]> {
     return this.http.get<Account[]>(`${this.apiUrl}?userId=${userId}`);

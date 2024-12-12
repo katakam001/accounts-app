@@ -13,6 +13,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { FinancialYearService } from '../../services/financial-year.service';
 
 @Component({
   selector: 'app-account-list',
@@ -23,25 +24,32 @@ import { MatSelectModule } from '@angular/material/select';
 export class AccountListComponent implements OnInit {
   accounts = new MatTableDataSource<Account>();
   displayedColumns: string[] = ['name', 'description', 'balance', 'financial_year', 'actions'];
-  financialYears: string[] = [];
-  selectedFinancialYear: string = '';
+  financialYear: string;
 
-  constructor(private accountService: AccountService, public dialog: MatDialog, private storageService: StorageService
+
+  constructor(private accountService: AccountService, public dialog: MatDialog, private storageService: StorageService,private financialYearService: FinancialYearService
   ) { }
 
   ngOnInit(): void {
-    this.fetchAccounts(this.storageService.getUser().id);
+    this.getFinancialYear();
   }
-
-  fetchAccounts(userId: number): void {
-    this.accountService.getAccountsByUserId(userId).subscribe((data: Account[]) => {
-      this.accounts.data = data;
-      this.financialYears = [...new Set(data.map(account => account.financial_year))];
+  
+  getFinancialYear() {
+    this.financialYearService.financialYear$.subscribe(year => {
+      this.financialYear = year;
+      if (this.financialYear) {
+        this.fetchAccounts(this.storageService.getUser().id, this.financialYear);
+      }
     });
   }
-  applyFilter(): void {
-    this.accounts.filter = this.selectedFinancialYear.trim().toLowerCase();
+  
+
+  fetchAccounts(userId: number, financialYear: string): void {
+    this.accountService.getAccountsByUserIdAndFinancialYear(userId, financialYear).subscribe((data: Account[]) => {
+      this.accounts.data = data;
+    });
   }
+
 
   addAccount(): void {
     const dialogRef = this.dialog.open(AddAccountDialogComponent, {
@@ -51,7 +59,7 @@ export class AccountListComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       console.log("save the add account:" + result);
       this.accountService.addAccount(result).subscribe(() => {
-        this.fetchAccounts(this.storageService.getUser().id); // Refresh the account list after adding a new account
+        this.fetchAccounts(this.storageService.getUser().id,this.financialYear); // Refresh the account list after adding a new account
       });
     });
   }
@@ -82,7 +90,7 @@ export class AccountListComponent implements OnInit {
   deleteAccount(id: number): void {
     this.accountService.deleteAccount(id).subscribe(response => {
       console.log('Response status:', response.status);
-      this.fetchAccounts(this.storageService.getUser().id); // Refresh the table by fetching the updated list of accounts
+      this.fetchAccounts(this.storageService.getUser().id,this.financialYear); // Refresh the table by fetching the updated list of accounts
     });
   }
 

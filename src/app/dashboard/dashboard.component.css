@@ -34,3 +34,38 @@ button {
       grid-template-columns: 1fr;
   }    
 }
+
+.set-financial-year-button {
+  background-color: #2196f3; /* Blue */
+  color: white;
+  font-size: 18px; /* Increase font size */
+  padding: 12px 24px; /* Increase padding for larger button */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+  transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transition */
+  display: block; /* Ensure the button is displayed as a block element */
+  margin: 20px auto; /* Center the button horizontally */
+}
+
+.set-financial-year-button:hover {
+  background-color: #1976d2; /* Darker blue on hover */
+  transform: translateY(-2px); /* Slight lift on hover */
+}
+
+.financial-year-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #f0f4f8; /* Light background color */
+  border-radius: 10px; /* Rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  margin: 20px 0; /* Margin for spacing */
+}
+
+.financial-year-text {
+  font-size: 24px; /* Larger font size */
+  font-weight: bold; /* Bold text */
+  color: #333; /* Dark text color */
+}
+

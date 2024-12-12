@@ -7,9 +7,14 @@ import { Group } from '../models/group.interface';
   providedIn: 'root'
 })
 export class GroupService {
+
   private apiUrl = 'http://localhost:8080/api/groups';
 
   constructor(private http: HttpClient) {}
+  
+  getGroupsByUserIdAndFinancialYear(userId: number, financialYear: string) {
+    return this.http.get<Group[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}`);
+  }
 
   getGroupsByUserId(userId: number): Observable<Group[]> {
     return this.http.get<Group[]>(`${this.apiUrl}?userId=${userId}`);
