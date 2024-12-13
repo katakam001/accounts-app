@@ -48,6 +48,17 @@ export class EditCashBookDialogComponent implements OnInit {
     });
     this.fetchAccountList();
   }
+  
+  dateFilter = (date: Date | null): boolean => {
+    if (!date || !this.data.financialYear) {
+      return false;
+    }
+
+    const [startYear, endYear] = this.data.financialYear.split('-').map(Number);
+    const startDate = new Date(startYear, 3, 1); // April 1st of start year
+    const endDate = new Date(endYear, 2, 31); // March 31st of end year
+    return date >= startDate && date <= endDate;
+  };
 
   fetchAccountList(): void {
     this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id, this.data.financialYear).subscribe((accounts: Account[]) => {

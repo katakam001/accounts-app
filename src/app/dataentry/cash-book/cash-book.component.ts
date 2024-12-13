@@ -16,6 +16,7 @@ import { CashEntry } from '../../models/cash-entry.interface';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { CashEntriesService } from '../../services/cash-entries.service';
+import { AccountService } from '../../services/account.service';
 
 @Component({
   selector: 'app-cash-book',
@@ -25,15 +26,19 @@ import { CashEntriesService } from '../../services/cash-entries.service';
 })
 export class CashBookComponent implements OnInit {
   transactions: MatTableDataSource<CashEntry>;
-  displayedColumns: string[] = ['cash_credit','cash_entry_date', 'account_name', 'narration_description', 'cash_debit', 'balance', 'actions'];
+  displayedColumns: string[] = ['cash_credit', 'cash_entry_date', 'account_name', 'narration_description', 'cash_debit', 'balance', 'actions'];
+  dateDisplayedColumns: string[] = ['cash_credit', 'account_name', 'narration_description', 'cash_debit', 'balance', 'actions'];
   currentBalance: number = 0;
   financialYear: string;
+  groupedTransactions: { date: Date, transactions: CashEntry[], runningBalance: number }[] = [];
+  openingBalance: number = 0;
 
   constructor(
     public dialog: MatDialog,
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
-    private cashEntriesService: CashEntriesService
+    private cashEntriesService: CashEntriesService,
+    private accountService: AccountService,
   ) {
     this.transactions = new MatTableDataSource<CashEntry>([]);
   }
@@ -60,10 +65,35 @@ export class CashBookComponent implements OnInit {
         cash_credit: entry.type ? entry.amount : 0,
         balance: 0 // Initial balance, will be recalculated
       }));
+      this.groupedTransactions = this.groupEntriesByDate(this.transactions.data);
       this.recalculateBalances();
     });
   }
 
+  groupEntriesByDate(entries: CashEntry[]): { date: Date, transactions: CashEntry[], runningBalance: number }[] {
+    // Sort entries by date in ascending order
+    entries.sort((a, b) => new Date(a.cash_entry_date).getTime() - new Date(b.cash_entry_date).getTime());
+  
+    const groupedEntries: { [key: string]: CashEntry[] } = {};
+  
+    entries.forEach(entry => {
+      const date = new Date(entry.cash_entry_date).toDateString();
+      if (!groupedEntries[date]) {
+        groupedEntries[date] = [];
+      }
+      groupedEntries[date].push(entry);
+    });
+  
+    const result: { date: Date, transactions: CashEntry[], runningBalance: number }[] = [];
+    for (const date in groupedEntries) {
+      const dateEntries = groupedEntries[date];
+      const runningBalance = dateEntries.reduce((acc, entry) => acc + (entry.cash_credit - entry.cash_debit), 0);
+      result.push({ date: new Date(date), transactions: dateEntries, runningBalance });
+    }
+  
+    return result;
+  }
+  
   addCashEntry(): void {
     const dialogRef = this.dialog.open(AddCashBookDialogComponent, {
       width: '800px',
@@ -96,11 +126,12 @@ export class CashBookComponent implements OnInit {
     const newEntry: CashEntry = {
       cash_entry_date: transaction.cash_entry_date,
       account_id: transaction.account_id,
+      account_name: transaction.account_name,
       narration_description: transaction.narration_description,
       type: transaction.cash_debit > 0 ? false : true,
       cash_debit: transaction.cash_debit,
       cash_credit: transaction.cash_credit,
-      amount:transaction.cash_debit>0?transaction.cash_debit:transaction.cash_credit,
+      amount: transaction.cash_debit > 0 ? transaction.cash_debit : transaction.cash_credit,
       balance: 0, // Initial balance, will be recalculated
       user_id: this.storageService.getUser().id,
       financial_year: this.financialYear,
@@ -108,17 +139,18 @@ export class CashBookComponent implements OnInit {
 
     this.cashEntriesService.addCashEntry(newEntry).subscribe((data: CashEntry) => {
       transaction.id = data.id;
-      transaction.balance = this.calculateBalance(transaction);
       this.transactions.data = [...this.transactions.data, transaction];
+      this.groupedTransactions = this.groupEntriesByDate(this.transactions.data);
+      this.recalculateBalances();
     });
   }
 
   updateTransaction(updatedTransaction: CashEntry): void {
     const updatedEntry = {
-      id:updatedTransaction.id!,
+      id: updatedTransaction.id!,
       cash_entry_date: updatedTransaction.cash_entry_date,
       account_id: updatedTransaction.account_id,
-      account_name:updatedTransaction.account_name,
+      account_name: updatedTransaction.account_name,
       narration_description: updatedTransaction.narration_description,
       type: updatedTransaction.cash_debit > 0 ? false : true,
       cash_debit: updatedTransaction.cash_debit,
@@ -135,26 +167,13 @@ export class CashBookComponent implements OnInit {
         this.transactions.data[index] = {
           ...this.transactions.data[index],
           ...updatedTransaction,
-          balance: this.calculateBalance(updatedTransaction)
         };
         this.transactions.data = [...this.transactions.data];
+        this.groupedTransactions = this.groupEntriesByDate(this.transactions.data);
         this.recalculateBalances(); // Recalculate balances after updating a transaction
       }
     });
   }
-
-  calculateBalance(transaction: CashEntry): number {
-    const cashDebit = parseFloat(transaction.cash_debit.toString()) || 0;
-    const cashCredit = parseFloat(transaction.cash_credit.toString()) || 0;
-
-    if (cashDebit) {
-      this.currentBalance -= cashDebit;
-    } else if (cashCredit) {
-      this.currentBalance += cashCredit;
-    }
-    return this.currentBalance;
-  }
-  
 
   deleteTransaction(transaction: CashEntry): void {
     if (transaction.id) {
@@ -162,18 +181,45 @@ export class CashBookComponent implements OnInit {
         const index = this.transactions.data.indexOf(transaction);
         if (index >= 0) {
           this.transactions.data.splice(index, 1);
-          this.transactions.data = [...this.transactions.data];
+          this.groupedTransactions = this.groupEntriesByDate(this.transactions.data);
           this.recalculateBalances();
         }
       });
     }
   }
-  
 
   recalculateBalances(): void {
     this.currentBalance = 0;
-    this.transactions.data.forEach(transaction => {
-      transaction.balance = this.calculateBalance(transaction);
+    this.openingBalance = 0;
+  
+    // Fetch the opening balance from the account list where name is "CASH"
+    this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id, this.financialYear).subscribe(accounts => {
+      const cashAccount = accounts.find(account => account.name === 'CASH');
+      if (cashAccount) {
+        this.openingBalance = cashAccount.debit_balance;
+      }
+  
+      this.groupedTransactions.forEach((dateGroup, groupIndex) => {
+        dateGroup.runningBalance = 0;
+        dateGroup.transactions.forEach((transaction, index) => {
+          const cashDebit = parseFloat(transaction.cash_debit.toString()) || 0;
+          const cashCredit = parseFloat(transaction.cash_credit.toString()) || 0;
+  
+          if (index === 0 && groupIndex === 0) {
+            // Add the opening balance to the first dated record's cash credit
+            this.currentBalance += this.openingBalance;
+          }
+  
+          if (cashDebit) {
+            this.currentBalance -= cashDebit;
+          } else if (cashCredit) {
+            this.currentBalance += cashCredit;
+          }
+  
+          transaction.balance = this.currentBalance;
+          dateGroup.runningBalance = this.currentBalance;
+        });
+      });
     });
   }
 }

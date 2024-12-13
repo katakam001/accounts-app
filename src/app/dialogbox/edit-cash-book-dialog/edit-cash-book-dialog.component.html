@@ -4,7 +4,7 @@
       <div class="form-row">
         <mat-form-field appearance="fill" class="form-field">
           <mat-label>Cash Entry Date</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="cash_entry_date" required>
+          <input matInput [matDatepicker]="picker" formControlName="cash_entry_date" [matDatepickerFilter]="dateFilter" required>
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
           <mat-error *ngIf="cashBookForm.get('cash_entry_date')?.hasError('required')">Date is required</mat-error>
