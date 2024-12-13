@@ -23,17 +23,22 @@ import { FinancialYearService } from '../../services/financial-year.service';
 })
 export class AccountListComponent implements OnInit {
   accounts = new MatTableDataSource<Account>();
-  displayedColumns: string[] = ['name', 'description', 'balance', 'financial_year', 'actions'];
+  displayedColumns: string[] = ['name', 'description', 'debit_balance', 'credit_balance', 'financial_year', 'actions'];
   financialYear: string;
+  totalDebits: number = 0;
+  totalCredits: number = 0;
 
-
-  constructor(private accountService: AccountService, public dialog: MatDialog, private storageService: StorageService,private financialYearService: FinancialYearService
+  constructor(
+    private accountService: AccountService,
+    public dialog: MatDialog,
+    private storageService: StorageService,
+    private financialYearService: FinancialYearService
   ) { }
 
   ngOnInit(): void {
     this.getFinancialYear();
   }
-  
+
   getFinancialYear() {
     this.financialYearService.financialYear$.subscribe(year => {
       this.financialYear = year;
@@ -42,14 +47,34 @@ export class AccountListComponent implements OnInit {
       }
     });
   }
-  
 
   fetchAccounts(userId: number, financialYear: string): void {
     this.accountService.getAccountsByUserIdAndFinancialYear(userId, financialYear).subscribe((data: Account[]) => {
       this.accounts.data = data;
+      this.calculateTotals();
     });
   }
 
+  calculateTotals(): void {
+    this.totalDebits = this.accounts.data.reduce((sum, account) => sum + account.debit_balance, 0);
+    this.totalCredits = this.accounts.data.reduce((sum, account) => sum + account.credit_balance, 0);
+  }
+
+  formatNumber(value: number): string {
+    return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+  }
+
+  getDifference(): { value: string, class: string } {
+    const difference = Math.abs(this.totalDebits - this.totalCredits);
+    let type = 'neutral';
+    if (this.totalDebits > this.totalCredits) {
+      type = 'debit';
+    } else if (this.totalCredits > this.totalDebits) {
+      type = 'credit';
+    }
+    return { value: `${this.formatNumber(difference)} (${type})`, class: `difference-${type}` };
+  }
+  
 
   addAccount(): void {
     const dialogRef = this.dialog.open(AddAccountDialogComponent, {
@@ -59,7 +84,7 @@ export class AccountListComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       console.log("save the add account:" + result);
       this.accountService.addAccount(result).subscribe(() => {
-        this.fetchAccounts(this.storageService.getUser().id,this.financialYear); // Refresh the account list after adding a new account
+        this.fetchAccounts(this.storageService.getUser().id, this.financialYear); // Refresh the account list after adding a new account
       });
     });
   }
@@ -78,7 +103,8 @@ export class AccountListComponent implements OnInit {
           name: result.name,
           description: result.description,
           user_id: this.storageService.getUser().id,
-          balance: result.balance,
+          credit_balance: result.credit_balance,
+          debit_balance: result.debit_balance,
           financial_year: result.financial_year
         };
         console.log('Updated account:', newAccount);
@@ -90,10 +116,9 @@ export class AccountListComponent implements OnInit {
   deleteAccount(id: number): void {
     this.accountService.deleteAccount(id).subscribe(response => {
       console.log('Response status:', response.status);
-      this.fetchAccounts(this.storageService.getUser().id,this.financialYear); // Refresh the table by fetching the updated list of accounts
+      this.fetchAccounts(this.storageService.getUser().id, this.financialYear); // Refresh the table by fetching the updated list of accounts
     });
   }
-
 
   updateAccount(updatedAccount: Account): void {
     this.accountService.updateAccount(updatedAccount).subscribe(() => {
@@ -102,6 +127,7 @@ export class AccountListComponent implements OnInit {
       if (index !== -1) {
         this.accounts.data[index] = updatedAccount;
         this.accounts._updateChangeSubscription(); // Refresh the table
+        this.calculateTotals(); // Recalculate totals after update
       }
     });
   }

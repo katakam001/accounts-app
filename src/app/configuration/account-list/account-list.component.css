@@ -95,3 +95,37 @@ button.mat-button {
   font-weight: bold; /* Bold text */
   color: #333; /* Dark text color */
 }
+
+.totals-container {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  text-align: right;
+}
+
+.totals-container p {
+  margin: 5px 0;
+  font-weight: bold;
+}
+
+.total-debits {
+  color: red;
+}
+
+.total-credits {
+  color: green;
+}
+
+.difference-debit {
+  color: red;
+}
+
+.difference-credit {
+  color: green;
+}
+
+.difference-neutral {
+  color: black;
+}

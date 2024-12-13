@@ -10,7 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-edit-account-dialog',
-  imports: [MatCardModule,MatInputModule,ReactiveFormsModule,MatCardModule,MatIconModule,CommonModule,MatSelectModule],
+  imports: [MatCardModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule, MatSelectModule],
   templateUrl: './edit-account-dialog.component.html',
   styleUrls: ['./edit-account-dialog.component.css']
 })
@@ -27,15 +27,25 @@ export class EditAccountDialogComponent {
       id: [data.id],
       name: [data.name, Validators.required],
       description: [data.description],
-      balance: [data.balance, Validators.required],
+      debit_balance: [data.debit_balance, [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
+      credit_balance: [data.credit_balance, [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
       financial_year: [data.financial_year, Validators.required]
     });
   }
 
   onSave(): void {
-    console.log(this.editAccountForm.value);
     if (this.editAccountForm.valid) {
-      this.dialogRef.close(this.editAccountForm.value);
+      const formValue = this.editAccountForm.value;
+      const updatedAccount: Account = {
+        id: formValue.id,
+        name: formValue.name,
+        description: formValue.description,
+        user_id: this.data.user_id,
+        credit_balance: parseFloat(formValue.credit_balance),
+        debit_balance: parseFloat(formValue.debit_balance),
+        financial_year: formValue.financial_year,
+      };
+      this.dialogRef.close(updatedAccount);
     }
   }
 

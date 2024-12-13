@@ -1,0 +1,60 @@
+<!-- cash-book-dialog.component.html -->
+<div mat-dialog-content>
+  <form [formGroup]="cashBookForm" class="cash-book-form">
+    <div class="form-row">
+      <mat-form-field appearance="fill" class="form-field">
+        <mat-label>Cash Entry Date</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="cash_entry_date" required>
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        <mat-error *ngIf="cashBookForm.get('cash_entry_date')?.hasError('required')">Date is required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="form-field">
+        <mat-label>Account Name</mat-label>
+        <mat-select formControlName="account_name" (selectionChange)="onAccountSelectionChange($event)">
+          <mat-option *ngFor="let account of accountList" [value]="account.account_name">{{ account.account_name }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="cashBookForm.get('account_name')?.hasError('required')">Account name is required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="form-field">
+        <mat-label>Narration</mat-label>
+        <mat-select formControlName="narration" required (selectionChange)="onNarrationChange($event.value)">
+          <mat-option *ngFor="let narration of narrations" [value]="narration">{{ narration }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="cashBookForm.get('narration')?.hasError('required')">Narration is required</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill" class="form-field full-width">
+        <mat-label>Narration Description</mat-label>
+        <textarea matInput formControlName="narration_description" [readonly]="!isCustomNarration" [maxlength]="100" rows="3"></textarea>
+        <mat-error *ngIf="cashBookForm.get('narration_description')?.hasError('required')">Narration description is required</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="fill" class="form-field fixed-width">
+        <mat-label>Cash Debit</mat-label>
+        <input matInput formControlName="cash_debit" (input)="updateRunningBalance()" required>
+        <mat-error *ngIf="cashBookForm.get('cash_debit')?.hasError('required')">Cash debit is required</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="form-field fixed-width">
+        <mat-label>Cash Credit</mat-label>
+        <input matInput formControlName="cash_credit" (input)="updateRunningBalance()" required>
+        <mat-error *ngIf="cashBookForm.get('cash_credit')?.hasError('required')">Cash credit is required</mat-error>
+      </mat-form-field>
+
+      <div class="running-balance fixed-width">
+        <p>Running Balance: {{ runningBalance | currency:'INR':'symbol':'1.2-2':'en-IN' }}</p>
+      </div>
+    </div>
+  </form>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
+  <button mat-raised-button color="primary" class="save-button" [disabled]="cashBookForm.invalid" (click)="onSave()">Save</button>
+</div>

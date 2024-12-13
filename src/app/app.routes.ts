@@ -9,6 +9,7 @@ import { AccountListComponent } from './configuration/account-list/account-list.
 import { GroupListComponent } from './configuration/group-list/group-list.component';
 import { JournalListComponent } from './dataentry/journal-list/journal-list.component';
 import { TrailBalanceComponent } from './reports/trail-balance/trail-balance.component';
+import { CashBookComponent } from './dataentry/cash-book/cash-book.component';
 
 export const routes: Routes =
   [
@@ -19,6 +20,7 @@ export const routes: Routes =
     { path: 'accountList', component: AccountListComponent, title: 'Account List page' , canActivate: [AuthGuard] },
     { path: 'groupList', component: GroupListComponent, title: 'Group List page' , canActivate: [AuthGuard] },
     { path: 'journalEntries', component: JournalListComponent, title: 'Journal Entry page' , canActivate: [AuthGuard] },
+    { path: 'cashBook', component: CashBookComponent, title: 'Cash Book page' , canActivate: [AuthGuard] },
     { path: 'dashboard', component: DashboardComponent, title: 'Dashboard page', canActivate: [AuthGuard] },
     { path: 'trailBalance', component: TrailBalanceComponent, title: 'Trail Balance page', canActivate: [AuthGuard] },
     { path: 'details/:id', component: DetailsComponent, title: 'Home details', canActivate: [AuthGuard] }

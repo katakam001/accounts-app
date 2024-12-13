@@ -1,27 +1,41 @@
-<h1 mat-dialog-title>Add Account</h1>
+<!-- add-account-dialog.component.html -->
 <div mat-dialog-content>
   <form [formGroup]="addAccountForm" class="add-account-form">
-    <mat-form-field appearance="fill">
+    <mat-form-field>
       <mat-label>Name</mat-label>
       <input matInput formControlName="name">
+      <mat-error *ngIf="addAccountForm.get('name')?.hasError('required')">Name is required</mat-error>
     </mat-form-field>
-    <mat-form-field appearance="fill">
+
+    <mat-form-field>
       <mat-label>Description</mat-label>
       <input matInput formControlName="description">
     </mat-form-field>
-    <mat-form-field appearance="fill">
-      <mat-label>Balance</mat-label>
-      <input matInput formControlName="balance" type="number">
+
+    <mat-form-field>
+      <mat-label>Debit Balance</mat-label>
+      <input matInput formControlName="debit_balance">
+      <mat-error *ngIf="addAccountForm.get('debit_balance')?.hasError('required')">Debit Balance is required</mat-error>
+      <mat-error *ngIf="addAccountForm.get('debit_balance')?.hasError('pattern')">Invalid format. Use up to 2 decimal places.</mat-error>
     </mat-form-field>
-    <mat-form-field appearance="fill">
+
+    <mat-form-field>
+      <mat-label>Credit Balance</mat-label>
+      <input matInput formControlName="credit_balance">
+      <mat-error *ngIf="addAccountForm.get('credit_balance')?.hasError('required')">Credit Balance is required</mat-error>
+      <mat-error *ngIf="addAccountForm.get('credit_balance')?.hasError('pattern')">Invalid format. Use up to 2 decimal places.</mat-error>
+    </mat-form-field>
+
+    <mat-form-field>
       <mat-label>Financial Year Start</mat-label>
       <input matInput [matDatepicker]="picker" formControlName="financial_year_start">
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
+      <mat-error *ngIf="addAccountForm.get('financial_year_start')?.hasError('required')">Financial Year Start is required</mat-error>
     </mat-form-field>
   </form>
 </div>
 <div mat-dialog-actions align="end">
   <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
-  <button mat-raised-button color="primary" class="save-button" (click)="onSave()">Save</button>
+  <button mat-raised-button color="primary" class="save-button" [disabled]="addAccountForm.invalid" (click)="onSave()">Save</button>
 </div>

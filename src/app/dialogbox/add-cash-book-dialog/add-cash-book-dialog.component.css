@@ -1,0 +1,64 @@
+.cash-book-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.form-field {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.form-field:last-child {
+  margin-right: 0;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.fixed-width {
+  width: 150px; /* Set a fixed width for Cash Debit, Cash Credit, and Running Balance fields */
+}
+
+.running-balance {
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+  font-size: 16px;
+  padding: 12px 24px;
+  border-radius: 25px;
+  margin-right: 10px;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.cancel-button:hover {
+  background-color: #d32f2f;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.save-button {
+  background-color: #4caf50;
+  color: white;
+  font-size: 16px;
+  padding: 12px 24px;
+  border-radius: 25px;
+  margin-left: 10px;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.save-button:hover {
+  background-color: #388e3c;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
