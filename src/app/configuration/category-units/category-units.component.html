@@ -1,0 +1,40 @@
+<div class="category-units-container">
+  <mat-toolbar color="primary" class="toolbar">
+    <span>Category Units</span>
+    <span class="spacer"></span>
+    <button mat-raised-button class="add-categoryUnits-button" (click)="openAddCategoryUnitDialog()">
+      Add New Category Unit
+    </button>
+  </mat-toolbar>
+
+  <mat-card class="category-units-card">
+    <mat-card-content>
+      <table mat-table [dataSource]="categoryUnits" class="mat-elevation-z8">
+        <ng-container matColumnDef="category_name">
+          <th mat-header-cell *matHeaderCellDef> Category </th>
+          <td mat-cell *matCellDef="let categoryUnit"> {{ categoryUnit.category_name }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="unit_name">
+          <th mat-header-cell *matHeaderCellDef> Unit </th>
+          <td mat-cell *matCellDef="let categoryUnit"> {{ categoryUnit.unit_name }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef> Actions </th>
+          <td mat-cell *matCellDef="let categoryUnit">
+            <button mat-icon-button class="edit-button" (click)="openEditCategoryUnitDialog(categoryUnit)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button class="delete-button" (click)="deleteCategoryUnit(categoryUnit.id)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

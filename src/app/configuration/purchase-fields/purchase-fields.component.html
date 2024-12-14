@@ -1,0 +1,50 @@
+<div class="purchase-fields-container">
+  <mat-toolbar color="primary" class="toolbar">
+    <span>Purchase Fields</span>
+    <span class="spacer"></span>
+    <button mat-raised-button class="add-purchase-fields-button" (click)="openAddFieldDialog()">
+      Add New Field
+    </button>
+  </mat-toolbar>
+
+  <mat-card class="purchase-fields-card">
+    <mat-card-content>
+      <table mat-table [dataSource]="fields" class="mat-elevation-z8">
+        <ng-container matColumnDef="category_name">
+          <th mat-header-cell *matHeaderCellDef> Category </th>
+          <td mat-cell *matCellDef="let field"> {{ field.category_name }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="field_name">
+          <th mat-header-cell *matHeaderCellDef> Field Name </th>
+          <td mat-cell *matCellDef="let field"> {{ field.field_name }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="field_type">
+          <th mat-header-cell *matHeaderCellDef> Field Type </th>
+          <td mat-cell *matCellDef="let field"> {{ field.field_type }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="required">
+          <th mat-header-cell *matHeaderCellDef> Required </th>
+          <td mat-cell *matCellDef="let field"> {{ field.required ? 'Yes' : 'No' }} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef> Actions </th>
+          <td mat-cell *matCellDef="let field">
+            <button mat-icon-button class="edit-button" (click)="openEditFieldDialog(field)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button class="delete-button" (click)="deleteField(field.id)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

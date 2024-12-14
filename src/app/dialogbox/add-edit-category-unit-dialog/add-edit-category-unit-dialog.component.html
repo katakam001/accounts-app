@@ -1,0 +1,25 @@
+<!-- add-edit-category-unit-dialog.component.html -->
+<h1 mat-dialog-title>{{ data.categoryUnit ? 'Edit Category Unit' : 'Add New Category Unit' }}</h1>
+<div mat-dialog-content>
+  <form [formGroup]="categoryUnitForm" class="add-edit-category-unit-dialog-form">
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Category</mat-label>
+      <mat-select formControlName="category_id" required>
+        <mat-option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="categoryUnitForm.get('category_id')?.hasError('required')">Category is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Unit</mat-label>
+      <mat-select formControlName="unit_id" required>
+        <mat-option *ngFor="let unit of units" [value]="unit.id">{{ unit.name }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="categoryUnitForm.get('unit_id')?.hasError('required')">Unit is required</mat-error>
+    </mat-form-field>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
+  <button mat-button class="save-button" (click)="onSave()" [disabled]="!categoryUnitForm.valid">Save</button>
+</div>

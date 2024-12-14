@@ -1,0 +1,15 @@
+<!-- add-edit-category-dialog.component.html -->
+<h1 mat-dialog-title>{{ data.category ? 'Edit Category' : 'Add New Category' }}</h1>
+<div mat-dialog-content>
+  <form [formGroup]="categoryForm" class="add-edit-purchasecategory-dialog-form">
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Category Name</mat-label>
+      <input matInput formControlName="name" required>
+      <mat-error *ngIf="categoryForm.get('name')?.hasError('required')">Category name is required</mat-error>
+    </mat-form-field>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
+  <button mat-button class="save-button" (click)="onSave()" [disabled]="!categoryForm.valid">Save</button>
+</div>
