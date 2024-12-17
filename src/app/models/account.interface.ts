@@ -1,3 +1,5 @@
+import { Group } from "./group.interface";
+
 export interface Account {
     id: number;
     name: string;
@@ -6,5 +8,6 @@ export interface Account {
     credit_balance: number;
     debit_balance: number;
     financial_year: string;
+    groups?: Group[]; // Add the groups property
   }
   

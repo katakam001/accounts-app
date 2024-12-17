@@ -1,0 +1,68 @@
+<!-- add-edit-entry-dialog.component.html -->
+<h1 mat-dialog-title>{{ data.entry ? 'Edit Entry' : 'Add New Entry' }}</h1>
+<div mat-dialog-content>
+  <form [formGroup]="entryForm" class="add-edit-entry-dialog-form">
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Category</mat-label>
+      <mat-select formControlName="category_id" required (selectionChange)="onCategoryChange($event.value)">
+        <mat-option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="entryForm.get('category_id')?.hasError('required')">Category is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Purchase Date</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="purchase_date" required>
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+      <mat-error *ngIf="entryForm.get('purchase_date')?.hasError('required')">Purchase date is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Supplier Name</mat-label>
+      <mat-select formControlName="account_id" required>
+        <mat-option *ngFor="let supplier of suppliers" [value]="supplier.id">{{ supplier.name }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="entryForm.get('account_id')?.hasError('required')">Supplier is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Item Description</mat-label>
+      <textarea matInput formControlName="item_description"></textarea>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Quantity</mat-label>
+      <input matInput formControlName="quantity" type="number">
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Unit</mat-label>
+      <mat-select formControlName="unit_id" required>
+        <mat-option *ngFor="let unit of units" [value]="unit.id">{{ unit.unit_name }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="entryForm.get('unit_id')?.hasError('required')">Unit is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Unit Price</mat-label>
+      <input matInput formControlName="unit_price" type="number">
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Total Amount</mat-label>
+      <input matInput formControlName="total_amount" type="number" readonly>
+    </mat-form-field>
+
+    <div *ngFor="let field of dynamicFields">
+      <mat-form-field appearance="fill" class="form-field">
+        <mat-label>{{ field.field_name }}</mat-label>
+        <input matInput [formControlName]="field.field_name" [type]="field.field_type">
+      </mat-form-field>
+    </div>
+  </form>
+</div>
+<div mat-dialog-actions class="button-container">
+  <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
+  <button mat-button class="save-button" (click)="onSave()" [disabled]="!entryForm.valid">Save</button>
+</div>

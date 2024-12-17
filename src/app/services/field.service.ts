@@ -10,8 +10,12 @@ export class FieldService {
 
   constructor(private http: HttpClient) {}
 
-  getFields(): Observable<any[]> {
+  getAllFields(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl);
+  }
+
+  getFieldsByCategory(categoryId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}?category_id=${categoryId}`);
   }
 
   addField(field: any): Observable<any> {

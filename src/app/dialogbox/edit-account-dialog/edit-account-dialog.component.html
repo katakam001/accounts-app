@@ -31,6 +31,14 @@
       <input matInput formControlName="financial_year">
       <mat-error *ngIf="editAccountForm.get('financial_year')?.hasError('required')">Financial Year is required</mat-error>
     </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Groups</mat-label>
+      <mat-select formControlName="groups" multiple>
+        <mat-option *ngFor="let group of groups" [value]="group">{{ group.name }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="editAccountForm.get('groups')?.hasError('required')">At least one group is required</mat-error>
+    </mat-form-field>
   </form>
 </div>
 <div mat-dialog-actions align="end">

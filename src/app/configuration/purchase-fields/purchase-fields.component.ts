@@ -30,7 +30,7 @@ export class PurchaseFieldsComponent implements OnInit {
   }
 
   fetchFields(): void {
-    this.fieldService.getFields().subscribe((data: any[]) => {
+    this.fieldService.getAllFields().subscribe((data: any[]) => {
       this.fields.data = data;
     });
   }

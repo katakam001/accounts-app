@@ -14,6 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { FinancialYearService } from '../../services/financial-year.service';
+import { Group } from '../../models/group.interface';
 
 @Component({
   selector: 'app-account-list',
@@ -23,7 +24,7 @@ import { FinancialYearService } from '../../services/financial-year.service';
 })
 export class AccountListComponent implements OnInit {
   accounts = new MatTableDataSource<Account>();
-  displayedColumns: string[] = ['name', 'description', 'debit_balance', 'credit_balance', 'financial_year', 'actions'];
+  displayedColumns: string[] = ['name', 'description', 'debit_balance', 'credit_balance', 'financial_year', 'groups', 'actions'];
   financialYear: string;
   totalDebits: number = 0;
   totalCredits: number = 0;
@@ -74,11 +75,15 @@ export class AccountListComponent implements OnInit {
     }
     return { value: `${this.formatNumber(difference)} (${type})`, class: `difference-${type}` };
   }
-  
+
+  getGroupNames(groups: Group[]): string {
+    return groups ? groups.map(group => group.name).join(', ') : '';
+  }
 
   addAccount(): void {
     const dialogRef = this.dialog.open(AddAccountDialogComponent, {
-      width: '400px'
+      width: '400px',
+      data: this.financialYear
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -92,7 +97,7 @@ export class AccountListComponent implements OnInit {
   editAccount(account: Account): void {
     const dialogRef = this.dialog.open(EditAccountDialogComponent, {
       width: '400px',
-      data: account
+      data: { userId: this.storageService.getUser().id, financialYear: this.financialYear,account:account }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -105,7 +110,8 @@ export class AccountListComponent implements OnInit {
           user_id: this.storageService.getUser().id,
           credit_balance: result.credit_balance,
           debit_balance: result.debit_balance,
-          financial_year: result.financial_year
+          financial_year: result.financial_year,
+          groups: result.groups // Add groups to the account object
         };
         console.log('Updated account:', newAccount);
         this.updateAccount(newAccount);

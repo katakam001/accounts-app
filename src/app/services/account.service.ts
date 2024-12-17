@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Account } from '../models/account.interface';
 
@@ -13,9 +13,16 @@ export class AccountService {
 
   constructor(private http: HttpClient) { }
 
-  // account.service.ts
-  getAccountsByUserIdAndFinancialYear(userId: number, financialYear: string): Observable<Account[]> {
-    return this.http.get<Account[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}`);
+  getAccountsByUserIdAndFinancialYear(userId: number, financialYear: string, groups?: string[]): Observable<Account[]> {
+    let params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('financialYear', financialYear);
+
+    if (groups && groups.length > 0) {
+      params = params.set('groups', groups.join(','));
+    }
+
+    return this.http.get<Account[]>(this.apiUrl, { params });
   }
 
   getAccountsByUserId(userId: number): Observable<Account[]> {

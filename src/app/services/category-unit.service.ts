@@ -14,6 +14,10 @@ export class CategoryUnitService {
     return this.http.get<any[]>(this.apiUrl);
   }
 
+  getUnitsByCategory(categoryId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}?category_id=${categoryId}`);
+  }
+  
   addCategoryUnit(categoryUnit: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, categoryUnit);
   }
