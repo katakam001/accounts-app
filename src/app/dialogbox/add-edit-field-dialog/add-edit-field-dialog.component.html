@@ -26,7 +26,20 @@
       <mat-error *ngIf="fieldForm.get('field_type')?.hasError('required')">Field type is required</mat-error>
     </mat-form-field>
 
-    <mat-checkbox formControlName="required">Required</mat-checkbox>
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Field Category</mat-label>
+      <mat-select formControlName="field_category" required>
+        <mat-option [value]="0">Normal</mat-option>
+        <mat-option [value]="1">Tax</mat-option>
+        <!-- Add more field categories as needed -->
+      </mat-select>
+      <mat-error *ngIf="fieldForm.get('field_category')?.hasError('required')">Field category is required</mat-error>
+    </mat-form-field>
+
+    <div class="checkbox-container">
+      <mat-checkbox formControlName="exclude_from_total" (change)="onExcludeFromTotalChange()">Exclude from Total</mat-checkbox>
+      <mat-checkbox formControlName="required">Mandatory</mat-checkbox>
+    </div>
   </form>
 </div>
 <div mat-dialog-actions>

@@ -83,7 +83,7 @@ export class AccountListComponent implements OnInit {
   addAccount(): void {
     const dialogRef = this.dialog.open(AddAccountDialogComponent, {
       width: '400px',
-      data: this.financialYear
+      data: { userId: this.storageService.getUser().id, financialYear: this.financialYear }
     });
 
     dialogRef.afterClosed().subscribe(result => {

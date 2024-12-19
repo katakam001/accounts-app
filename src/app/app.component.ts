@@ -10,6 +10,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { CommonModule } from '@angular/common';
 import { StorageService } from './services/storage.service';
 import { AuthService } from './services/auth.service';
+import { MatMenuModule } from '@angular/material/menu';
 
 
 
@@ -26,7 +27,8 @@ import { AuthService } from './services/auth.service';
     MatCheckboxModule,
     MatListModule,
     MatToolbarModule,
-    MatIconModule
+    MatIconModule,
+    MatMenuModule
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'

@@ -1,4 +1,3 @@
-<!-- purchase-entry.component.html -->
 <div class="purchase-entry-container">
   <mat-toolbar color="primary" class="toolbar">
     <span>Purchase Entry</span>
@@ -17,7 +16,7 @@
               <div class="expansion-panel-header-content">
                 <div class="field">
                   <div class="label">Category</div>
-                  <div class="value">{{ entry.category_name }}</div>
+                  <div class="value" title="{{ entry.category_name }}">{{ entry.category_name }}</div>
                 </div>
                 <div class="field">
                   <div class="label">Purchase Date</div>
@@ -29,19 +28,27 @@
                 </div>
                 <div class="field">
                   <div class="label">Item Description</div>
-                  <div class="value">{{ entry.item_description }}</div>
+                  <div class="value" title="{{ entry.item_description }}">{{ entry.item_description || 'N/A' }}</div>
                 </div>
                 <div class="field">
                   <div class="label">Quantity</div>
                   <div class="value">{{ entry.quantity }}</div>
                 </div>
                 <div class="field">
+                  <div class="label">Unit</div>
+                  <div class="value">{{ entry.unit_name }}</div>
+                </div>
+                <div class="field">
                   <div class="label">Unit Price</div>
-                  <div class="value">{{ entry.unit_price | currency }}</div>
+                  <div class="value">{{ entry.unit_price  | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+                </div>
+                <div class="field">
+                  <div class="label">Purchase Value</div>
+                  <div class="value">{{ entry.purchase_value | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
                 </div>
                 <div class="field">
                   <div class="label">Total Amount</div>
-                  <div class="value">{{ entry.total_amount | currency }}</div>
+                  <div class="value">{{ entry.total_amount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
                 </div>
                 <div class="actions">
                   <button mat-icon-button class="edit-button" (click)="openEditEntryDialog(entry)">

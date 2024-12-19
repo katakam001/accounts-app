@@ -24,7 +24,6 @@ import { StorageService } from '../../services/storage.service';
 })
 export class PurchaseEntryComponent implements OnInit {
   entries: MatTableDataSource<any>;
-  displayedColumns: string[] = ['category_name', 'purchase_date', 'account_name', 'item_description', 'quantity', 'unit_price', 'total_amount', 'actions'];
   financialYear: string;
   expandedRows: { [key: number]: boolean } = {};
 

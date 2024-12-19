@@ -10,6 +10,7 @@ import { SharedModule } from './shared/shared.module';
 import { AccountService } from './services/account.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
+import { DatePipe } from '@angular/common';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,6 +26,7 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(MatDialogModule),
     importProvidersFrom(ReactiveFormsModule),
     importProvidersFrom(SharedModule),
+    DatePipe,
     AccountService, provideAnimationsAsync(), provideAnimationsAsync()
   ]
 };

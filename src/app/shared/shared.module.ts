@@ -14,6 +14,9 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatExpansionModule } from '@angular/material/expansion'; 
+import { MatMenuModule } from '@angular/material/menu';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSortModule } from '@angular/material/sort';
 @NgModule({
   declarations: [],
   imports: [
@@ -33,7 +36,10 @@ import { MatExpansionModule } from '@angular/material/expansion';
     MatDialogModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatExpansionModule
+    MatExpansionModule,
+    MatMenuModule,
+    MatCheckboxModule,
+    MatSortModule
   ],
   exports: [
     CommonModule,
@@ -52,7 +58,10 @@ import { MatExpansionModule } from '@angular/material/expansion';
     MatDialogModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatExpansionModule
+    MatExpansionModule,
+    MatMenuModule,
+    MatCheckboxModule,
+    MatSortModule
   ]
 })
 export class SharedModule { }
