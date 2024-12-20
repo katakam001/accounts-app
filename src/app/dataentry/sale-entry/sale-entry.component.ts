@@ -12,17 +12,16 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { DynamicField } from '../../models/dynamic.interface';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 
 @Component({
-  selector: 'app-purchase-entry',
+  selector: 'app-sale-entry',
   imports: [MatTableModule, MatToolbarModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule, MatExpansionModule, MatListModule],
-  templateUrl: './purchase-entry.component.html',
-  styleUrls: ['./purchase-entry.component.css']
+  templateUrl: './sale-entry.component.html',
+  styleUrls: ['./sale-entry.component.css']
 })
-export class PurchaseEntryComponent implements OnInit {
+export class SaleEntryComponent implements OnInit {
   entries: MatTableDataSource<any>;
   financialYear: string;
   expandedRows: { [key: number]: boolean } = {};
@@ -46,7 +45,7 @@ export class PurchaseEntryComponent implements OnInit {
 
   fetchEntries(): void {
     const userId = this.storageService.getUser().id;
-    this.entryService.getEntriesByUserIdAndFinancialYearAndType(userId, this.financialYear,1).subscribe((data: any[]) => {
+    this.entryService.getEntriesByUserIdAndFinancialYearAndType(userId, this.financialYear, 2).subscribe((data: any[]) => {
       this.entries.data = data;
       if (data.length > 0) {
         this.updateEntriesWithDynamicFields(data);
@@ -64,7 +63,7 @@ export class PurchaseEntryComponent implements OnInit {
   openAddEntryDialog(): void {
     const dialogRef = this.dialog.open(AddEditEntryDialogComponent, {
       width: '1000px',
-      data: { userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 1 }
+      data: { userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 2 }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -77,7 +76,7 @@ export class PurchaseEntryComponent implements OnInit {
   openEditEntryDialog(entry: any): void {
     const dialogRef = this.dialog.open(AddEditEntryDialogComponent, {
       width: '1000px',
-      data: { entry, userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 1 }
+      data: { entry, userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 2 }
     });
 
     dialogRef.afterClosed().subscribe(result => {

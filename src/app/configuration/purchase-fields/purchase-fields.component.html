@@ -1,7 +1,6 @@
-<!-- purchase-fields.component.html -->
 <div class="purchase-fields-container">
   <mat-toolbar color="primary" class="toolbar">
-    <span>Purchase Fields</span>
+    <span>Category To Fields Mapping</span>
     <span class="spacer"></span>
     <button mat-raised-button class="add-purchase-fields-button" (click)="openAddFieldDialog()">
       Add New Field
@@ -11,10 +10,30 @@
   <mat-card class="purchase-fields-card">
     <mat-card-content>
       <div class="filter-container">
-        <mat-form-field appearance="fill">
-          <mat-label>Search</mat-label>
-          <input matInput (keyup)="applyFilter($event)" placeholder="Search by any field">
+        <mat-form-field appearance="fill" class="filter-field">
+          <mat-label>Category</mat-label>
+          <mat-select [(value)]="selectedCategory" (selectionChange)="applyFilter()">
+            <mat-option *ngFor="let category of categories" [value]="category">{{ category }}</mat-option>
+          </mat-select>
         </mat-form-field>
+
+        <mat-form-field appearance="fill" class="filter-field">
+          <mat-label>Field Type</mat-label>
+          <mat-select [(value)]="selectedFieldType" (selectionChange)="applyFilter()">
+            <mat-option *ngFor="let fieldType of fieldTypes" [value]="fieldType">{{ fieldType }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="filter-field">
+          <mat-label>Field Category</mat-label>
+          <mat-select [(value)]="selectedFieldCategory" (selectionChange)="applyFilter()">
+            <mat-option *ngFor="let fieldCategory of fieldCategories" [value]="fieldCategory">{{ fieldCategory }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-checkbox class="filter-checkbox" [(ngModel)]="excludeFromTotal" (change)="applyFilter()">Exclude from Total</mat-checkbox>
+        <mat-checkbox class="filter-checkbox" [(ngModel)]="mandatory" (change)="applyFilter()">Mandatory</mat-checkbox>
+        <button mat-raised-button class="reset-button" (click)="resetFilters()">Reset Filters</button>
       </div>
       <table mat-table [dataSource]="fields" matSort class="mat-elevation-z8">
         <ng-container matColumnDef="category_name">

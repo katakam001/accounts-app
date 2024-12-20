@@ -20,7 +20,7 @@
                 </div>
                 <div class="field">
                   <div class="label">Purchase Date</div>
-                  <div class="value">{{ entry.purchase_date | date }}</div>
+                  <div class="value">{{ entry.entry_date | date }}</div>
                 </div>
                 <div class="field">
                   <div class="label">Supplier</div>
@@ -44,7 +44,7 @@
                 </div>
                 <div class="field">
                   <div class="label">Purchase Value</div>
-                  <div class="value">{{ entry.purchase_value | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+                  <div class="value">{{ entry.value | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
                 </div>
                 <div class="field">
                   <div class="label">Total Amount</div>

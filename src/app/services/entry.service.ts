@@ -6,12 +6,12 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class EntryService {
-  private apiUrl = 'http://localhost:8080/api/purchase-entries';
+  private apiUrl = 'http://localhost:8080/api/entries';
 
   constructor(private http: HttpClient) {}
 
-  getEntriesByUserIdAndFinancialYear(userId: number, financialYear: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}`);
+  getEntriesByUserIdAndFinancialYearAndType(userId: number, financialYear: string, type: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}&type=${type}`);
   }
 
   addEntry(entry: any, dynamicFields: any[]): Observable<any> {

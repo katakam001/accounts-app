@@ -13,7 +13,7 @@ import { CategoryUnitService } from '../../services/category-unit.service';
 import { Account } from '../../models/account.interface';
 import { AccountService } from '../../services/account.service';
 import { EntryService } from '../../services/entry.service';
-import { MatSnackBar } from '@angular/material/snack-bar'; // Import MatSnackBar
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-add-edit-entry-dialog',
@@ -35,23 +35,23 @@ export class AddEditEntryDialogComponent implements OnInit {
     private fieldService: FieldService,
     private categoryUnitService: CategoryUnitService,
     private accountService: AccountService,
-    private snackBar: MatSnackBar, // Inject MatSnackBar
+    private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<AddEditEntryDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private datePipe: DatePipe // Inject DatePipe
-
+    private datePipe: DatePipe
   ) {
     this.entryForm = this.fb.group({
       category_id: ['', Validators.required],
-      purchase_date: ['', Validators.required],
+      entry_date: ['', Validators.required],
       account_id: ['', Validators.required],
       item_description: [''],
       quantity: [null, Validators.min(0)],
       unit_id: ['', Validators.required],
       unit_price: [null, Validators.min(0)],
-      purchase_value: [{ value: null, disabled: true }],
+      value: [{ value: null, disabled: true }],
       total_amount: [{ value: null, disabled: true }],
       user_id: [this.data.userId],
+      type: [this.data.type || 1, Validators.required],
       journal_id: [this.data.journal_id],
       financial_year: [this.data.financialYear],
     });
@@ -72,8 +72,8 @@ export class AddEditEntryDialogComponent implements OnInit {
     }
 
     const [startYear, endYear] = this.data.financialYear.split('-').map(Number);
-    const startDate = new Date(startYear, 3, 1); // April 1st of start year
-    const endDate = new Date(endYear, 2, 31); // March 31st of end year
+    const startDate = new Date(startYear, 3, 1);
+    const endDate = new Date(endYear, 2, 31);
     return date >= startDate && date <= endDate;
   };
 
@@ -95,9 +95,8 @@ export class AddEditEntryDialogComponent implements OnInit {
   }
 
   fetchDynamicFields(categoryId: number): void {
-    console.log(categoryId);
     this.fieldService.getFieldsByCategory(categoryId).subscribe((data: any[]) => {
-      this.dynamicFields = data;
+      this.dynamicFields = data.filter(field => !(this.data.type === 2 && field.field_category === 1 && field.exclude_from_total));
       this.dynamicFields.forEach(field => {
         const entryField = this.data.entry?.fields.find((f: any) => f.field_name === field.field_name);
         const defaultValue = entryField ? entryField.field_value : (field.field_type === 'number' ? 0 : '');
@@ -125,21 +124,18 @@ export class AddEditEntryDialogComponent implements OnInit {
     const quantity = this.entryForm.get('quantity')?.value || 0;
     const unit_price = this.entryForm.get('unit_price')?.value || 0;
     const amount = quantity * unit_price;
-    this.entryForm.get('purchase_value')?.setValue(amount, { emitEvent: false });
-    console.log("passed the purchase value");
+    this.entryForm.get('value')?.setValue(amount, { emitEvent: false });
 
-    // Calculate GST based on dynamic fields
     let gstAmount = 0;
     const gstValues: { [key: string]: number } = {};
 
     this.dynamicFields.forEach(field => {
-      if (field.field_category === 1) { // Check if field_category is 1 (Tax)
+      if (field.field_category === 1) {
         const gstRateMatch = field.field_name.match(/(\d+(\.\d+)?)/);
         const gstRate = gstRateMatch ? parseFloat(gstRateMatch[1]) : 0;
         const gstValue = (amount * gstRate) / 100;
         gstValues[field.field_name] = gstValue;
 
-        // Exclude specific fields from total amount calculation
         if (!field.exclude_from_total) {
           gstAmount += gstValue;
         }
@@ -148,22 +144,19 @@ export class AddEditEntryDialogComponent implements OnInit {
 
     const totalAmount = amount + gstAmount;
     this.entryForm.get('total_amount')?.setValue(totalAmount, { emitEvent: false });
-    console.log("passed the total amount");
 
-    // Patch the GST values
     this.entryForm.patchValue(gstValues, { emitEvent: false });
   }
 
   onSave(): void {
     if (this.entryForm.valid) {
       const entry = this.entryForm.getRawValue();
-      entry.purchase_date = this.datePipe.transform(entry.purchase_date, 'yyyy-MM-dd', 'en-IN'); // Format the date
-      console.log(entry);
+      entry.entry_date = this.datePipe.transform(entry.entry_date, 'yyyy-MM-dd', 'en-IN');
       const dynamicFieldValues = this.dynamicFields.map(field => ({
         field_name: field.field_name,
         field_value: entry[field.field_name],
-        field_category: field.field_category, // Include field_category
-        exclude_from_total: field.exclude_from_total // Include exclude_from_total
+        field_category: field.field_category,
+        exclude_from_total: field.exclude_from_total
       }));
       if (this.data.entry) {
         this.entryService.updateEntry(this.data.entry.id, entry, dynamicFieldValues).subscribe(() => {

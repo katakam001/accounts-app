@@ -50,7 +50,32 @@
 }
 
 .filter-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
   margin-bottom: 20px;
+}
+
+.filter-field {
+  flex: 1 1 200px;
+}
+
+.filter-checkbox {
+  align-self: center;
+}
+
+.reset-button {
+  align-self: center;
+  margin-left: auto;
+  background-color: #2196f3; /* Blue background */
+  color: white;
+  border-radius: 4px;
+  padding: 8px 16px;
+  transition: background-color 0.3s ease;
+}
+
+.reset-button:hover {
+  background-color: #1976d2; /* Darker blue on hover */
 }
 
 .mat-header-cell {

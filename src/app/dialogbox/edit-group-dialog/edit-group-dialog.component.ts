@@ -8,7 +8,6 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { StorageService } from '../../services/storage.service';
 
 @Component({
   selector: 'app-edit-group-dialog',
@@ -21,15 +20,13 @@ export class EditGroupDialogComponent implements OnInit {
 
   constructor(
     public dialogRef: MatDialogRef<EditGroupDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: Group,
+    @Inject(MAT_DIALOG_DATA) public data: any,
     private fb: FormBuilder,
-    private storageService: StorageService
   ) {
     this.editGroupForm = this.fb.group({
-      id: [data.id],
-      name: [data.name, Validators.required],
-      description: [data.description],
-      financial_year_start: [data.financial_year, Validators.required]
+      id: [this.data.group.id],
+      name: [this.data.group.name, Validators.required],
+      description: [this.data.group.description],
     });
   }
 
@@ -38,13 +35,12 @@ export class EditGroupDialogComponent implements OnInit {
   onSave(): void {
     if (this.editGroupForm.valid) {
       const formValue = this.editGroupForm.value;
-      const financialYear = this.formatFinancialYear(formValue.financial_year_start);
       const updatedGroup: Group = {
         id: formValue.id,
         name: formValue.name,
         description: formValue.description,
-        financial_year: financialYear,
-        user_id: this.storageService.getUser().id
+        financial_year: this.data.financialYear,
+        user_id: this.data.userId
       };
       this.dialogRef.close(updatedGroup);
     }
@@ -54,8 +50,4 @@ export class EditGroupDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  private formatFinancialYear(date: Date): string {
-    const year = date.getFullYear();
-    return `${year}-${year + 1}`;
-  }
 }

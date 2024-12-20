@@ -1,4 +1,3 @@
-<!-- add-edit-entry-dialog.component.html -->
 <h1 mat-dialog-title>{{ data.entry ? 'Edit Entry' : 'Add New Entry' }}</h1>
 <div mat-dialog-content>
   <form [formGroup]="entryForm" class="add-edit-entry-dialog-form">
@@ -11,19 +10,19 @@
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">
-      <mat-label>Purchase Date</mat-label>
-      <input matInput [matDatepicker]="picker" formControlName="purchase_date" [matDatepickerFilter]="dateFilter" required>
+      <mat-label>{{ data.type === 2 ? 'Sale Date' : 'Purchase Date' }}</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="entry_date" [matDatepickerFilter]="dateFilter" required>
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
-      <mat-error *ngIf="entryForm.get('purchase_date')?.hasError('required')">Purchase date is required</mat-error>
+      <mat-error *ngIf="entryForm.get('entry_date')?.hasError('required')">{{ data.type === 2 ? 'Sale date' : 'Purchase date' }} is required</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">
-      <mat-label>Supplier Name</mat-label>
+      <mat-label>{{ data.type === 2 ? 'Customer Name' : 'Supplier Name' }}</mat-label>
       <mat-select formControlName="account_id" required>
         <mat-option *ngFor="let supplier of suppliers" [value]="supplier.id">{{ supplier.name }}</mat-option>
       </mat-select>
-      <mat-error *ngIf="entryForm.get('account_id')?.hasError('required')">Supplier is required</mat-error>
+      <mat-error *ngIf="entryForm.get('account_id')?.hasError('required')">{{ data.type === 2 ? 'Customer' : 'Supplier' }} is required</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">
@@ -50,8 +49,8 @@
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">
-      <mat-label>Purchase Value</mat-label>
-      <input matInput formControlName="purchase_value" type="number" readonly>
+      <mat-label>{{ data.type === 2 ? 'Sale Value' : 'Purchase Value' }}</mat-label>
+      <input matInput formControlName="value" type="number" readonly>
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">

@@ -17,6 +17,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSortModule } from '@angular/material/sort';
+import { MatTooltipModule } from '@angular/material/tooltip';
 @NgModule({
   declarations: [],
   imports: [
@@ -39,7 +40,8 @@ import { MatSortModule } from '@angular/material/sort';
     MatExpansionModule,
     MatMenuModule,
     MatCheckboxModule,
-    MatSortModule
+    MatSortModule,
+    MatTooltipModule
   ],
   exports: [
     CommonModule,
@@ -61,7 +63,8 @@ import { MatSortModule } from '@angular/material/sort';
     MatExpansionModule,
     MatMenuModule,
     MatCheckboxModule,
-    MatSortModule
+    MatSortModule,
+    MatTooltipModule
   ]
 })
 export class SharedModule { }

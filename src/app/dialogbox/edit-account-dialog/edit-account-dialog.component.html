@@ -1,47 +1,69 @@
-<!-- edit-account-dialog.component.html -->
 <div mat-dialog-content>
   <form [formGroup]="editAccountForm" class="edit-account-form">
-    <mat-form-field>
-      <mat-label>Name</mat-label>
-      <input matInput formControlName="name">
-      <mat-error *ngIf="editAccountForm.get('name')?.hasError('required')">Name is required</mat-error>
-    </mat-form-field>
+      <mat-form-field class="form-field">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name">
+        <mat-error *ngIf="editAccountForm.get('name')?.hasError('required')">Name is required</mat-error>
+      </mat-form-field>
 
-    <mat-form-field>
-      <mat-label>Description</mat-label>
-      <input matInput formControlName="description">
-    </mat-form-field>
+      <mat-form-field class="form-field">
+        <mat-label>Description</mat-label>
+        <input matInput formControlName="description">
+      </mat-form-field>
 
-    <mat-form-field>
-      <mat-label>Debit Balance</mat-label>
-      <input matInput formControlName="debit_balance">
-      <mat-error *ngIf="editAccountForm.get('debit_balance')?.hasError('required')">Debit Balance is required</mat-error>
-      <mat-error *ngIf="editAccountForm.get('debit_balance')?.hasError('pattern')">Invalid format. Use up to 2 decimal places.</mat-error>
-    </mat-form-field>
+      <mat-form-field class="form-field">
+        <mat-label>Debit Balance</mat-label>
+        <input matInput formControlName="debit_balance">
+        <mat-error *ngIf="editAccountForm.get('debit_balance')?.hasError('required')">Debit Balance is required</mat-error>
+        <mat-error *ngIf="editAccountForm.get('debit_balance')?.hasError('pattern')">Invalid format. Use up to 2 decimal places.</mat-error>
+      </mat-form-field>
 
-    <mat-form-field>
-      <mat-label>Credit Balance</mat-label>
-      <input matInput formControlName="credit_balance">
-      <mat-error *ngIf="editAccountForm.get('credit_balance')?.hasError('required')">Credit Balance is required</mat-error>
-      <mat-error *ngIf="editAccountForm.get('credit_balance')?.hasError('pattern')">Invalid format. Use up to 2 decimal places.</mat-error>
-    </mat-form-field>
+      <mat-form-field class="form-field">
+        <mat-label>Credit Balance</mat-label>
+        <input matInput formControlName="credit_balance">
+        <mat-error *ngIf="editAccountForm.get('credit_balance')?.hasError('required')">Credit Balance is required</mat-error>
+        <mat-error *ngIf="editAccountForm.get('credit_balance')?.hasError('pattern')">Invalid format. Use up to 2 decimal places.</mat-error>
+      </mat-form-field>
 
-    <mat-form-field>
-      <mat-label>Financial Year</mat-label>
-      <input matInput formControlName="financial_year">
-      <mat-error *ngIf="editAccountForm.get('financial_year')?.hasError('required')">Financial Year is required</mat-error>
-    </mat-form-field>
+      <mat-form-field class="form-field">
+        <mat-label>Groups</mat-label>
+        <mat-select formControlName="groups" multiple>
+          <mat-option *ngFor="let group of groups" [value]="group.id">{{ group.name }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="editAccountForm.get('groups')?.hasError('required')">At least one group is required</mat-error>
+      </mat-form-field>
 
-    <mat-form-field>
-      <mat-label>Groups</mat-label>
-      <mat-select formControlName="groups" multiple>
-        <mat-option *ngFor="let group of groups" [value]="group">{{ group.name }}</mat-option>
-      </mat-select>
-      <mat-error *ngIf="editAccountForm.get('groups')?.hasError('required')">At least one group is required</mat-error>
-    </mat-form-field>
+      <mat-checkbox formControlName="isDealer" class="form-field">Is Dealer</mat-checkbox>
+
+      <div formGroupName="address" class="address-group">
+        <mat-form-field class="form-field">
+          <mat-label>Street</mat-label>
+          <input matInput formControlName="street">
+        </mat-form-field>
+
+        <mat-form-field class="form-field">
+          <mat-label>City</mat-label>
+          <input matInput formControlName="city">
+        </mat-form-field>
+
+        <mat-form-field class="form-field">
+          <mat-label>State</mat-label>
+          <input matInput formControlName="state">
+        </mat-form-field>
+
+        <mat-form-field class="form-field">
+          <mat-label>Postal Code</mat-label>
+          <input matInput formControlName="postal_code">
+        </mat-form-field>
+
+        <mat-form-field class="form-field">
+          <mat-label>Country</mat-label>
+          <input matInput formControlName="country">
+        </mat-form-field>
+      </div>
   </form>
 </div>
-<div mat-dialog-actions align="end">
+<div mat-dialog-actions class="mat-dialog-actions">
   <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
   <button mat-raised-button color="primary" class="save-button" [disabled]="editAccountForm.invalid" (click)="onSave()">Save</button>
 </div>

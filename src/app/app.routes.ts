@@ -15,6 +15,7 @@ import { PurchaseFieldsComponent } from './configuration/purchase-fields/purchas
 import { UnitsComponent } from './configuration/units/units.component';
 import { CategoryUnitsComponent } from './configuration/category-units/category-units.component';
 import { PurchaseEntryComponent } from './dataentry/purchase-entry/purchase-entry.component';
+import { SaleEntryComponent } from './dataentry/sale-entry/sale-entry.component';
 
 export const routes: Routes =
   [
@@ -31,6 +32,7 @@ export const routes: Routes =
     { path: 'journalEntries', component: JournalListComponent, title: 'Journal Entry page' , canActivate: [AuthGuard] },
     { path: 'cashBook', component: CashBookComponent, title: 'Cash Book page' , canActivate: [AuthGuard] },
     { path: 'purchaseEntry', component: PurchaseEntryComponent, title: 'Purchase Entry page' , canActivate: [AuthGuard] },
+    { path: 'saleEntry', component: SaleEntryComponent, title: 'Sale Entry page' , canActivate: [AuthGuard] },
     { path: 'dashboard', component: DashboardComponent, title: 'Dashboard page', canActivate: [AuthGuard] },
     { path: 'trailBalance', component: TrailBalanceComponent, title: 'Trail Balance page', canActivate: [AuthGuard] },
     { path: 'details/:id', component: DetailsComponent, title: 'Home details', canActivate: [AuthGuard] }

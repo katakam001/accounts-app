@@ -1,11 +1,19 @@
 .edit-account-form {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px; /* Add spacing between form fields */
+  padding: 20px; /* Add padding to the form */
 }
 
-mat-form-field {
-  width: 100%; /* Ensure form fields take full width */
+.form-field {
+  grid-column: span 1;
+}
+
+.address-group {
+  grid-column: span 4;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
 
 mat-dialog-content {
@@ -45,4 +53,15 @@ mat-dialog-title {
 
 .save-button:hover {
   background-color: #388e3c; /* Darker green on hover */
+}
+
+.mat-checkbox {
+  grid-column: span 4; /* Ensure checkbox spans all columns */
+}
+
+.mat-dialog-actions {
+  padding: 20px; /* Add padding to the dialog actions */
+  display: flex;
+  justify-content: flex-end; /* Align buttons to the right */
+  margin-top: 16px; /* Add margin above the buttons */
 }

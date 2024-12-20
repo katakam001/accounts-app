@@ -9,9 +9,9 @@
 
   <mat-card class="units-card">
     <mat-card-content>
-      <table mat-table [dataSource]="units" class="mat-elevation-z8">
+      <table mat-table [dataSource]="units" matSort class="mat-elevation-z8">
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef> Unit Name </th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Unit Name </th>
           <td mat-cell *matCellDef="let unit"> {{ unit.name }} </td>
         </ng-container>
 

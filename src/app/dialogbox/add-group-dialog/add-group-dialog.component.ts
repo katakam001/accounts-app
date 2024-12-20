@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnInit } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Group } from '../../models/group.interface';
 import { CommonModule } from '@angular/common';
@@ -8,7 +8,6 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { StorageService } from '../../services/storage.service';
 
 @Component({
   selector: 'app-add-group-dialog',
@@ -21,13 +20,12 @@ export class AddGroupDialogComponent implements OnInit {
 
   constructor(
     public dialogRef: MatDialogRef<AddGroupDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any,
     private fb: FormBuilder,
-    private storageService: StorageService
   ) {
     this.addGroupForm = this.fb.group({
       name: ['', Validators.required],
       description: [''],
-      financial_year_start: ['', Validators.required]
     });
   }
 
@@ -36,13 +34,12 @@ export class AddGroupDialogComponent implements OnInit {
   onSave(): void {
     if (this.addGroupForm.valid) {
       const formValue = this.addGroupForm.value;
-      const financialYear = this.formatFinancialYear(formValue.financial_year_start);
       const newGroup: Group = {
         id: 0, // This will be set by the server
         name: formValue.name,
         description: formValue.description,
-        financial_year: financialYear,
-        user_id: this.storageService.getUser().id
+        financial_year: this.data.financialYear,
+        user_id: this.data.userId
       };
       this.dialogRef.close(newGroup);
     }
@@ -52,8 +49,4 @@ export class AddGroupDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  private formatFinancialYear(date: Date): string {
-    const year = date.getFullYear();
-    return `${year}-${year + 1}`;
-  }
 }

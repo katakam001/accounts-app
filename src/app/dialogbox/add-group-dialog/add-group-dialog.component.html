@@ -9,12 +9,6 @@
       <mat-label>Description</mat-label>
       <input matInput formControlName="description">
     </mat-form-field>
-    <mat-form-field appearance="fill">
-      <mat-label>Financial Year Start</mat-label>
-      <input matInput [matDatepicker]="picker" formControlName="financial_year_start">
-      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-      <mat-datepicker #picker></mat-datepicker>
-    </mat-form-field>
   </form>
 </div>
 <div mat-dialog-actions align="end">

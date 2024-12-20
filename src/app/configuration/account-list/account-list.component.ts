@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { Account } from '../../models/account.interface';
 import { AccountService } from '../../services/account.service';
 import { CommonModule } from '@angular/common';
@@ -15,19 +16,22 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { Group } from '../../models/group.interface';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-account-list',
-  imports: [MatTableModule, MatToolbarModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule],
+  imports: [MatTableModule, MatToolbarModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule, MatTooltipModule, MatSortModule],
   templateUrl: './account-list.component.html',
   styleUrls: ['./account-list.component.css']
 })
 export class AccountListComponent implements OnInit {
   accounts = new MatTableDataSource<Account>();
-  displayedColumns: string[] = ['name', 'description', 'debit_balance', 'credit_balance', 'financial_year', 'groups', 'actions'];
+  displayedColumns: string[] = ['name', 'description', 'debit_balance', 'credit_balance', 'groups', 'address', 'isDealer', 'actions'];
   financialYear: string;
   totalDebits: number = 0;
   totalCredits: number = 0;
+
+  @ViewChild(MatSort) sort: MatSort;
 
   constructor(
     private accountService: AccountService,
@@ -38,6 +42,7 @@ export class AccountListComponent implements OnInit {
 
   ngOnInit(): void {
     this.getFinancialYear();
+    this.accounts.sort = this.sort; // Initialize sorting
   }
 
   getFinancialYear() {
@@ -52,6 +57,7 @@ export class AccountListComponent implements OnInit {
   fetchAccounts(userId: number, financialYear: string): void {
     this.accountService.getAccountsByUserIdAndFinancialYear(userId, financialYear).subscribe((data: Account[]) => {
       this.accounts.data = data;
+      this.accounts.sort = this.sort; // Set the sort after fetching the data
       this.calculateTotals();
     });
   }
@@ -82,7 +88,7 @@ export class AccountListComponent implements OnInit {
 
   addAccount(): void {
     const dialogRef = this.dialog.open(AddAccountDialogComponent, {
-      width: '400px',
+      width: '800px',
       data: { userId: this.storageService.getUser().id, financialYear: this.financialYear }
     });
 
@@ -96,8 +102,8 @@ export class AccountListComponent implements OnInit {
 
   editAccount(account: Account): void {
     const dialogRef = this.dialog.open(EditAccountDialogComponent, {
-      width: '400px',
-      data: { userId: this.storageService.getUser().id, financialYear: this.financialYear,account:account }
+      width: '800px',
+      data: { userId: this.storageService.getUser().id, financialYear: this.financialYear, account: account }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -111,7 +117,9 @@ export class AccountListComponent implements OnInit {
           credit_balance: result.credit_balance,
           debit_balance: result.debit_balance,
           financial_year: result.financial_year,
-          groups: result.groups // Add groups to the account object
+          groups: result.groups, // Add groups to the account object
+          address: result.address, // Add address to the account object
+          isDealer: result.isDealer // Add isDealer to the account object
         };
         console.log('Updated account:', newAccount);
         this.updateAccount(newAccount);

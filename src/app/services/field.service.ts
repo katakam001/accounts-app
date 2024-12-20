@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class FieldService {
-  private apiUrl = 'http://localhost:8080/api/purchase-fields';
+  private apiUrl = 'http://localhost:8080/api/fields';
 
   constructor(private http: HttpClient) {}
 
