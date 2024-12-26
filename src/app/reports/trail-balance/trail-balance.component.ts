@@ -1,21 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 import { TrailBalanceReport } from '../../models/trail-balance-report.model';
 import { TrailBalanceService } from '../../services/trail-balance.service';
 import { StorageService } from '../../services/storage.service';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatDialogModule } from '@angular/material/dialog';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-trail-balance',
-  imports: [MatCardModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './trail-balance.component.html',
   styleUrls: ['./trail-balance.component.css']
 })

@@ -21,6 +21,7 @@
           Login
         </button>
       </form>
+      <a class="forgot-password-link" (click)="openForgotPasswordDialog()">Forgot Password?</a>
       <mat-card *ngIf="errorMessage" class="error-message">
         <mat-card-content>
           {{ errorMessage }}

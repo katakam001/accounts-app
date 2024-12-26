@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, AbstractControl } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,7 +14,8 @@ import { Group } from '../../models/group.interface';
 
 @Component({
   selector: 'app-edit-journal-entry-dialog',
-  imports: [MatCardModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
+  standalone: true,
+  imports: [ MatInputModule, ReactiveFormsModule,MatIconModule,CommonModule,MatSelectModule,MatDialogModule,MatDatepickerModule],
   templateUrl: './edit-journal-entry-dialog.component.html',
   styleUrls: ['./edit-journal-entry-dialog.component.css']
 })

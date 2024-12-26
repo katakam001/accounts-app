@@ -10,6 +10,7 @@ import { FinancialYearDialogComponent } from '../dialogbox/financial-year-dialog
 
 @Component({
   selector: 'app-dashboard',
+  standalone: true,
   imports: [CommonModule, HousingLocationComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'

@@ -3,15 +3,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { UnitService } from '../../services/unit.service';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-add-edit-unit-dialog',
-  imports: [MatCardModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
+  standalone: true,
+  imports: [ MatInputModule, ReactiveFormsModule,CommonModule,MatDialogModule],
   templateUrl: './add-edit-unit-dialog.component.html',
   styleUrls: ['./add-edit-unit-dialog.component.css']
 })

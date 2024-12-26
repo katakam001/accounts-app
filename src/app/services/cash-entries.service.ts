@@ -2,13 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CashEntry } from '../models/cash-entry.interface';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CashEntriesService {
 
-  private apiUrl = 'http://localhost:8080/api/cash-entries';
+  // private apiUrl = 'http://localhost:8080/api/cash-entries';
+    private baseUrl = environment.apiUrl;
+    private apiUrl = `${this.baseUrl}/api/cash-entries`; // Append the path to the base URL
 
   constructor(private http: HttpClient) {}
 

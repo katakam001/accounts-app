@@ -5,15 +5,14 @@ import { AccountService } from '../../services/account.service';
 import { StorageService } from '../../services/storage.service';
 import { Account } from '../../models/account.interface';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-cash-book-dialog',
-  imports: [MatCardModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
+  standalone: true,
+  imports: [  ReactiveFormsModule,CommonModule,MatSelectModule,MatInputModule,MatDatepickerModule],
   templateUrl: './add-cash-book-dialog.component.html',
   styleUrls: ['./add-cash-book-dialog.component.css']
 })

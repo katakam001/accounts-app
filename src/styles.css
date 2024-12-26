@@ -1,3 +1,20 @@
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 
 /* Add your global styles here */
+
+.example-sidenav-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Set the height to 100% of the viewport height */
+  }
+  
+  .mat-sidenav {
+    height: 100%; /* Ensure the sidenav takes up the full height */
+    overflow-y: auto; /* Enable vertical scrolling if content exceeds height */
+  }
+  
+  .mat-nav-list {
+    max-height: calc(100vh - 64px); /* Adjust the height to account for the toolbar */
+    overflow-y: auto; /* Enable vertical scrolling if content exceeds height */
+  }
+  

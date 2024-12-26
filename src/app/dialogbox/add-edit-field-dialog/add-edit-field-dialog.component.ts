@@ -3,9 +3,6 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CategoryService } from '../../services/category.service';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { FieldService } from '../../services/field.service';
@@ -14,7 +11,8 @@ import { MatSnackBar } from '@angular/material/snack-bar'; // Import MatSnackBar
 
 @Component({
   selector: 'app-add-edit-field-dialog',
-  imports: [MatCardModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule, MatCheckboxModule],
+  standalone: true,
+  imports: [ MatInputModule, ReactiveFormsModule,CommonModule, MatSelectModule, MatDialogModule, MatCheckboxModule],
   templateUrl: './add-edit-field-dialog.component.html',
   styleUrls: ['./add-edit-field-dialog.component.css']
 })
@@ -36,7 +34,8 @@ export class AddEditFieldDialogComponent implements OnInit {
       field_type: ['', Validators.required],
       field_category: [0, Validators.required], // Default to Normal
       exclude_from_total: [false],
-      required: [false]
+      required: [false],
+      type: [1]
     });
   }
 

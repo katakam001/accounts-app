@@ -2,13 +2,17 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Group } from '../models/group.interface';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GroupService {
 
-  private apiUrl = 'http://localhost:8080/api/groups';
+  // private apiUrl = 'http://localhost:8080/api/groups';
+                private baseUrl = environment.apiUrl;
+                private apiUrl = `${this.baseUrl}/api/groups`; // Append the path to the base URL
+  
 
   constructor(private http: HttpClient) {}
   

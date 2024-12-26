@@ -3,15 +3,12 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Group } from '../../models/group.interface';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-add-group-dialog',
-  imports: [MatCardModule,MatInputModule,ReactiveFormsModule,MatCardModule,MatIconModule,CommonModule,MatSelectModule,MatDatepickerModule],
+  standalone: true,
+  imports: [MatInputModule,ReactiveFormsModule,CommonModule],
   templateUrl: './add-group-dialog.component.html',
   styleUrls: ['./add-group-dialog.component.css']
 })

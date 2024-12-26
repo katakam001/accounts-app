@@ -3,17 +3,16 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Account } from '../../models/account.interface';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { GroupService } from '../../services/group.service';
 import { Group } from '../../models/group.interface';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-edit-account-dialog',
-  imports: [MatCardModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule, MatSelectModule, MatCheckboxModule],
+  standalone: true,
+  imports: [  ReactiveFormsModule,CommonModule,MatSelectModule,MatCheckboxModule,MatSelectModule,MatInputModule],
   templateUrl: './edit-account-dialog.component.html',
   styleUrls: ['./edit-account-dialog.component.css']
 })

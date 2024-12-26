@@ -5,15 +5,13 @@ import { CategoryUnitService } from '../../services/category-unit.service';
 import { CategoryService } from '../../services/category.service';
 import { UnitService } from '../../services/unit.service';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-add-edit-category-unit-dialog',
-  imports: [MatCardModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
+  standalone: true,
+  imports: [ MatInputModule, ReactiveFormsModule,   CommonModule, MatSelectModule, MatDialogModule],
   templateUrl: './add-edit-category-unit-dialog.component.html',
   styleUrls: ['./add-edit-category-unit-dialog.component.css']
 })

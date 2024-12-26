@@ -5,14 +5,12 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { CommonModule } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-financial-year-dialog',
-  imports: [MatCardModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
+  standalone: true,
+  imports: [ MatInputModule, ReactiveFormsModule,CommonModule,MatDialogModule,MatDatepickerModule],
   templateUrl: './financial-year-dialog.component.html',
   styleUrls: ['./financial-year-dialog.component.css']
 })

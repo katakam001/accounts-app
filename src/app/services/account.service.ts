@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Account } from '../models/account.interface';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,9 @@ import { Account } from '../models/account.interface';
 export class AccountService {
 
 
-  private apiUrl = 'http://localhost:8080/api/accounts';
+  // private apiUrl = 'http://localhost:8080/api/accounts';
+  private baseUrl = environment.apiUrl;
+  private apiUrl = `${this.baseUrl}/api/accounts`; // Append the path to the base URL
 
   constructor(private http: HttpClient) { }
 
@@ -21,6 +24,7 @@ export class AccountService {
     if (groups && groups.length > 0) {
       params = params.set('groups', groups.join(','));
     }
+
 
     return this.http.get<Account[]>(this.apiUrl, { params });
   }

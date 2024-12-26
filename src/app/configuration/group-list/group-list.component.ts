@@ -6,11 +6,7 @@ import { Group } from '../../models/group.interface';
 import { EditGroupDialogComponent } from '../../dialogbox/edit-group-dialog/edit-group-dialog.component';
 import { AddGroupDialogComponent } from '../../dialogbox/add-group-dialog/add-group-dialog.component';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { StorageService } from '../../services/storage.service';
 import { FinancialYearService } from '../../services/financial-year.service';
@@ -18,7 +14,8 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 
 @Component({
   selector: 'app-group-list',
-  imports: [MatTableModule, MatToolbarModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule, MatSortModule],
+  standalone: true,
+  imports: [MatTableModule, MatToolbarModule,MatCardModule,CommonModule, MatSortModule],
   templateUrl: './group-list.component.html',
   styleUrls: ['./group-list.component.css']
 })

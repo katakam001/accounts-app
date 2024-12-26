@@ -4,23 +4,18 @@ import { MatDialog } from '@angular/material/dialog';
 import { JournalService } from '../../services/journal.service';
 import { JournalEntry } from '../../models/journal-entry.interface';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { EditJournalEntryDialogComponent } from '../../dialogbox/edit-journal-entry-dialog/edit-journal-entry-dialog.component';
 import { StorageService } from '../../services/storage.service';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatListModule } from '@angular/material/list';
 import { AddJournalEntryDialogComponent } from '../../dialogbox/add-journal-entry-dialog/add-journal-entry-dialog.component';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-journal-list',
-  imports: [MatTableModule, MatToolbarModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule, MatExpansionModule, MatListModule],
+  standalone: true,
+  imports: [MatTableModule, MatToolbarModule,MatCardModule,CommonModule],
   templateUrl: './journal-list.component.html',
   styleUrls: ['./journal-list.component.css']
 })

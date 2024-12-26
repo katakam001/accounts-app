@@ -15,7 +15,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-purchase-fields',
-  imports: [MatTableModule, MatToolbarModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule, MatSortModule, MatCheckboxModule,FormsModule],
+  standalone: true,
+  imports: [MatTableModule, MatToolbarModule,MatCardModule,MatInputModule,MatSelectModule,MatCheckboxModule,MatIconModule,FormsModule, CommonModule,MatSortModule],
   templateUrl: './purchase-fields.component.html',
   styleUrls: ['./purchase-fields.component.css']
 })

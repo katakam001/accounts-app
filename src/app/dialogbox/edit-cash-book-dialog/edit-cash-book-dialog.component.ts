@@ -13,7 +13,8 @@ import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-edit-cash-book-dialog',
-  imports: [MatCardModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
+  standalone: true,
+  imports: [ MatInputModule, ReactiveFormsModule,CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
   templateUrl: './edit-cash-book-dialog.component.html',
   styleUrls: ['./edit-cash-book-dialog.component.css']
 })

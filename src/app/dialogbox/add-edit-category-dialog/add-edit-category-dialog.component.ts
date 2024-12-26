@@ -3,15 +3,13 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CategoryService } from '../../services/category.service';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-add-edit-category-dialog',
-  imports: [MatCardModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
+  standalone: true,
+  imports: [ReactiveFormsModule, CommonModule, MatInputModule, MatSelectModule, MatDialogModule],
   templateUrl: './add-edit-category-dialog.component.html',
   styleUrls: ['./add-edit-category-dialog.component.css']
 })
@@ -25,7 +23,8 @@ export class AddEditCategoryDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.categoryForm = this.fb.group({
-      name: ['', Validators.required]
+      name: ['', Validators.required],
+      type: [null, Validators.required] // Use a number for the type field
     });
   }
 

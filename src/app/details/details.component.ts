@@ -9,6 +9,7 @@ import { MatRadioModule } from '@angular/material/radio';
 
 @Component({
   selector: 'app-details',
+  standalone: true,
   imports: [CommonModule,ReactiveFormsModule,MatRadioModule],
   templateUrl: './details.component.html',
   styleUrl: './details.component.css'

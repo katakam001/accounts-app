@@ -1,5 +1,6 @@
 .purchase-entry-container {
   padding: 10px; /* Reduced padding */
+  margin: 20px
 }
 
 .toolbar {
@@ -10,7 +11,12 @@
   color: white;
 }
 
-.add-purchase-entry-button {
+.title {
+  flex-grow: 1;
+  text-align: left;
+}
+
+.add-purchase-entry-button, .purchase-return-button {
   background-color: #ff4081;
   color: white;
   border-radius: 25px;
@@ -19,9 +25,10 @@
   font-weight: bold;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s ease, transform 0.3s ease;
+  margin-left: 5px; /* Add a small gap between buttons */
 }
 
-.add-purchase-entry-button:hover {
+.add-purchase-entry-button:hover, .purchase-return-button:hover {
   background-color: #e91e63;
   transform: scale(1.05);
 }
@@ -36,8 +43,8 @@
 
 .expansion-panel-header-content {
   display: grid;
-  grid-template-columns: repeat(10, 1fr); /* Adjusted for 10 columns */
-  gap: 15px; /* Further reduced gap */
+  grid-template-columns: 40px repeat(10, 1fr) auto; /* Adjusted for 10 columns to include checkbox and actions */
+  gap: 20px; /* Further reduced gap */
   align-items: center;
   padding: 5px 0; /* Further reduced padding */
 }

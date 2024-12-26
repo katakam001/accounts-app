@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, AbstractControl, FormControl, ValidationErrors } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,7 +14,8 @@ import { StorageService } from '../../services/storage.service';
 
 @Component({
   selector: 'app-add-journal-entry-dialog',
-  imports: [MatCardModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
+  standalone: true,
+  imports: [ MatInputModule, ReactiveFormsModule,MatIconModule,CommonModule,MatSelectModule,MatDialogModule,MatDatepickerModule],
   templateUrl: './add-journal-entry-dialog.component.html',
   styleUrls: ['./add-journal-entry-dialog.component.css']
 })

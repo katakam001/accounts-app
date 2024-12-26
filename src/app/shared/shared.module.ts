@@ -18,6 +18,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTreeModule } from '@angular/material/tree';
 @NgModule({
   declarations: [],
   imports: [
@@ -41,7 +43,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatMenuModule,
     MatCheckboxModule,
     MatSortModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatTreeModule
   ],
   exports: [
     CommonModule,
@@ -64,7 +68,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatMenuModule,
     MatCheckboxModule,
     MatSortModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatTreeModule
   ]
 })
 export class SharedModule { }

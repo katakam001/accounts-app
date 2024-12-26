@@ -59,6 +59,18 @@ mat-form-field {
   background: linear-gradient(to right, #f50057, #ff4081);
 }
 
+.forgot-password-link {
+  display: block;
+  margin-top: 10px;
+  color: #2196f3;
+  cursor: pointer;
+  text-align: center;
+}
+
+.forgot-password-link:hover {
+  text-decoration: underline;
+}
+
 .error-message {
   margin-top: 16px;
   background-color: #f8d7da;

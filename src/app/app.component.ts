@@ -1,8 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterLink, RouterModule, RouterOutlet } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
+import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -10,40 +7,43 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { CommonModule } from '@angular/common';
 import { StorageService } from './services/storage.service';
 import { AuthService } from './services/auth.service';
-import { MatMenuModule } from '@angular/material/menu';
-
-
+import { MatButtonModule } from '@angular/material/button';
+import { RouterModule, RouterLink, RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     RouterLink,
     RouterOutlet,
-    RouterModule,
     MatSidenavModule,
-    FormsModule,
-    MatButtonModule,
-    MatCheckboxModule,
     MatListModule,
     MatToolbarModule,
     MatIconModule,
-    MatMenuModule
+    MatButtonModule
   ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
 
   title: string;
   isLoggedIn = false;
-  constructor(public storageService: StorageService, private authService: AuthService, private router: Router) {
+
+  constructor(
+    public storageService: StorageService,
+    private authService: AuthService,
+    private router: Router
+  ) {
     console.log("login:" + this.storageService.isLoggedIn());
   }
 
   ngOnInit(): void {
     this.isLoggedIn = this.storageService.isLoggedIn();
   }
+
   logout(): void {
     this.authService.logout().subscribe({
       next: res => {

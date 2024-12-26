@@ -10,17 +10,15 @@ import { EditAccountDialogComponent } from '../../dialogbox/edit-account-dialog/
 import { MatDialog } from '@angular/material/dialog';
 import { AddAccountDialogComponent } from '../../dialogbox/add-account-dialog/add-account-dialog.component';
 import { StorageService } from '../../services/storage.service';
-import { ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { Group } from '../../models/group.interface';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-account-list',
-  imports: [MatTableModule, MatToolbarModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule, MatTooltipModule, MatSortModule],
+  standalone: true,
+  imports: [MatCardModule,MatToolbarModule,MatTooltipModule,MatIconModule,MatTableModule,CommonModule,MatSortModule],
   templateUrl: './account-list.component.html',
   styleUrls: ['./account-list.component.css']
 })

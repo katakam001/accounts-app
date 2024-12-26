@@ -4,13 +4,8 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { AddCashBookDialogComponent } from '../../dialogbox/add-cash-book-dialog/add-cash-book-dialog.component';
 import { EditCashBookDialogComponent } from '../../dialogbox/edit-cash-book-dialog/edit-cash-book-dialog.component';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
-import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { CashEntry } from '../../models/cash-entry.interface';
 import { FinancialYearService } from '../../services/financial-year.service';
@@ -20,7 +15,8 @@ import { AccountService } from '../../services/account.service';
 
 @Component({
   selector: 'app-cash-book',
-  imports: [MatTableModule, MatToolbarModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule, MatExpansionModule, MatListModule],
+  standalone: true,
+  imports: [MatIconModule, MatCardModule, MatTableModule, CommonModule, MatToolbarModule],
   templateUrl: './cash-book.component.html',
   styleUrls: ['./cash-book.component.css']
 })
@@ -73,9 +69,9 @@ export class CashBookComponent implements OnInit {
   groupEntriesByDate(entries: CashEntry[]): { date: Date, transactions: CashEntry[], runningBalance: number }[] {
     // Sort entries by date in ascending order
     entries.sort((a, b) => new Date(a.cash_entry_date).getTime() - new Date(b.cash_entry_date).getTime());
-  
+
     const groupedEntries: { [key: string]: CashEntry[] } = {};
-  
+
     entries.forEach(entry => {
       const date = new Date(entry.cash_entry_date).toDateString();
       if (!groupedEntries[date]) {
@@ -83,17 +79,17 @@ export class CashBookComponent implements OnInit {
       }
       groupedEntries[date].push(entry);
     });
-  
+
     const result: { date: Date, transactions: CashEntry[], runningBalance: number }[] = [];
     for (const date in groupedEntries) {
       const dateEntries = groupedEntries[date];
       const runningBalance = dateEntries.reduce((acc, entry) => acc + (entry.cash_credit - entry.cash_debit), 0);
       result.push({ date: new Date(date), transactions: dateEntries, runningBalance });
     }
-  
+
     return result;
   }
-  
+
   addCashEntry(): void {
     const dialogRef = this.dialog.open(AddCashBookDialogComponent, {
       width: '800px',
@@ -191,31 +187,31 @@ export class CashBookComponent implements OnInit {
   recalculateBalances(): void {
     this.currentBalance = 0;
     this.openingBalance = 0;
-  
+
     // Fetch the opening balance from the account list where name is "CASH"
     this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id, this.financialYear).subscribe(accounts => {
       const cashAccount = accounts.find(account => account.name === 'CASH');
       if (cashAccount) {
         this.openingBalance = cashAccount.debit_balance;
       }
-  
+
       this.groupedTransactions.forEach((dateGroup, groupIndex) => {
         dateGroup.runningBalance = 0;
         dateGroup.transactions.forEach((transaction, index) => {
           const cashDebit = parseFloat(transaction.cash_debit.toString()) || 0;
           const cashCredit = parseFloat(transaction.cash_credit.toString()) || 0;
-  
+
           if (index === 0 && groupIndex === 0) {
             // Add the opening balance to the first dated record's cash credit
             this.currentBalance += this.openingBalance;
           }
-  
+
           if (cashDebit) {
             this.currentBalance -= cashDebit;
           } else if (cashCredit) {
             this.currentBalance += cashCredit;
           }
-  
+
           transaction.balance = this.currentBalance;
           dateGroup.runningBalance = this.currentBalance;
         });

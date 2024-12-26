@@ -1,7 +1,10 @@
 <div class="purchase-entry-container">
   <mat-toolbar color="primary" class="toolbar">
-    <span>Purchase Entry</span>
+    <span class="title">Purchase Entry</span>
     <span class="spacer"></span>
+    <button mat-raised-button class="purchase-return-button" (click)="openPurchaseReturnDialog()">
+      Purchase Return
+    </button>
     <button mat-raised-button class="add-purchase-entry-button" (click)="openAddEntryDialog()">
       Add New Purchase Entry
     </button>
@@ -14,6 +17,7 @@
           <mat-expansion-panel-header>
             <mat-panel-title>
               <div class="expansion-panel-header-content">
+                <mat-checkbox [(ngModel)]="entry.selected"></mat-checkbox>
                 <div class="field">
                   <div class="label">Category</div>
                   <div class="value" title="{{ entry.category_name }}">{{ entry.category_name }}</div>

@@ -5,16 +5,14 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { UnitService } from '../../services/unit.service';
 import { AddEditUnitDialogComponent } from '../../dialogbox/add-edit-unit-dialog/add-edit-unit-dialog.component';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
 @Component({
   selector: 'app-units',
-  imports: [MatTableModule, MatToolbarModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule, MatSortModule],
+  standalone: true,
+  imports: [MatTableModule, MatToolbarModule,MatCardModule,MatIconModule,CommonModule,MatSortModule],
   templateUrl: './units.component.html',
   styleUrls: ['./units.component.css']
 })

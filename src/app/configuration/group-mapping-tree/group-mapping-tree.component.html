@@ -1,0 +1,33 @@
+<button mat-raised-button color="primary" (click)="openAddParentNodeDialog()">Add Parent Node</button>
+
+<mat-tree #tree [dataSource]="dataSource" [childrenAccessor]="childrenAccessor" class="tree-container">
+  <!-- This is the tree node template for leaf nodes -->
+  <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+    <!-- use a disabled button to provide padding for tree leaf -->
+    <button mat-icon-button disabled></button>
+    {{node.name}} (ID: {{node.id}})
+    <button mat-icon-button (click)="setParentNode(node.id)">
+      <mat-icon>check</mat-icon>
+    </button>
+    <button mat-icon-button (click)="deleteNode(node)">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </mat-tree-node>
+  <!-- This is the tree node template for expandable nodes -->
+  <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding matTreeNodeToggle
+                 [cdkTreeNodeTypeaheadLabel]="node.name">
+    <button mat-icon-button matTreeNodeToggle
+            [attr.aria-label]="'Toggle ' + node.name">
+      <mat-icon class="mat-icon-rtl-mirror">
+        {{tree.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+      </mat-icon>
+    </button>
+    {{node.name}} (ID: {{node.id}})
+    <button mat-icon-button (click)="setParentNode(node.id)">
+      <mat-icon>check</mat-icon>
+    </button>
+    <button mat-icon-button (click)="deleteNode(node)">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </mat-tree-node>
+</mat-tree>

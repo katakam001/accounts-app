@@ -7,11 +7,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { AuthService } from '../services/auth.service';
 import { CommonModule } from '@angular/common';
-import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-register',
-  imports: [MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, MatSelectModule, CommonModule],
+  standalone: true,
+  imports: [MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule,  CommonModule],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })

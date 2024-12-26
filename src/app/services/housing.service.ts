@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HousingLocation } from './housinglocation';
 import { Data } from '../models/data';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -10,8 +11,13 @@ export class HousingService {
   constructor(private http: HttpClient) { }
 
 
-  url = 'http://localhost:8080/api/locations';
-  apiUrl = 'http://localhost:8080/api';
+  // url = 'http://localhost:8080/api/locations';
+  // apiUrl = 'http://localhost:8080/api';
+
+            private baseUrl = environment.apiUrl;
+            private apiUrl = `${this.baseUrl}/api`; // Append the path to the base URL
+            private url = `${this.baseUrl}/api/locations`; // Append the path to the base URL
+
   async getAllHousingLocations(): Promise<HousingLocation[]> {
     const data = await fetch(this.url);
     return (await data.json()) ?? [];

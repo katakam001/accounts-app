@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { JournalEntry } from '../models/journal-entry.interface';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,9 @@ import { JournalEntry } from '../models/journal-entry.interface';
 export class JournalService {
 
 
-  private apiUrl = 'http://localhost:8080/api/journal-entries';
+  // private apiUrl = 'http://localhost:8080/api/journal-entries';
+              private baseUrl = environment.apiUrl;
+              private apiUrl = `${this.baseUrl}/api/journal-entries`; // Append the path to the base URL
 
   constructor(private http: HttpClient) {}
   

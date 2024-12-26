@@ -4,9 +4,7 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { CategoryService } from '../../services/category.service';
 import { FieldService } from '../../services/field.service';
 import { CommonModule, DatePipe } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CategoryUnitService } from '../../services/category-unit.service';
@@ -17,7 +15,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-add-edit-entry-dialog',
-  imports: [MatCardModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
+  standalone: true,
+  imports: [MatInputModule, ReactiveFormsModule, MatSelectModule, CommonModule, MatDialogModule, MatDatepickerModule],
   templateUrl: './add-edit-entry-dialog.component.html',
   styleUrls: ['./add-edit-entry-dialog.component.css']
 })
@@ -58,7 +57,8 @@ export class AddEditEntryDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.fetchCategories();
+    const categoryType = (this.data.type === 1 || this.data.type === 3) ? 1 : 2;
+    this.fetchCategories(categoryType);
     this.fetchSuppliers();
     if (this.data.entry) {
       this.entryForm.patchValue(this.data.entry);
@@ -77,8 +77,8 @@ export class AddEditEntryDialogComponent implements OnInit {
     return date >= startDate && date <= endDate;
   };
 
-  fetchCategories(): void {
-    this.categoryService.getCategories().subscribe((data: any[]) => {
+  fetchCategories(type: number): void {
+    this.categoryService.getCategoriesByType(type).subscribe((data: any[]) => {
       this.categories = data;
     });
   }
@@ -96,7 +96,15 @@ export class AddEditEntryDialogComponent implements OnInit {
 
   fetchDynamicFields(categoryId: number): void {
     this.fieldService.getFieldsByCategory(categoryId).subscribe((data: any[]) => {
-      this.dynamicFields = data.filter(field => !(this.data.type === 2 && field.field_category === 1 && field.exclude_from_total));
+      if (this.data.type === 3 && !this.data.entry) {
+        // Exclude fields with field_category === 1 and exclude_from_total for new purchase returns
+        this.dynamicFields = data.filter(field => !(field.field_category === 1 && field.exclude_from_total));
+      } else if (this.data.type === 2 || this.data.type === 4) {
+        // Exclude fields with field_category === 1 and exclude_from_total for sale entries (type 2 and 4)
+        this.dynamicFields = data.filter(field => !(field.field_category === 1 && field.exclude_from_total));
+      } else {
+        this.dynamicFields = data;
+      }
       this.dynamicFields.forEach(field => {
         const entryField = this.data.entry?.fields.find((f: any) => f.field_name === field.field_name);
         const defaultValue = entryField ? entryField.field_value : (field.field_type === 'number' ? 0 : '');
@@ -158,11 +166,14 @@ export class AddEditEntryDialogComponent implements OnInit {
         field_category: field.field_category,
         exclude_from_total: field.exclude_from_total
       }));
-      if (this.data.entry) {
+  
+      if (this.data.entry && (this.data.type === 1 || this.data.type === 2)) {
+        // Update existing entry for Purchase Entry (type 1) and Sale Entry (type 2)
         this.entryService.updateEntry(this.data.entry.id, entry, dynamicFieldValues).subscribe(() => {
           this.dialogRef.close(true);
         });
       } else {
+        // Add new entry for Purchase Return (type 3) and Sale Return (type 4)
         this.entryService.addEntry(entry, dynamicFieldValues).subscribe(() => {
           this.dialogRef.close(true);
         });
@@ -172,7 +183,7 @@ export class AddEditEntryDialogComponent implements OnInit {
         duration: 3000,
       });
     }
-  }
+  }  
 
   onCancel(): void {
     this.dialogRef.close();

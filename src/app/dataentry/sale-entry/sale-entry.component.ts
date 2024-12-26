@@ -4,20 +4,17 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { AddEditEntryDialogComponent } from '../../dialogbox/add-edit-entry-dialog/add-edit-entry-dialog.component';
 import { EntryService } from '../../services/entry.service';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
-import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 
 @Component({
   selector: 'app-sale-entry',
-  imports: [MatTableModule, MatToolbarModule, MatInputModule, ReactiveFormsModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule, MatExpansionModule, MatListModule],
+  standalone: true,
+  imports: [ MatToolbarModule,   MatCardModule,  MatIconModule, CommonModule, MatExpansionModule],
   templateUrl: './sale-entry.component.html',
   styleUrls: ['./sale-entry.component.css']
 })

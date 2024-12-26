@@ -3,15 +3,19 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { MatCardModule } from '@angular/material/card'
+import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { StorageService } from '../services/storage.service';
 import { CommonModule } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
+import { ForgotPasswordDialogComponent } from '../dialogbox/forgot-password-dialog/forgot-password-dialog.component';
+
 @Component({
   selector: 'app-login',
-  imports: [MatInputModule,ReactiveFormsModule,MatCardModule,MatIconModule,CommonModule],
+  standalone: true,
+  imports: [MatInputModule, ReactiveFormsModule, MatCardModule, MatIconModule, CommonModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
@@ -20,7 +24,13 @@ export class LoginComponent implements OnInit {
   errorMessage = '';
   roles: string[] = [];
 
-  constructor(private authService: AuthService, private storageService: StorageService,private fb: FormBuilder, private router: Router) { }
+  constructor(
+    private authService: AuthService,
+    private storageService: StorageService,
+    private fb: FormBuilder,
+    private router: Router,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
@@ -35,27 +45,31 @@ export class LoginComponent implements OnInit {
 
   onSubmit(): void {
     if (this.loginForm.valid) {
+      const { username, password } = this.loginForm.value;
 
-    const { username, password } = this.loginForm.value;
+      this.authService.login(username, password).subscribe({
+        next: data => {
+          this.storageService.saveUser(data);
 
-    this.authService.login(username, password).subscribe({
-      next: data => {
-        this.storageService.saveUser(data);
+          this.isLoginFailed = false;
+          this.isLoggedIn = true;
+          this.roles = this.storageService.getUser().roles;
+          this.router.navigate(['/dashboard']);
+        },
+        error: err => {
+          this.errorMessage = err.error.message;
+          this.isLoginFailed = true;
+        }
+      });
+    } else {
+      console.log('Form is invalid');
+      this.errorMessage = 'Please fill in all required fields'; // Set error message
+    }
+  }
 
-        this.isLoginFailed = false;
-        this.isLoggedIn = true;
-        this.roles = this.storageService.getUser().roles;
-        this.router.navigate(['/dashboard']);
-      },
-      error: err => {
-        this.errorMessage = err.error.message;
-        this.isLoginFailed = true;
-      }
+  openForgotPasswordDialog(): void {
+    this.dialog.open(ForgotPasswordDialogComponent, {
+      width: '400px'
     });
-  } else {
-    console.log('Form is invalid');
-    this.errorMessage = 'Please fill in all required fields'; // Set error message
   }
-  }
-
 }
