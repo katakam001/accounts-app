@@ -6,7 +6,6 @@ import { EntryService } from '../../services/entry.service';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,7 +24,6 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
     MatExpansionModule,
     MatIconModule,
     MatCheckboxModule,
-    MatButtonModule,
     FormsModule,
     MatSnackBarModule
   ],

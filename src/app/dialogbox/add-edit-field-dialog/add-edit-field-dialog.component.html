@@ -1,45 +1,11 @@
-<!-- add-edit-field-dialog.component.html -->
 <h1 mat-dialog-title>{{ data.field ? 'Edit Field' : 'Add New Field' }}</h1>
 <div mat-dialog-content>
   <form [formGroup]="fieldForm" class="add-edit-field-dialog-form">
-    <mat-form-field appearance="fill" class="form-field">
-      <mat-label>Category</mat-label>
-      <mat-select formControlName="category_id" required>
-        <mat-option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</mat-option>
-      </mat-select>
-      <mat-error *ngIf="fieldForm.get('category_id')?.hasError('required')">Category is required</mat-error>
-    </mat-form-field>
-
     <mat-form-field appearance="fill" class="form-field">
       <mat-label>Field Name</mat-label>
       <input matInput formControlName="field_name" required>
       <mat-error *ngIf="fieldForm.get('field_name')?.hasError('required')">Field name is required</mat-error>
     </mat-form-field>
-
-    <mat-form-field appearance="fill" class="form-field">
-      <mat-label>Field Type</mat-label>
-      <mat-select formControlName="field_type" required>
-        <mat-option value="text">Text</mat-option>
-        <mat-option value="number">Number</mat-option>
-        <!-- Add more field types as needed -->
-      </mat-select>
-      <mat-error *ngIf="fieldForm.get('field_type')?.hasError('required')">Field type is required</mat-error>
-    </mat-form-field>
-
-    <mat-form-field appearance="fill" class="form-field">
-      <mat-label>Field Category</mat-label>
-      <mat-select formControlName="field_category" required>
-        <mat-option [value]="0">Normal</mat-option>
-        <mat-option [value]="1">Tax</mat-option>
-        <!-- Add more field categories as needed -->
-      </mat-select>
-      <mat-error *ngIf="fieldForm.get('field_category')?.hasError('required')">Field category is required</mat-error>
-    </mat-form-field>
-
-    <div class="checkbox-container">
-      <mat-checkbox formControlName="exclude_from_total" (change)="onExcludeFromTotalChange()">Exclude from Total</mat-checkbox>
-      <mat-checkbox formControlName="required">Mandatory</mat-checkbox>
-    </div>
   </form>
 </div>
 <div mat-dialog-actions>

@@ -5,32 +5,26 @@ import { AddEditEntryDialogComponent } from '../../dialogbox/add-edit-entry-dial
 import { EntryService } from '../../services/entry.service';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
-  selector: 'app-sale-entry',
+  selector: 'app-sale-return',
   standalone: true,
   imports: [
     MatToolbarModule,
     MatCardModule,
     CommonModule,
     MatExpansionModule,
-    MatIconModule,
-    MatCheckboxModule,
-    FormsModule,
-    MatSnackBarModule
+    MatIconModule
   ],
-  templateUrl: './sale-entry.component.html',
-  styleUrls: ['./sale-entry.component.css']
+  templateUrl: './sale-return.component.html',
+  styleUrls: ['./sale-return.component.css']
 })
-export class SaleEntryComponent implements OnInit {
+export class SaleReturnComponent implements OnInit {
   entries: MatTableDataSource<any>;
   financialYear: string;
   expandedRows: { [key: number]: boolean } = {};
@@ -39,8 +33,7 @@ export class SaleEntryComponent implements OnInit {
     private entryService: EntryService,
     public dialog: MatDialog,
     private storageService: StorageService,
-    private financialYearService: FinancialYearService,
-    private snackBar: MatSnackBar
+    private financialYearService: FinancialYearService
   ) {
     this.entries = new MatTableDataSource<any>([]);
   }
@@ -60,7 +53,7 @@ export class SaleEntryComponent implements OnInit {
 
   fetchEntries(): void {
     const userId = this.storageService.getUser().id;
-    this.entryService.getEntriesByUserIdAndFinancialYearAndType(userId, this.financialYear, 2).subscribe((data: any[]) => {
+    this.entryService.getEntriesByUserIdAndFinancialYearAndType(userId, this.financialYear, 4).subscribe((data: any[]) => {
       this.entries.data = data;
       if (data.length > 0) {
         this.updateEntriesWithDynamicFields(data);
@@ -78,7 +71,7 @@ export class SaleEntryComponent implements OnInit {
   openAddEntryDialog(): void {
     const dialogRef = this.dialog.open(AddEditEntryDialogComponent, {
       width: '1000px',
-      data: { userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 2 }
+      data: { userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 4 }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -88,7 +81,7 @@ export class SaleEntryComponent implements OnInit {
     });
   }
 
-  openEditEntryDialog(entry: any, type: number = 2): void {
+  openEditEntryDialog(entry: any, type: number = 4): void {
     const dialogRef = this.dialog.open(AddEditEntryDialogComponent, {
       width: '1000px',
       data: { entry, userId: this.storageService.getUser().id, financialYear: this.financialYear, type }
@@ -109,23 +102,5 @@ export class SaleEntryComponent implements OnInit {
 
   expand(entry: any): void {
     this.expandedRows[entry.id] = !this.expandedRows[entry.id];
-  }
-
-  openSaleReturnDialog(): void {
-    const selectedEntries = this.entries.data.filter((entry: any) => entry.selected);
-    if (selectedEntries.length === 1) {
-      const selectedEntry = selectedEntries[0];
-      selectedEntry.type = 4; // Explicitly set the type to 4 for sale returns
-      console.log(selectedEntry);
-      this.openEditEntryDialog(selectedEntry, 4);
-    } else if (selectedEntries.length > 1) {
-      this.snackBar.open('Please select one sale entry to return it.', 'Close', {
-        duration: 3000,
-      });
-    } else {
-      this.snackBar.open('Please select a checkbox before proceeding.', 'Close', {
-        duration: 3000,
-      });
-    }
   }
 }

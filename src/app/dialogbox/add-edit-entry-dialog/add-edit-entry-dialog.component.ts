@@ -2,7 +2,6 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CategoryService } from '../../services/category.service';
-import { FieldService } from '../../services/field.service';
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
@@ -12,6 +11,7 @@ import { Account } from '../../models/account.interface';
 import { AccountService } from '../../services/account.service';
 import { EntryService } from '../../services/entry.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { FieldMappingService } from '../../services/field-mapping.service';
 
 @Component({
   selector: 'app-add-edit-entry-dialog',
@@ -31,7 +31,7 @@ export class AddEditEntryDialogComponent implements OnInit {
     private fb: FormBuilder,
     private entryService: EntryService,
     private categoryService: CategoryService,
-    private fieldService: FieldService,
+    private fieldMappingService: FieldMappingService,
     private categoryUnitService: CategoryUnitService,
     private accountService: AccountService,
     private snackBar: MatSnackBar,
@@ -95,7 +95,7 @@ export class AddEditEntryDialogComponent implements OnInit {
   }
 
   fetchDynamicFields(categoryId: number): void {
-    this.fieldService.getFieldsByCategory(categoryId).subscribe((data: any[]) => {
+    this.fieldMappingService.getFieldMappingsByCategory(categoryId).subscribe((data: any[]) => {
       if (this.data.type === 3 && !this.data.entry) {
         // Exclude fields with field_category === 1 and exclude_from_total for new purchase returns
         this.dynamicFields = data.filter(field => !(field.field_category === 1 && field.exclude_from_total));
@@ -161,6 +161,7 @@ export class AddEditEntryDialogComponent implements OnInit {
       const entry = this.entryForm.getRawValue();
       entry.entry_date = this.datePipe.transform(entry.entry_date, 'yyyy-MM-dd', 'en-IN');
       const dynamicFieldValues = this.dynamicFields.map(field => ({
+        field_id: field.field_id,
         field_name: field.field_name,
         field_value: entry[field.field_name],
         field_category: field.field_category,

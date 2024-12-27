@@ -2,21 +2,32 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
-import { FieldService } from '../../services/field.service';
-import { AddEditFieldDialogComponent } from '../../dialogbox/add-edit-field-dialog/add-edit-field-dialog.component';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { FieldMappingService } from '../../services/field-mapping.service';
+import { AddEditFieldMappingDialogComponent } from '../../dialogbox/add-edit-field-mapping-dialog/add-edit-field-mapping-dialog.component';
 
 @Component({
   selector: 'app-purchase-fields',
   standalone: true,
-  imports: [MatTableModule, MatToolbarModule,MatCardModule,MatInputModule,MatSelectModule,MatCheckboxModule,MatIconModule,FormsModule, CommonModule,MatSortModule],
+  imports: [
+    MatTableModule,
+    MatToolbarModule,
+    MatCardModule,
+    MatInputModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatIconModule,
+    FormsModule,
+    CommonModule,
+    MatSortModule
+  ],
   templateUrl: './purchase-fields.component.html',
   styleUrls: ['./purchase-fields.component.css']
 })
@@ -35,7 +46,7 @@ export class PurchaseFieldsComponent implements OnInit {
 
   @ViewChild(MatSort) sort: MatSort;
 
-  constructor(private fieldService: FieldService, public dialog: MatDialog) {
+  constructor(private fieldMappingService: FieldMappingService, public dialog: MatDialog) {
     this.fields = new MatTableDataSource<any>([]);
   }
 
@@ -45,7 +56,7 @@ export class PurchaseFieldsComponent implements OnInit {
   }
 
   fetchFields(): void {
-    this.fieldService.getAllFields().subscribe((data: any[]) => {
+    this.fieldMappingService.getAllFieldMappings().subscribe((data: any[]) => {
       this.originalData = data;
       this.fields.data = data;
       this.fields.sort = this.sort; // Set the sort after fetching the data
@@ -94,7 +105,7 @@ export class PurchaseFieldsComponent implements OnInit {
   }
 
   openAddFieldDialog(): void {
-    const dialogRef = this.dialog.open(AddEditFieldDialogComponent, {
+    const dialogRef = this.dialog.open(AddEditFieldMappingDialogComponent, {
       width: '400px',
       data: { field: null }
     });
@@ -107,7 +118,7 @@ export class PurchaseFieldsComponent implements OnInit {
   }
 
   openEditFieldDialog(field: any): void {
-    const dialogRef = this.dialog.open(AddEditFieldDialogComponent, {
+    const dialogRef = this.dialog.open(AddEditFieldMappingDialogComponent, {
       width: '400px',
       data: { field }
     });
@@ -120,7 +131,7 @@ export class PurchaseFieldsComponent implements OnInit {
   }
 
   deleteField(fieldId: number): void {
-    this.fieldService.deleteField(fieldId).subscribe(() => {
+    this.fieldMappingService.deleteFieldMapping(fieldId).subscribe(() => {
       this.fetchFields();
     });
   }

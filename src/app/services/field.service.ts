@@ -7,18 +7,13 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class FieldService {
-  // private apiUrl = 'http://localhost:8080/api/fields';
-            private baseUrl = environment.apiUrl;
-            private apiUrl = `${this.baseUrl}/api/fields`; // Append the path to the base URL
+  private baseUrl = environment.apiUrl;
+  private apiUrl = `${this.baseUrl}/api/fields`; // Append the path to the base URL
 
   constructor(private http: HttpClient) {}
 
   getAllFields(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl);
-  }
-
-  getFieldsByCategory(categoryId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}?category_id=${categoryId}`);
   }
 
   addField(field: any): Observable<any> {
