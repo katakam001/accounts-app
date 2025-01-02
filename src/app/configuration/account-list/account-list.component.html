@@ -36,10 +36,10 @@
           <td mat-cell *matCellDef="let account"> {{ formatNumber(account.credit_balance) }} </td>
         </ng-container>
 
-        <!-- Groups Column -->
-        <ng-container matColumnDef="groups">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Groups </th>
-          <td mat-cell *matCellDef="let account"> {{ getGroupNames(account.groups) }} </td>
+        <!-- Group Column -->
+        <ng-container matColumnDef="group">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Group </th>
+          <td mat-cell *matCellDef="let account"> {{ getGroupName(account.group) }} </td>
         </ng-container>
 
         <!-- Address Column -->

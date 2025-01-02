@@ -1,0 +1,50 @@
+.areas-container {
+  padding: 20px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.add-area-button {
+  background-color: #ff9800; /* Orange background */
+  color: white;
+  border-radius: 4px;
+  padding: 8px 16px;
+  transition: background-color 0.3s ease;
+}
+
+.add-area-button:hover {
+  background-color: #fb8c00; /* Darker orange on hover */
+}
+
+.edit-button {
+  background-color: #4caf50; /* Green background */
+  color: white;
+  border-radius: 4px;
+  padding: 8px 16px;
+  transition: background-color 0.3s ease;
+}
+
+.edit-button:hover {
+  background-color: #388e3c; /* Darker green on hover */
+}
+
+.delete-button {
+  background-color: #f44336; /* Red background */
+  color: white;
+  border-radius: 4px;
+  padding: 8px 16px;
+  transition: background-color 0.3s ease;
+}
+
+.delete-button:hover {
+  background-color: #d32f2f; /* Darker red on hover */
+}
+
+.areas-card {
+  margin-top: 20px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}

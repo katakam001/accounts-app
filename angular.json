@@ -52,7 +52,11 @@
                 }
               ],
               "outputHashing": "all",
-              "sourceMap": true
+              "optimization": true,
+              "sourceMap": false,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true
             },
             "development": {
               "optimization": false,

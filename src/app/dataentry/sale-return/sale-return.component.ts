@@ -41,15 +41,14 @@ export class SaleReturnComponent implements OnInit {
   ngOnInit(): void {
     this.getFinancialYear();
   }
-
   getFinancialYear() {
-    this.financialYearService.financialYear$.subscribe(year => {
-      this.financialYear = year;
-      if (this.financialYear) {
-        this.fetchEntries();
-      }
-    });
+    const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
+    if (storedFinancialYear) {
+      this.financialYear = storedFinancialYear;
+      this.fetchEntries();
+    }
   }
+  
 
   fetchEntries(): void {
     const userId = this.storageService.getUser().id;

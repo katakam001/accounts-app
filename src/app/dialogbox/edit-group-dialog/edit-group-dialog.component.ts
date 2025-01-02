@@ -8,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 @Component({
   selector: 'app-edit-group-dialog',
   standalone: true,
-  imports: [MatInputModule,ReactiveFormsModule,CommonModule],
+  imports: [MatInputModule, ReactiveFormsModule, CommonModule],
   templateUrl: './edit-group-dialog.component.html',
   styleUrls: ['./edit-group-dialog.component.css']
 })
@@ -18,12 +18,12 @@ export class EditGroupDialogComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<EditGroupDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private fb: FormBuilder,
+    private fb: FormBuilder
   ) {
     this.editGroupForm = this.fb.group({
-      id: [this.data.group.id],
-      name: [this.data.group.name, Validators.required],
-      description: [this.data.group.description],
+      id: [data.group.id],
+      name: [data.group.name, Validators.required],
+      description: [data.group.description]
     });
   }
 
@@ -46,5 +46,4 @@ export class EditGroupDialogComponent implements OnInit {
   onCancel(): void {
     this.dialogRef.close();
   }
-
 }

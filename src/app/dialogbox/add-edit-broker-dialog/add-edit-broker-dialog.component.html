@@ -1,0 +1,21 @@
+<h1 mat-dialog-title>{{ data.broker ? 'Edit Broker' : 'Add Broker' }}</h1>
+<div mat-dialog-content>
+  <form [formGroup]="brokerForm">
+    <mat-form-field>
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Contact</mat-label>
+      <input matInput formControlName="contact">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email">
+    </mat-form-field>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-button color="primary" (click)="onSave()">Save</button>
+</div>

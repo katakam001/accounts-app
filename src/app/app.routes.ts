@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
-import { AuthGuard } from './auth.guard';
+import { AuthGuard } from './guards/auth.guard';
 import { HomeComponent } from './home/home.component';
 import { RegisterComponent } from './register/register.component';
 import { PasswordResetComponent } from './password-reset/password-reset.component';
@@ -16,6 +16,8 @@ export const routes: Routes = [
   { path: 'categories', loadChildren: () => import('./configuration/purchase-categories/purchase-categories.module').then(m => m.PurchaseCategoriesModule), title: 'Purchase Categories page', canActivate: [AuthGuard] },
   { path: 'fieldMapping', loadChildren: () => import('./configuration/purchase-fields/purchase-fields.module').then(m => m.PurchaseFieldsModule), title: 'Purchase fields page', canActivate: [AuthGuard] },
   { path: 'fields', loadChildren: () => import('./configuration/fields/fields.module').then(m => m.FieldsModule), title: 'Fields page', canActivate: [AuthGuard] },
+  { path: 'brokerList', loadChildren: () => import('./configuration/broker/broker.module').then(m => m.BrokerModule), title: 'Brokers page', canActivate: [AuthGuard] },
+  { path: 'areaList', loadChildren: () => import('./configuration/area/area.module').then(m => m.AreaModule), title: 'Areas page', canActivate: [AuthGuard] },
   { path: 'units', loadChildren: () => import('./configuration/units/units.module').then(m => m.UnitsModule), title: 'Units page', canActivate: [AuthGuard] },
   { path: 'categoryUnits', loadChildren: () => import('./configuration/category-units/category-units.module').then(m => m.CategoryUnitsModule), title: 'Category Units page', canActivate: [AuthGuard] },
   { path: 'groupMapping', loadChildren: () => import('./configuration/group-mapping-tree/group-mapping-tree.module').then(m => m.GroupMappingTreeModule), title: 'Group Mapping page', canActivate: [AuthGuard] },

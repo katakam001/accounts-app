@@ -63,7 +63,21 @@
     </mat-form-field>
 
     <div *ngFor="let field of dynamicFields">
-      <mat-form-field appearance="fill" class="form-field">
+      <mat-form-field appearance="fill" class="form-field" *ngIf="field.field_name === 'broker'">
+        <mat-label>{{ field.field_name }}</mat-label>
+        <mat-select [formControlName]="field.field_name" [required]="field.required">
+          <mat-option *ngFor="let broker of brokers" [value]="broker.id">{{ broker.name }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="entryForm.get(field.field_name)?.hasError('required')">{{ field.field_name }} is required</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="form-field" *ngIf="field.field_name === 'Area'">
+        <mat-label>{{ field.field_name }}</mat-label>
+        <mat-select [formControlName]="field.field_name" [required]="field.required">
+          <mat-option *ngFor="let area of areas" [value]="area.id">{{ area.name }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="entryForm.get(field.field_name)?.hasError('required')">{{ field.field_name }} is required</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="form-field" *ngIf="field.field_name !== 'broker' && field.field_name !== 'Area'">
         <mat-label>{{ field.field_name }}</mat-label>
         <input matInput [formControlName]="field.field_name" [type]="field.field_type" [required]="field.required">
         <mat-error *ngIf="entryForm.get(field.field_name)?.hasError('required')">{{ field.field_name }} is required</mat-error>

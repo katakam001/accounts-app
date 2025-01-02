@@ -10,8 +10,6 @@ export interface Account {
   debit_balance: number;
   financial_year: string;
   isDealer?: boolean;
-  groups?: Group[]; // Add the groups property
+  group: Group; // Change to a single group property
   address?: Address; // Add the address property
 }
-
-  

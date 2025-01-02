@@ -4,8 +4,12 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8080'
+  apiUrl: 'http://localhost:8080',
+  cacheTTL: 86400000, // 1 day in milliseconds
+  fieldMappingCacheCapacity: 2, // Number of records to keep in memory for FieldMappingService
+  accountCacheCapacity: 5 // Number of records to keep in memory for AccountService
 };
+
 
 /*
  * For easier debugging in development mode, you can import the following file

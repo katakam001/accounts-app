@@ -15,7 +15,7 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 @Component({
   selector: 'app-group-list',
   standalone: true,
-  imports: [MatTableModule, MatToolbarModule,MatCardModule,CommonModule, MatSortModule],
+  imports: [MatTableModule, MatToolbarModule, MatCardModule, CommonModule, MatSortModule],
   templateUrl: './group-list.component.html',
   styleUrls: ['./group-list.component.css']
 })
@@ -23,6 +23,7 @@ export class GroupListComponent implements OnInit {
   groups = new MatTableDataSource<Group>();
   displayedColumns: string[] = ['name', 'description', 'actions'];
   financialYear: string;
+  userId: number;
 
   @ViewChild(MatSort) sort: MatSort;
 
@@ -34,18 +35,18 @@ export class GroupListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.userId = this.storageService.getUser().id;
     this.getFinancialYear();
-    this.groups.sort = this.sort; // Initialize sorting
   }
 
   getFinancialYear() {
-    this.financialYearService.financialYear$.subscribe(year => {
-      this.financialYear = year;
-      if (this.financialYear) {
-        this.fetchGroups(this.storageService.getUser().id, this.financialYear);
-      }
-    });
+    const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
+    if (storedFinancialYear) {
+      this.financialYear = storedFinancialYear;
+      this.fetchGroups(this.userId, this.financialYear);
+    }
   }
+
 
   fetchGroups(userId: number, financialYear: string): void {
     this.groupService.getGroupsByUserIdAndFinancialYear(userId, financialYear).subscribe((data: Group[]) => {
@@ -57,13 +58,13 @@ export class GroupListComponent implements OnInit {
   addGroup(): void {
     const dialogRef = this.dialog.open(AddGroupDialogComponent, {
       width: '400px',
-      data: { userId: this.storageService.getUser().id, financialYear: this.financialYear }
+      data: { userId: this.userId, financialYear: this.financialYear }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.groupService.addGroup(result).subscribe(() => {
-          this.fetchGroups(this.storageService.getUser().id, this.financialYear); // Refresh the group list after adding a new group
+          this.fetchGroups(this.userId, this.financialYear); // Refresh the group list after adding a new group
         });
       }
     });
@@ -72,7 +73,7 @@ export class GroupListComponent implements OnInit {
   editGroup(group: Group): void {
     const dialogRef = this.dialog.open(EditGroupDialogComponent, {
       width: '400px',
-      data: { userId: this.storageService.getUser().id, financialYear: this.financialYear, group: group }
+      data: { userId: this.userId, financialYear: this.financialYear, group: group }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -83,10 +84,15 @@ export class GroupListComponent implements OnInit {
   }
 
   deleteGroup(id: number): void {
-    this.groupService.deleteGroup(id).subscribe(response => {
-      console.log('Response status:', response.status);
-      this.fetchGroups(this.storageService.getUser().id, this.financialYear); // Refresh the table by fetching the updated list of groups
-    });
+    this.groupService.deleteGroup(id).subscribe(
+      () => {
+        console.log('Group deleted successfully');
+        this.fetchGroups(this.userId, this.financialYear); // Refresh the table by fetching the updated list of groups
+      },
+      error => {
+        console.error('Error deleting group:', error);
+      }
+    );
   }
 
   updateGroup(updatedGroup: Group): void {

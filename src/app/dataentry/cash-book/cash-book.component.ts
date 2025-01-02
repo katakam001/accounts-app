@@ -44,13 +44,13 @@ export class CashBookComponent implements OnInit {
   }
 
   getFinancialYear() {
-    this.financialYearService.financialYear$.subscribe(year => {
-      this.financialYear = year;
-      if (this.financialYear) {
-        this.fetchCashBook();
-      }
-    });
+    const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
+    if (storedFinancialYear) {
+      this.financialYear = storedFinancialYear;
+      this.fetchCashBook();
+    }
   }
+  
 
   fetchCashBook(): void {
     this.cashEntriesService.getCashEntriesByUserIdAndFinancialYear(this.storageService.getUser().id, this.financialYear).subscribe((data: CashEntry[]) => {

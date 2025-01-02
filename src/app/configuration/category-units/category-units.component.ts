@@ -9,6 +9,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { FinancialYearService } from '../../services/financial-year.service';
+import { StorageService } from '../../services/storage.service';
 
 @Component({
   selector: 'app-category-units',
@@ -25,20 +27,37 @@ export class CategoryUnitsComponent implements OnInit {
   units: string[] = [];
   selectedCategory: string = '';
   selectedUnit: string = '';
+  userId: number;
+  financialYear: string;
 
   @ViewChild(MatSort) sort: MatSort;
 
-  constructor(private categoryUnitService: CategoryUnitService, public dialog: MatDialog) {
+  constructor(
+    private categoryUnitService: CategoryUnitService,
+    private financialYearService: FinancialYearService,
+    private storageService: StorageService,
+    public dialog: MatDialog
+  ) {
     this.categoryUnits = new MatTableDataSource<any>([]);
   }
 
   ngOnInit(): void {
-    this.fetchCategoryUnits();
+    this.userId = this.storageService.getUser().id;
+    this.getFinancialYear();
     this.categoryUnits.sort = this.sort; // Initialize sorting
   }
 
+  getFinancialYear() {
+    const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
+    if (storedFinancialYear) {
+      this.financialYear = storedFinancialYear;
+      this.fetchCategoryUnits();
+    }
+  }
+
+
   fetchCategoryUnits(): void {
-    this.categoryUnitService.getCategoryUnits().subscribe((data: any[]) => {
+    this.categoryUnitService.getCategoryUnitsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
       this.originalData = data;
       this.categoryUnits.data = data;
       this.categoryUnits.sort = this.sort; // Set the sort after fetching the data
@@ -74,7 +93,7 @@ export class CategoryUnitsComponent implements OnInit {
   openAddCategoryUnitDialog(): void {
     const dialogRef = this.dialog.open(AddEditCategoryUnitDialogComponent, {
       width: '400px',
-      data: { categoryUnit: null }
+      data: { categoryUnit: null, userId: this.userId, financialYear: this.financialYear }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -87,7 +106,7 @@ export class CategoryUnitsComponent implements OnInit {
   openEditCategoryUnitDialog(categoryUnit: any): void {
     const dialogRef = this.dialog.open(AddEditCategoryUnitDialogComponent, {
       width: '400px',
-      data: { categoryUnit }
+      data: { categoryUnit, userId: this.userId, financialYear: this.financialYear }
     });
 
     dialogRef.afterClosed().subscribe(result => {

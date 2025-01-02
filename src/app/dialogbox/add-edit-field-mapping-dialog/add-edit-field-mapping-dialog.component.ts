@@ -28,6 +28,8 @@ export class AddEditFieldMappingDialogComponent implements OnInit {
   fieldForm: FormGroup;
   categories: any[] = [];
   fields: any[] = []; // Add fields array
+  userId: number;
+  financialYear: string;
 
   constructor(
     private fb: FormBuilder,
@@ -47,6 +49,8 @@ export class AddEditFieldMappingDialogComponent implements OnInit {
       required: [false],
       type: [1]
     });
+    this.userId = data.userId;
+    this.financialYear = data.financialYear;
   }
 
   ngOnInit(): void {
@@ -59,13 +63,13 @@ export class AddEditFieldMappingDialogComponent implements OnInit {
   }
 
   fetchCategories(): void {
-    this.categoryService.getCategories().subscribe((data: any[]) => {
+    this.categoryService.getCategoriesByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
       this.categories = data;
     });
   }
 
   fetchFields(): void {
-    this.fieldService.getAllFields().subscribe((data: any[]) => {
+    this.fieldService.getAllFieldsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
       this.fields = data;
     });
   }
@@ -81,7 +85,11 @@ export class AddEditFieldMappingDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.fieldForm.valid) {
-      const field = this.fieldForm.value;
+      const field = {
+        ...this.fieldForm.value,
+        userId: this.userId,
+        financialYear: this.financialYear
+      };
       if (this.data.field) {
         this.fieldMappingService.updateFieldMapping(this.data.field.id, field).subscribe(() => {
           this.dialogRef.close(true);

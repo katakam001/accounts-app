@@ -50,13 +50,13 @@ export class SaleEntryComponent implements OnInit {
   }
 
   getFinancialYear() {
-    this.financialYearService.financialYear$.subscribe(year => {
-      this.financialYear = year;
-      if (this.financialYear) {
-        this.fetchEntries();
-      }
-    });
+    const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
+    if (storedFinancialYear) {
+      this.financialYear = storedFinancialYear;
+      this.fetchEntries();
+    }
   }
+  
 
   fetchEntries(): void {
     const userId = this.storageService.getUser().id;

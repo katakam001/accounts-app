@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { HousingLocationComponent } from '../housing-location/housing-location.component';
 import { HousingLocation } from '../services/housinglocation';
 import { HousingService } from '../services/housing.service';
@@ -7,22 +7,22 @@ import { FinancialYearService } from '../services/financial-year.service';
 import { MatDialog } from '@angular/material/dialog';
 import { FinancialYearDialogComponent } from '../dialogbox/financial-year-dialog/financial-year-dialog.component';
 
-
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, HousingLocationComponent],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css'
+  styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   housingLocationList: HousingLocation[] = [];
   housingService: HousingService = inject(HousingService);
   filteredLocationList: HousingLocation[] = [];
   financialYear: string;
 
-  constructor(private dialog: MatDialog,
-    private financialYearService: FinancialYearService) {
+  constructor(private dialog: MatDialog, private financialYearService: FinancialYearService) {}
+
+  ngOnInit(): void {
     this.housingService.getAllHousingLocations().then((housingLocationList: HousingLocation[]) => {
       this.housingLocationList = housingLocationList;
       this.filteredLocationList = housingLocationList;
@@ -41,11 +41,17 @@ export class DashboardComponent {
   }
 
   getFinancialYear() {
-    this.financialYearService.financialYear$.subscribe(year => {
-      this.financialYear = year;
-    });
+    const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
+    if (storedFinancialYear) {
+      this.financialYear = storedFinancialYear;
+    }
   }
+
   openFinancialYearDialog() {
-    this.dialog.open(FinancialYearDialogComponent);
+    const dialogRef = this.dialog.open(FinancialYearDialogComponent);
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.getFinancialYear(); // Fetch the financial year from local storage and update
+    });
   }
 }

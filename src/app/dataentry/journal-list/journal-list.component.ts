@@ -46,13 +46,13 @@ export class JournalListComponent implements OnInit {
   }
 
   getFinancialYear() {
-    this.financialYearService.financialYear$.subscribe(year => {
-      this.financialYear = year;
-      if (this.financialYear) {
-        this.fetchJournalEntries();
-      }
-    });
+    const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
+    if (storedFinancialYear) {
+      this.financialYear = storedFinancialYear;
+      this.fetchJournalEntries();
+    }
   }
+  
 
   fetchJournalEntries(): void {
     const userId = this.storageService.getUser().id;

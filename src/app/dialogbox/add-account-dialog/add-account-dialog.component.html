@@ -26,11 +26,11 @@
       </mat-form-field>
 
       <mat-form-field class="form-field">
-        <mat-label>Groups</mat-label>
-        <mat-select formControlName="groups" multiple>
-          <mat-option *ngFor="let group of groups" [value]="group">{{ group.name }}</mat-option>
+        <mat-label>Group</mat-label>
+        <mat-select formControlName="group">
+          <mat-option *ngFor="let group of groups" [value]="group.id">{{ group.name }}</mat-option>
         </mat-select>
-        <mat-error *ngIf="addAccountForm.get('groups')?.hasError('required')">At least one group is required</mat-error>
+        <mat-error *ngIf="addAccountForm.get('group')?.hasError('required')">Group is required</mat-error>
       </mat-form-field>
 
       <mat-checkbox formControlName="isDealer" class="form-field">Is Dealer</mat-checkbox>

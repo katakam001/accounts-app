@@ -13,7 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 @Component({
   selector: 'app-add-account-dialog',
   standalone: true,
-  imports: [  ReactiveFormsModule,CommonModule,MatSelectModule,MatCheckboxModule,MatSelectModule,MatInputModule],
+  imports: [ReactiveFormsModule, CommonModule, MatSelectModule, MatCheckboxModule, MatInputModule],
   templateUrl: './add-account-dialog.component.html',
   styleUrls: ['./add-account-dialog.component.css']
 })
@@ -33,7 +33,7 @@ export class AddAccountDialogComponent implements OnInit {
       description: [''],
       debit_balance: [0, [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
       credit_balance: [0, [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
-      groups: [[], Validators.required], // New form control for groups
+      group: [null, Validators.required], // Updated form control for group
       isDealer: [false], // New form control for isDealer
       address: this.fb.group({ // New form group for address
         street: [''],
@@ -66,7 +66,7 @@ export class AddAccountDialogComponent implements OnInit {
         credit_balance: parseFloat(formValue.credit_balance),
         debit_balance: parseFloat(formValue.debit_balance),
         financial_year: this.data.financialYear,
-        groups: formValue.groups, // Include selected groups
+        group: formValue.group, // Include selected group
         isDealer: formValue.isDealer, // Include isDealer
         address: formValue.address.street || formValue.address.city || formValue.address.state || formValue.address.postal_code || formValue.address.country ? formValue.address : null // Include address if any field is filled
       };

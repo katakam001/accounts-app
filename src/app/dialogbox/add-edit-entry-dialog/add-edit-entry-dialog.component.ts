@@ -12,6 +12,8 @@ import { AccountService } from '../../services/account.service';
 import { EntryService } from '../../services/entry.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FieldMappingService } from '../../services/field-mapping.service';
+import { BrokerService } from '../../services/broker.service';
+import { AreaService } from '../../services/area.service';
 
 @Component({
   selector: 'app-add-edit-entry-dialog',
@@ -26,6 +28,8 @@ export class AddEditEntryDialogComponent implements OnInit {
   dynamicFields: any[] = [];
   units: any[] = [];
   suppliers: Account[] = [];
+  brokers: any[] = [];
+  areas: any[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -34,6 +38,8 @@ export class AddEditEntryDialogComponent implements OnInit {
     private fieldMappingService: FieldMappingService,
     private categoryUnitService: CategoryUnitService,
     private accountService: AccountService,
+    private brokerService: BrokerService,
+    private areaService: AreaService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<AddEditEntryDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -58,12 +64,13 @@ export class AddEditEntryDialogComponent implements OnInit {
 
   ngOnInit(): void {
     const categoryType = (this.data.type === 1 || this.data.type === 3) ? 1 : 2;
-    this.fetchCategories(categoryType);
-    this.fetchSuppliers();
-    if (this.data.entry) {
-      this.entryForm.patchValue(this.data.entry);
-      this.onCategoryChange(this.data.entry.category_id);
-    }
+    this.fetchInitialData(categoryType).then(() => {
+      if (this.data.entry) {
+        this.entryForm.patchValue(this.data.entry);
+        this.onCategoryChange(this.data.entry.category_id);
+        this.mapNamesToIds();
+      }
+    });
   }
 
   dateFilter = (date: Date | null): boolean => {
@@ -77,15 +84,48 @@ export class AddEditEntryDialogComponent implements OnInit {
     return date >= startDate && date <= endDate;
   };
 
-  fetchCategories(type: number): void {
-    this.categoryService.getCategoriesByType(type).subscribe((data: any[]) => {
-      this.categories = data;
+  fetchInitialData(categoryType: number): Promise<void> {
+    return Promise.all([
+      this.fetchCategories(categoryType),
+      this.fetchSuppliers(),
+      this.fetchBrokers(),
+      this.fetchAreas()
+    ]).then(() => {});
+  }
+
+  fetchCategories(type: number): Promise<void> {
+    return new Promise((resolve) => {
+      this.categoryService.getCategoriesByType(this.data.userId, this.data.financialYear, type).subscribe((data: any[]) => {
+        this.categories = data;
+        resolve();
+      });
     });
   }
 
-  fetchSuppliers(): void {
-    this.accountService.getAccountsByUserIdAndFinancialYear(this.data.userId, this.data.financialYear, ['Sundary Creditors', 'Sundary Debtors']).subscribe((accounts: Account[]) => {
-      this.suppliers = accounts;
+  fetchSuppliers(): Promise<void> {
+    return new Promise((resolve) => {
+      this.accountService.getAccountsByUserIdAndFinancialYear(this.data.userId, this.data.financialYear, ['Sundary Creditors', 'Sundary Debtors']).subscribe((accounts: Account[]) => {
+        this.suppliers = accounts;
+        resolve();
+      });
+    });
+  }
+
+  fetchBrokers(): Promise<void> {
+    return new Promise((resolve) => {
+      this.brokerService.getBrokersByUserIdAndFinancialYear(this.data.userId, this.data.financialYear).subscribe((data: any[]) => {
+        this.brokers = data;
+        resolve();
+      });
+    });
+  }
+
+  fetchAreas(): Promise<void> {
+    return new Promise((resolve) => {
+      this.areaService.getAreasByUserIdAndFinancialYear(this.data.userId, this.data.financialYear).subscribe((data: any[]) => {
+        this.areas = data;
+        resolve();
+      });
     });
   }
 
@@ -95,7 +135,7 @@ export class AddEditEntryDialogComponent implements OnInit {
   }
 
   fetchDynamicFields(categoryId: number): void {
-    this.fieldMappingService.getFieldMappingsByCategory(categoryId).subscribe((data: any[]) => {
+    this.fieldMappingService.getFieldMappingsByCategory(this.data.userId, this.data.financialYear, categoryId).subscribe((data: any[]) => {
       if (this.data.type === 3 && !this.data.entry) {
         // Exclude fields with field_category === 1 and exclude_from_total for new purchase returns
         this.dynamicFields = data.filter(field => !(field.field_category === 1 && field.exclude_from_total));
@@ -115,8 +155,24 @@ export class AddEditEntryDialogComponent implements OnInit {
   }
 
   fetchUnits(categoryId: number): void {
-    this.categoryUnitService.getUnitsByCategory(categoryId).subscribe((data: any[]) => {
+    this.categoryUnitService.getUnitsByCategory(this.data.userId, this.data.financialYear, categoryId).subscribe((data: any[]) => {
       this.units = data;
+    });
+  }
+
+  mapNamesToIds(): void {
+    this.dynamicFields.forEach(field => {
+      if (field.field_name === 'broker') {
+        const broker = this.brokers.find(b => b.name === field.field_value);
+        if (broker) {
+          this.entryForm.get(field.field_name)?.setValue(broker.id);
+        }
+      } else if (field.field_name === 'area') {
+        const area = this.areas.find(a => a.name === field.field_value);
+        if (area) {
+          this.entryForm.get(field.field_name)?.setValue(area.id);
+        }
+      }
     });
   }
 

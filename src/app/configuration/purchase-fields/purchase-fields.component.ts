@@ -12,6 +12,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FieldMappingService } from '../../services/field-mapping.service';
 import { AddEditFieldMappingDialogComponent } from '../../dialogbox/add-edit-field-mapping-dialog/add-edit-field-mapping-dialog.component';
+import { FinancialYearService } from '../../services/financial-year.service';
+import { StorageService } from '../../services/storage.service';
 
 @Component({
   selector: 'app-purchase-fields',
@@ -43,20 +45,37 @@ export class PurchaseFieldsComponent implements OnInit {
   excludeFromTotal: boolean = false;
   mandatory: boolean = false;
   originalData: any[] = [];
+  userId: number;
+  financialYear: string;
 
   @ViewChild(MatSort) sort: MatSort;
 
-  constructor(private fieldMappingService: FieldMappingService, public dialog: MatDialog) {
+  constructor(
+    private fieldMappingService: FieldMappingService,
+    private financialYearService: FinancialYearService,
+    private storageService: StorageService,
+    public dialog: MatDialog
+  ) {
     this.fields = new MatTableDataSource<any>([]);
   }
 
   ngOnInit(): void {
-    this.fetchFields();
+    this.userId = this.storageService.getUser().id;
+    this.getFinancialYear();
     this.fields.sort = this.sort; // Initialize sorting
   }
 
+  getFinancialYear() {
+    const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
+    if (storedFinancialYear) {
+      this.financialYear = storedFinancialYear;
+      this.fetchFields();
+    }
+  }
+
+
   fetchFields(): void {
-    this.fieldMappingService.getAllFieldMappings().subscribe((data: any[]) => {
+    this.fieldMappingService.getFieldMappingsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
       this.originalData = data;
       this.fields.data = data;
       this.fields.sort = this.sort; // Set the sort after fetching the data
@@ -107,7 +126,7 @@ export class PurchaseFieldsComponent implements OnInit {
   openAddFieldDialog(): void {
     const dialogRef = this.dialog.open(AddEditFieldMappingDialogComponent, {
       width: '400px',
-      data: { field: null }
+      data: { field: null, userId: this.userId, financialYear: this.financialYear }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -120,7 +139,7 @@ export class PurchaseFieldsComponent implements OnInit {
   openEditFieldDialog(field: any): void {
     const dialogRef = this.dialog.open(AddEditFieldMappingDialogComponent, {
       width: '400px',
-      data: { field }
+      data: { field, userId: this.userId, financialYear: this.financialYear }
     });
 
     dialogRef.afterClosed().subscribe(result => {

@@ -1,15 +1,11 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
-// const AUTH_API = 'http://localhost:8080/api/auth/';
 const baseUrl = environment.apiUrl;
-const AUTH_API = `${baseUrl}/api/auth/`; // Append the path to the base URL
-
-const httpOptions = {
-  headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-};
+const AUTH_API = `${baseUrl}/api/auth/`;
 
 @Injectable({
   providedIn: 'root'
@@ -19,18 +15,19 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   login(username: string, password: string): Observable<any> {
-    return this.http.post(
+    return this.http.post<any>(
       AUTH_API + 'signin',
       {
         username,
         password,
-      },
-      httpOptions
+      }
+    ).pipe(
+      catchError(this.handleError)
     );
   }
 
-  register(firstname: string, middlename: string, lastname: string, username: any, email: any, password: any): Observable<any> {
-    return this.http.post(
+  register(firstname: string, middlename: string, lastname: string, username: string, email: string, password: string): Observable<any> {
+    return this.http.post<any>(
       AUTH_API + 'signup',
       {
         firstname,
@@ -39,13 +36,27 @@ export class AuthService {
         username,
         email,
         password,
-      },
-      httpOptions
+      }
+    ).pipe(
+      catchError(this.handleError)
     );
   }
 
   logout(): Observable<any> {
-    return this.http.post(AUTH_API + 'signout', { }, httpOptions);
+    return this.http.post(AUTH_API + 'signout', {}).pipe(
+      catchError(this.handleError)
+    );
   }
 
+  refreshToken(): Observable<any> {
+    return this.http.post<any>(AUTH_API + 'refresh-token', {}).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    // Customize error handling logic as needed
+    console.error('An error occurred:', error);
+    return throwError('Something went wrong; please try again later.');
+  }
 }

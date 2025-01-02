@@ -1,52 +1,54 @@
-<mat-toolbar color="primary">
-  <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/home" routerLinkActive="active">Home</button>
-  <button *ngIf="storageService.isLoggedIn()" mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
-  <span class="spacer"></span>
-  <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/login">Login</button>
-  <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/register">Sign Up</button>
-  <button *ngIf="storageService.isLoggedIn()" mat-button (click)="logout()">Logout</button>
-</mat-toolbar>
+  <mat-toolbar color="primary">
+    <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/home" routerLinkActive="active">Home</button>
+    <button *ngIf="storageService.isLoggedIn()" mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
+    <span class="spacer"></span>
+    <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/login">Login</button>
+    <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/register">Sign Up</button>
+    <button *ngIf="storageService.isLoggedIn()" mat-button (click)="logout()">Logout</button>
+  </mat-toolbar>
 
-<mat-sidenav-container class="example-sidenav-container" *ngIf="storageService.isLoggedIn()">
-  <mat-sidenav #snav mode="side">
-    <mat-nav-list>
-      <h3>Configuration</h3>
-      <a mat-list-item routerLink="/groupList" routerLinkActive="active">Group Setting</a>
-      <a mat-list-item routerLink="/accountList" routerLinkActive="active">Account Setting</a>
-      <a mat-list-item routerLink="/categories" routerLinkActive="active">Categories</a>
-      <a mat-list-item routerLink="/fields" routerLinkActive="active">Fields Setting</a>
-      <a mat-list-item routerLink="/fieldMapping" routerLinkActive="active">Fields Mapping</a>
-      <a mat-list-item routerLink="/units" routerLinkActive="active">Units</a>
-      <a mat-list-item routerLink="/categoryUnits" routerLinkActive="active">Category Units</a>
-      <a mat-list-item routerLink="/groupMapping" routerLinkActive="active">Group Mapping</a>
-    </mat-nav-list>
-    <mat-nav-list>
-      <h3>Data Entry</h3>
-      <a mat-list-item routerLink="/journalEntries" routerLinkActive="active">Journal Entries</a>
-      <a mat-list-item routerLink="/cashBook" routerLinkActive="active">Cash Book</a>
-      <a mat-list-item routerLink="/purchaseEntry" routerLinkActive="active">Purchase Entry</a>
-      <a mat-list-item routerLink="/saleEntry" routerLinkActive="active">Sale Entry</a>
-      <a mat-list-item routerLink="/purchaseReturn" routerLinkActive="active">Purchase Register</a>
-      <a mat-list-item routerLink="/saleReturn" routerLinkActive="active">Sale Register</a>  
-    </mat-nav-list>
-    <mat-nav-list>
-      <h3>Reports</h3>
-      <a mat-list-item routerLink="/trailBalance" routerLinkActive="active">Trail Balance</a>
-    </mat-nav-list>
-  </mat-sidenav>
+  <mat-sidenav-container class="example-sidenav-container" *ngIf="storageService.isLoggedIn()">
+    <mat-sidenav #snav mode="side">
+      <mat-nav-list>
+        <h3>Configuration</h3>
+        <a mat-list-item routerLink="/groupList" routerLinkActive="active">Group Setting</a>
+        <a mat-list-item routerLink="/accountList" routerLinkActive="active">Account Setting</a>
+        <a mat-list-item routerLink="/categories" routerLinkActive="active">Categories</a>
+        <a mat-list-item routerLink="/fields" routerLinkActive="active">Fields Setting</a>
+        <a mat-list-item routerLink="/fieldMapping" routerLinkActive="active">Fields Mapping</a>
+        <a mat-list-item routerLink="/units" routerLinkActive="active">Units</a>
+        <a mat-list-item routerLink="/categoryUnits" routerLinkActive="active">Category Units</a>
+        <a mat-list-item routerLink="/groupMapping" routerLinkActive="active">Group Mapping</a>
+        <a mat-list-item routerLink="/areaList" routerLinkActive="active">Area Setting</a>
+        <a mat-list-item routerLink="/brokerList" routerLinkActive="active">Broker Setting</a>
+      </mat-nav-list>
+      <mat-nav-list>
+        <h3>Data Entry</h3>
+        <a mat-list-item routerLink="/journalEntries" routerLinkActive="active">Journal Entries</a>
+        <a mat-list-item routerLink="/cashBook" routerLinkActive="active">Cash Book</a>
+        <a mat-list-item routerLink="/purchaseEntry" routerLinkActive="active">Purchase Entry</a>
+        <a mat-list-item routerLink="/saleEntry" routerLinkActive="active">Sale Entry</a>
+        <a mat-list-item routerLink="/purchaseReturn" routerLinkActive="active">Purchase Register</a>
+        <a mat-list-item routerLink="/saleReturn" routerLinkActive="active">Sale Register</a>  
+      </mat-nav-list>
+      <mat-nav-list>
+        <h3>Reports</h3>
+        <a mat-list-item routerLink="/trailBalance" routerLinkActive="active">Trail Balance</a>
+      </mat-nav-list>
+    </mat-sidenav>
 
-  <mat-sidenav-content>
-    <mat-toolbar class="example-toolbar">
-      <button mat-icon-button (click)="snav.toggle()"><mat-icon>menu</mat-icon></button>
-      <h1 class="example-app-name">Accounting Package</h1>
-    </mat-toolbar>
-    <div class="content">
-      <router-outlet></router-outlet>
-    </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+    <mat-sidenav-content>
+      <mat-toolbar class="example-toolbar">
+        <button mat-icon-button (click)="snav.toggle()"><mat-icon>menu</mat-icon></button>
+        <h1 class="example-app-name">Accounting Package</h1>
+      </mat-toolbar>
+      <div class="content">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
 
-<!-- Display router-outlet directly if not logged in -->
-<div *ngIf="!storageService.isLoggedIn()">
-  <router-outlet></router-outlet>
-</div>
+  <!-- Display router-outlet directly if not logged in -->
+  <div *ngIf="!storageService.isLoggedIn()">
+    <router-outlet></router-outlet>
+  </div>

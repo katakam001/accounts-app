@@ -33,19 +33,19 @@ export class TrailBalanceComponent implements OnInit {
   }
 
   getFinancialYear() {
-    this.financialYearService.financialYear$.subscribe(year => {
-      this.financialYear = year;
-      if (this.financialYear) {
-        this.userId = this.storageService.getUser().id;
-        const [startYear, endYear] = this.financialYear.split('-').map(Number);
-        const startDate = new Date(startYear, 3, 1); // April 1st of start year
-        const endDate = new Date(endYear, 2, 31); // March 31st of end year
-        this.fromDate.setValue(startDate);
-        this.toDate.setValue(endDate);
-        this.getTrailBalanceReport();
-      }
-    });
+    const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
+    if (storedFinancialYear) {
+      this.financialYear = storedFinancialYear;
+      this.userId = this.storageService.getUser().id;
+      const [startYear, endYear] = this.financialYear.split('-').map(Number);
+      const startDate = new Date(startYear, 3, 1); // April 1st of start year
+      const endDate = new Date(endYear, 2, 31); // March 31st of end year
+      this.fromDate.setValue(startDate);
+      this.toDate.setValue(endDate);
+      this.getTrailBalanceReport();
+    }
   }
+  
 
   getTrailBalanceReport(): void {
     const fromDateStr = this.fromDate.value.toISOString().split('T')[0];

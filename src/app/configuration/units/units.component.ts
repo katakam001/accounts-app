@@ -8,31 +8,48 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { StorageService } from '../../services/storage.service';
+import { FinancialYearService } from '../../services/financial-year.service';
 
 @Component({
   selector: 'app-units',
   standalone: true,
-  imports: [MatTableModule, MatToolbarModule,MatCardModule,MatIconModule,CommonModule,MatSortModule],
+  imports: [MatTableModule, MatToolbarModule, MatCardModule, MatIconModule, CommonModule, MatSortModule],
   templateUrl: './units.component.html',
   styleUrls: ['./units.component.css']
 })
 export class UnitsComponent implements OnInit {
   units: MatTableDataSource<any>;
   displayedColumns: string[] = ['name', 'actions'];
+  financialYear: string;
+  userId: number;
 
   @ViewChild(MatSort) sort: MatSort;
 
-  constructor(private unitService: UnitService, public dialog: MatDialog) {
+  constructor(
+    private unitService: UnitService,
+    public dialog: MatDialog,
+    private storageService: StorageService,
+    private financialYearService: FinancialYearService
+  ) {
     this.units = new MatTableDataSource<any>([]);
   }
 
   ngOnInit(): void {
-    this.fetchUnits();
-    this.units.sort = this.sort; // Initialize sorting
+    this.userId = this.storageService.getUser().id;
+    this.getFinancialYear();
   }
 
-  fetchUnits(): void {
-    this.unitService.getUnits().subscribe((data: any[]) => {
+  getFinancialYear() {
+    const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
+    if (storedFinancialYear) {
+      this.financialYear = storedFinancialYear;
+      this.fetchUnits(this.userId, this.financialYear);
+    }
+  }
+
+  fetchUnits(userId: number, financialYear: string): void {
+    this.unitService.getUnitsByUserIdAndFinancialYear(userId, financialYear).subscribe((data: any[]) => {
       this.units.data = data;
       this.units.sort = this.sort; // Set the sort after fetching the data
     });
@@ -41,12 +58,12 @@ export class UnitsComponent implements OnInit {
   openAddUnitDialog(): void {
     const dialogRef = this.dialog.open(AddEditUnitDialogComponent, {
       width: '400px',
-      data: { unit: null }
+      data: { unit: null, userId: this.userId, financialYear: this.financialYear }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.fetchUnits();
+        this.fetchUnits(this.userId, this.financialYear);
       }
     });
   }
@@ -54,19 +71,19 @@ export class UnitsComponent implements OnInit {
   openEditUnitDialog(unit: any): void {
     const dialogRef = this.dialog.open(AddEditUnitDialogComponent, {
       width: '400px',
-      data: { unit }
+      data: { unit, userId: this.userId, financialYear: this.financialYear }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.fetchUnits();
+        this.fetchUnits(this.userId, this.financialYear);
       }
     });
   }
 
   deleteUnit(unitId: number): void {
     this.unitService.deleteUnit(unitId).subscribe(() => {
-      this.fetchUnits();
+      this.fetchUnits(this.userId, this.financialYear);
     });
   }
 }

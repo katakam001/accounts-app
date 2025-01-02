@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 @Component({
   selector: 'app-add-edit-category-unit-dialog',
   standalone: true,
-  imports: [ MatInputModule, ReactiveFormsModule,   CommonModule, MatSelectModule, MatDialogModule],
+  imports: [MatInputModule, ReactiveFormsModule, CommonModule, MatSelectModule, MatDialogModule],
   templateUrl: './add-edit-category-unit-dialog.component.html',
   styleUrls: ['./add-edit-category-unit-dialog.component.css']
 })
@@ -19,6 +19,8 @@ export class AddEditCategoryUnitDialogComponent implements OnInit {
   categoryUnitForm: FormGroup;
   categories: any[] = [];
   units: any[] = [];
+  userId: number;
+  financialYear: string;
 
   constructor(
     private fb: FormBuilder,
@@ -32,6 +34,8 @@ export class AddEditCategoryUnitDialogComponent implements OnInit {
       category_id: ['', Validators.required],
       unit_id: ['', Validators.required]
     });
+    this.userId = data.userId;
+    this.financialYear = data.financialYear;
   }
 
   ngOnInit(): void {
@@ -43,20 +47,24 @@ export class AddEditCategoryUnitDialogComponent implements OnInit {
   }
 
   fetchCategories(): void {
-    this.categoryService.getCategories().subscribe((data: any[]) => {
+    this.categoryService.getCategoriesByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
       this.categories = data;
     });
   }
 
   fetchUnits(): void {
-    this.unitService.getUnits().subscribe((data: any[]) => {
+    this.unitService.getUnitsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
       this.units = data;
     });
   }
 
   onSave(): void {
     if (this.categoryUnitForm.valid) {
-      const categoryUnit = this.categoryUnitForm.value;
+      const categoryUnit = {
+        ...this.categoryUnitForm.value,
+        userId: this.userId,
+        financialYear: this.financialYear
+      };
       if (this.data.categoryUnit) {
         this.categoryUnitService.updateCategoryUnit(this.data.categoryUnit.id, categoryUnit).subscribe(() => {
           this.dialogRef.close(true);

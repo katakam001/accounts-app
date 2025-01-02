@@ -18,13 +18,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 @Component({
   selector: 'app-account-list',
   standalone: true,
-  imports: [MatCardModule,MatToolbarModule,MatTooltipModule,MatIconModule,MatTableModule,CommonModule,MatSortModule],
+  imports: [MatCardModule, MatToolbarModule, MatTooltipModule, MatIconModule, MatTableModule, CommonModule, MatSortModule],
   templateUrl: './account-list.component.html',
   styleUrls: ['./account-list.component.css']
 })
 export class AccountListComponent implements OnInit {
   accounts = new MatTableDataSource<Account>();
-  displayedColumns: string[] = ['name', 'description', 'debit_balance', 'credit_balance', 'groups', 'address', 'isDealer', 'actions'];
+  displayedColumns: string[] = ['name', 'description', 'debit_balance', 'credit_balance', 'group', 'address', 'isDealer', 'actions'];
   financialYear: string;
   totalDebits: number = 0;
   totalCredits: number = 0;
@@ -44,12 +44,11 @@ export class AccountListComponent implements OnInit {
   }
 
   getFinancialYear() {
-    this.financialYearService.financialYear$.subscribe(year => {
-      this.financialYear = year;
-      if (this.financialYear) {
-        this.fetchAccounts(this.storageService.getUser().id, this.financialYear);
-      }
-    });
+    const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
+    if (storedFinancialYear) {
+      this.financialYear = storedFinancialYear;
+      this.fetchAccounts(this.storageService.getUser().id, this.financialYear);
+    }
   }
 
   fetchAccounts(userId: number, financialYear: string): void {
@@ -80,8 +79,8 @@ export class AccountListComponent implements OnInit {
     return { value: `${this.formatNumber(difference)} (${type})`, class: `difference-${type}` };
   }
 
-  getGroupNames(groups: Group[]): string {
-    return groups ? groups.map(group => group.name).join(', ') : '';
+  getGroupName(group: Group): string {
+    return group ? group.name : '';
   }
 
   addAccount(): void {
@@ -89,14 +88,23 @@ export class AccountListComponent implements OnInit {
       width: '800px',
       data: { userId: this.storageService.getUser().id, financialYear: this.financialYear }
     });
-
+  
     dialogRef.afterClosed().subscribe(result => {
-      console.log("save the add account:" + result);
-      this.accountService.addAccount(result).subscribe(() => {
-        this.fetchAccounts(this.storageService.getUser().id, this.financialYear); // Refresh the account list after adding a new account
-      });
+      if (result) {
+        console.log("save the add account:" + result);
+        this.accountService.addAccount(result).subscribe({
+          next: (response) => {
+            this.accounts.data.push(response); // Add the account if it doesn't exist
+            this.accounts._updateChangeSubscription(); // Refresh the table
+            this.calculateTotals(); // Recalculate totals after update
+          },
+          error: (error) => {
+            console.error('Error updating account:', error);
+          }
+        });
+      }
     });
-  }
+  } 
 
   editAccount(account: Account): void {
     const dialogRef = this.dialog.open(EditAccountDialogComponent, {
@@ -115,7 +123,7 @@ export class AccountListComponent implements OnInit {
           credit_balance: result.credit_balance,
           debit_balance: result.debit_balance,
           financial_year: result.financial_year,
-          groups: result.groups, // Add groups to the account object
+          group: result.group, // Add group to the account object
           address: result.address, // Add address to the account object
           isDealer: result.isDealer // Add isDealer to the account object
         };
@@ -133,14 +141,19 @@ export class AccountListComponent implements OnInit {
   }
 
   updateAccount(updatedAccount: Account): void {
-    this.accountService.updateAccount(updatedAccount).subscribe(() => {
-      // Refresh the table after updating the account in the database
-      const index = this.accounts.data.findIndex(account => account.id === updatedAccount.id);
-      if (index !== -1) {
-        this.accounts.data[index] = updatedAccount;
-        this.accounts._updateChangeSubscription(); // Refresh the table
-        this.calculateTotals(); // Recalculate totals after update
+    this.accountService.updateAccount(updatedAccount).subscribe({
+      next: (response) => {
+        const index = this.accounts.data.findIndex(account => account.id === updatedAccount.id);
+        if (index !== -1) {
+          this.accounts.data[index] = response; // Use the response object to update the account
+          this.accounts._updateChangeSubscription(); // Refresh the table
+          this.calculateTotals(); // Recalculate totals after update
+        }
+      },
+      error: (error) => {
+        console.error('Error updating account:', error);
       }
     });
-  }
+  }  
+  
 }

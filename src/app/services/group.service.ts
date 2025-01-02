@@ -1,38 +1,115 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { Group } from '../models/group.interface';
 import { environment } from '../../environments/environment';
+
+const GROUPS_KEY = 'cached-groups';
+const LAST_CACHE_TIME_KEY = 'last-cache-time-groups';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GroupService {
-
-  // private apiUrl = 'http://localhost:8080/api/groups';
-                private baseUrl = environment.apiUrl;
-                private apiUrl = `${this.baseUrl}/api/groups`; // Append the path to the base URL
-  
+  private baseUrl = environment.apiUrl;
+  private apiUrl = `${this.baseUrl}/api/groups`; // Append the path to the base URL
+  private cacheTTL = environment.cacheTTL; // 1 day in milliseconds
+  private lastCacheTime: number = this.getLastCacheTime();
+  private groupCache: Group[] = this.loadFromLocalStorage(); // Cache for groups
 
   constructor(private http: HttpClient) {}
-  
-  getGroupsByUserIdAndFinancialYear(userId: number, financialYear: string) {
-    return this.http.get<Group[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}`);
-  }
 
-  getGroupsByUserId(userId: number): Observable<Group[]> {
-    return this.http.get<Group[]>(`${this.apiUrl}?userId=${userId}`);
+  getGroupsByUserIdAndFinancialYear(userId: number, financialYear: string): Observable<Group[]> {
+    const currentTime = Date.now();
+    let params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('financialYear', financialYear);
+
+    if (this.groupCache.length > 0 && (currentTime - this.lastCacheTime) < this.cacheTTL) {
+      return of(this.groupCache);
+    } else {
+      this.clearCacheIfStale(currentTime);
+      return this.http.get<Group[]>(this.apiUrl, { params }).pipe(
+        tap(data => {
+          this.groupCache = data;
+          this.lastCacheTime = currentTime;
+          this.saveToLocalStorage();
+        }),
+        catchError(this.handleError<Group[]>('getGroupsByUserIdAndFinancialYear', []))
+      );
+    }
   }
 
   addGroup(group: Group): Observable<Group> {
-    return this.http.post<Group>(this.apiUrl, group);
+    return this.http.post<Group>(this.apiUrl, group).pipe(
+      tap(newGroup => {
+        this.groupCache.push(newGroup);
+        this.saveToLocalStorage();
+      }),
+      catchError(this.handleError<Group>('addGroup'))
+    );
   }
 
   updateGroup(group: Group): Observable<Group> {
-    return this.http.put<Group>(`${this.apiUrl}/${group.id}`, group);
+    return this.http.put<Group>(`${this.apiUrl}/${group.id}`, group).pipe(
+      tap(updatedGroup => {
+        const index = this.groupCache.findIndex(g => g.id === group.id);
+        if (index !== -1) {
+          this.groupCache[index] = updatedGroup;
+          this.saveToLocalStorage();
+        }
+      }),
+      catchError(this.handleError<Group>('updateGroup'))
+    );
   }
 
-  deleteGroup(id: number): Observable<HttpResponse<void>> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, { observe: 'response' });
+  deleteGroup(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+      tap(() => {
+        this.groupCache = this.groupCache.filter(g => g.id !== id);
+        this.saveToLocalStorage();
+      }),
+      catchError(this.handleError<void>('deleteGroup'))
+    );
+  }
+
+  clearCache(): void {
+    this.groupCache = []; // Clear group cache
+    this.lastCacheTime = 0;
+    this.saveToLocalStorage();
+  }
+
+  switchUserAndFinancialYear(userId: number, financialYear: string): Observable<any> {
+    this.clearCache();
+    return this.getGroupsByUserIdAndFinancialYear(userId, financialYear);
+  }  
+
+  private clearCacheIfStale(currentTime: number): void {
+    if ((currentTime - this.lastCacheTime) >= this.cacheTTL) {
+      this.clearCache();
+    }
+  }
+
+  private loadFromLocalStorage(): Group[] {
+    const groups = localStorage.getItem(GROUPS_KEY);
+    return groups ? JSON.parse(groups) : [];
+  }
+
+  private saveToLocalStorage(): void {
+    localStorage.setItem(GROUPS_KEY, JSON.stringify(this.groupCache));
+    localStorage.setItem(LAST_CACHE_TIME_KEY, this.lastCacheTime.toString());
+  }
+
+  private getLastCacheTime(): number {
+    const lastCacheTime = localStorage.getItem(LAST_CACHE_TIME_KEY);
+    return lastCacheTime ? parseInt(lastCacheTime, 10) : 0;
+  }
+
+  private handleError<T>(operation = 'operation', result?: T) {
+    return (error: any): Observable<T> => {
+      console.error(`${operation} failed: ${error.message}`);
+      return of(result as T);
+    };
   }
 }

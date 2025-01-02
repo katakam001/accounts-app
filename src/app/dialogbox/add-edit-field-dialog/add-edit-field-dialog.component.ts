@@ -25,6 +25,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 })
 export class AddEditFieldDialogComponent implements OnInit {
   fieldForm: FormGroup;
+  userId: number;
+  financialYear: string;
 
   constructor(
     private fb: FormBuilder,
@@ -36,6 +38,8 @@ export class AddEditFieldDialogComponent implements OnInit {
     this.fieldForm = this.fb.group({
       field_name: ['', Validators.required]
     });
+    this.userId = data.userId;
+    this.financialYear = data.financialYear;
   }
 
   ngOnInit(): void {
@@ -46,7 +50,11 @@ export class AddEditFieldDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.fieldForm.valid) {
-      const field = this.fieldForm.value;
+      const field = {
+        ...this.fieldForm.value,
+        userId: this.userId,
+        financialYear: this.financialYear
+      };
       if (this.data.field) {
         this.fieldService.updateField(this.data.field.id, field).subscribe(() => {
           this.dialogRef.close(true);

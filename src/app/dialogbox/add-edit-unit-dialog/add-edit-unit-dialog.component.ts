@@ -8,12 +8,14 @@ import { MatInputModule } from '@angular/material/input';
 @Component({
   selector: 'app-add-edit-unit-dialog',
   standalone: true,
-  imports: [ MatInputModule, ReactiveFormsModule,CommonModule,MatDialogModule],
+  imports: [MatInputModule, ReactiveFormsModule, CommonModule, MatDialogModule],
   templateUrl: './add-edit-unit-dialog.component.html',
   styleUrls: ['./add-edit-unit-dialog.component.css']
 })
 export class AddEditUnitDialogComponent implements OnInit {
   unitForm: FormGroup;
+  userId: number;
+  financialYear: string;
 
   constructor(
     private fb: FormBuilder,
@@ -24,6 +26,8 @@ export class AddEditUnitDialogComponent implements OnInit {
     this.unitForm = this.fb.group({
       name: ['', Validators.required]
     });
+    this.userId = data.userId;
+    this.financialYear = data.financialYear;
   }
 
   ngOnInit(): void {
@@ -34,7 +38,11 @@ export class AddEditUnitDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.unitForm.valid) {
-      const unit = this.unitForm.value;
+      const unit = {
+        ...this.unitForm.value,
+        userId: this.userId,
+        financialYear: this.financialYear
+      };
       if (this.data.unit) {
         this.unitService.updateUnit(this.data.unit.id, unit).subscribe(() => {
           this.dialogRef.close(true);

@@ -8,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 @Component({
   selector: 'app-add-group-dialog',
   standalone: true,
-  imports: [MatInputModule,ReactiveFormsModule,CommonModule],
+  imports: [MatInputModule, ReactiveFormsModule, CommonModule],
   templateUrl: './add-group-dialog.component.html',
   styleUrls: ['./add-group-dialog.component.css']
 })
@@ -18,11 +18,11 @@ export class AddGroupDialogComponent implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<AddGroupDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private fb: FormBuilder,
+    private fb: FormBuilder
   ) {
     this.addGroupForm = this.fb.group({
       name: ['', Validators.required],
-      description: [''],
+      description: ['']
     });
   }
 
@@ -45,5 +45,4 @@ export class AddGroupDialogComponent implements OnInit {
   onCancel(): void {
     this.dialogRef.close();
   }
-
 }

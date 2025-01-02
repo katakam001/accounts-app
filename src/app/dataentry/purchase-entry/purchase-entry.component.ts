@@ -13,6 +13,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { BrokerService } from '../../services/broker.service';
+import { AreaService } from '../../services/area.service';
 
 @Component({
   selector: 'app-purchase-entry',
@@ -34,13 +36,17 @@ export class PurchaseEntryComponent implements OnInit {
   entries: MatTableDataSource<any>;
   financialYear: string;
   expandedRows: { [key: number]: boolean } = {};
+  brokerMap: { [key: number]: string } = {};
+  areaMap: { [key: number]: string } = {};
 
   constructor(
     private entryService: EntryService,
     public dialog: MatDialog,
     private storageService: StorageService,
     private financialYearService: FinancialYearService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private brokerService: BrokerService,
+    private areaService: AreaService
   ) {
     this.entries = new MatTableDataSource<any>([]);
   }
@@ -50,12 +56,18 @@ export class PurchaseEntryComponent implements OnInit {
   }
 
   getFinancialYear() {
-    this.financialYearService.financialYear$.subscribe(year => {
-      this.financialYear = year;
-      if (this.financialYear) {
+    const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
+    if (storedFinancialYear) {
+      this.financialYear = storedFinancialYear;
+      this.fetchBrokersAndAreas().then(() => {
         this.fetchEntries();
-      }
-    });
+      });
+    }
+  }
+  
+
+  async fetchBrokersAndAreas(): Promise<void> {
+    await Promise.all([this.fetchBrokers(), this.fetchAreas()]);
   }
 
   fetchEntries(): void {
@@ -65,6 +77,32 @@ export class PurchaseEntryComponent implements OnInit {
       if (data.length > 0) {
         this.updateEntriesWithDynamicFields(data);
       }
+    });
+  }
+
+  fetchBrokers(): Promise<void> {
+    return new Promise((resolve) => {
+      const userId = this.storageService.getUser().id;
+      this.brokerService.getBrokersByUserIdAndFinancialYear(userId, this.financialYear).subscribe((data: any[]) => {
+        this.brokerMap = data.reduce((map, broker) => {
+          map[broker.id] = broker.name;
+          return map;
+        }, {});
+        resolve();
+      });
+    });
+  }
+
+  fetchAreas(): Promise<void> {
+    return new Promise((resolve) => {
+      const userId = this.storageService.getUser().id;
+      this.areaService.getAreasByUserIdAndFinancialYear(userId, this.financialYear).subscribe((data: any[]) => {
+        this.areaMap = data.reduce((map, area) => {
+          map[area.id] = area.name;
+          return map;
+        }, {});
+        resolve();
+      });
     });
   }
 

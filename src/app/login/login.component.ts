@@ -49,6 +49,7 @@ export class LoginComponent implements OnInit {
 
       this.authService.login(username, password).subscribe({
         next: data => {
+          this.storageService.clean();
           this.storageService.saveUser(data);
 
           this.isLoginFailed = false;
