@@ -64,7 +64,17 @@
           <div class="expansion-panel-content">
             <div class="dynamic-field" *ngFor="let field of entry.dynamicFields">
               <div class="label">{{ field.field_name }}</div>
-              <div class="value">{{ field.field_value }}</div>
+              <div class="value">
+                <ng-container *ngIf="field.field_name === 'broker'">
+                  {{ brokerMap[field.field_value] || 'N/A' }}
+                </ng-container>
+                <ng-container *ngIf="field.field_name === 'Area'">
+                  {{ areaMap[field.field_value] || 'N/A' }}
+                </ng-container>
+                <ng-container *ngIf="field.field_name !== 'broker' && field.field_name !== 'Area'">
+                  {{ field.field_value }}
+                </ng-container>
+              </div>
             </div>
           </div>
         </mat-expansion-panel>

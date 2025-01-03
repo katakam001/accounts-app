@@ -193,54 +193,66 @@ export class FieldMappingService {
 
   addFieldMapping(fieldMapping: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, fieldMapping).pipe(
-      tap(newFieldMapping => {
-        const cachedFieldMappings = this.fieldMappings;
-        cachedFieldMappings.push(newFieldMapping);
-        this.fieldMappings=cachedFieldMappings;
+      tap((newFieldMapping: any) => {
+        const cachedFieldMappings = this.getCachedFieldMappings();
+        let lastFieldMapping: any | undefined = undefined;
+  
+        // Check if the cache exceeds the capacity
+        if (cachedFieldMappings.length + 1 > this.cacheCapacity) {
+          lastFieldMapping = cachedFieldMappings.pop(); // Remove the last field mapping
+        }
+        cachedFieldMappings.push(newFieldMapping); // Push the new field mapping to the last index
         this.setCachedFieldMappings(cachedFieldMappings);
-
-        this.dbService.add('fieldMappings', newFieldMapping).subscribe({
-          next: () => console.log('Field mapping added to IndexedDB:', newFieldMapping),
-          error: (error: any) => console.error('Error adding field mapping to IndexedDB:', error)
-        });
-
-        // Evict cache if needed
-        this.evictCacheIfNeeded();
+  
+        // Increment totalFieldMappingsCount by 1
+        this.setTotalFieldMappingsCount(this.getTotalFieldMappingsCount() + 1);
+  
+        if (lastFieldMapping) {
+          this.dbService.getByKey('fieldMappings', lastFieldMapping.id).subscribe(existingFieldMapping => {
+            if (existingFieldMapping) {
+              this.dbService.update('fieldMappings', lastFieldMapping).subscribe({
+                next: () => console.log('Field mapping updated in IndexedDB:', lastFieldMapping),
+                error: (error: any) => console.error('Error updating field mapping in IndexedDB:', error)
+              });
+            } else {
+              this.dbService.add('fieldMappings', lastFieldMapping).subscribe({
+                next: () => console.log('Field mapping added to IndexedDB:', lastFieldMapping),
+                error: (error: any) => console.error('Error adding field mapping to IndexedDB:', error)
+              });
+            }
+          });
+        }
       }),
       catchError(this.handleError<any>('addFieldMapping'))
     );
-  }
+  }  
 
   deleteFieldMapping(fieldMappingId: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/${fieldMappingId}`).pipe(
+    return this.http.delete<any>(`${this.apiUrl}/${fieldMappingId}`, { observe: 'response' }).pipe(
       tap(() => {
-        const cachedFieldMappings = this.fieldMappings;
+        const cachedFieldMappings = this.getCachedFieldMappings();
         const updatedFieldMappings = cachedFieldMappings.filter(fm => fm.id !== fieldMappingId);
-        this.fieldMappings=updatedFieldMappings;
         this.setCachedFieldMappings(updatedFieldMappings);
-
+        this.setTotalFieldMappingsCount(this.getTotalFieldMappingsCount() - 1);
+  
         this.dbService.delete('fieldMappings', fieldMappingId).subscribe({
           next: () => console.log('Field mapping deleted from IndexedDB:', fieldMappingId),
           error: (error: any) => console.error('Error deleting field mapping from IndexedDB:', error)
         });
-
-        // Decrement totalFieldMappingsCount by 1
-        this.setTotalFieldMappingsCount(this.getTotalFieldMappingsCount() - 1);
       }),
       catchError(this.handleError<any>('deleteFieldMapping'))
     );
-  }
+  }  
 
   updateFieldMapping(fieldMappingId: number, fieldMapping: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/${fieldMappingId}`, fieldMapping).pipe(
       tap(updatedFieldMapping => {
-        const cachedFieldMappings = this.fieldMappings;
+        const cachedFieldMappings = this.getCachedFieldMappings();
         const index = cachedFieldMappings.findIndex(fm => fm.id === fieldMappingId);
         if (index !== -1) {
           cachedFieldMappings[index] = updatedFieldMapping;
-          this.fieldMappings=cachedFieldMappings;
           this.setCachedFieldMappings(cachedFieldMappings);
-
+        } else {
           this.dbService.update('fieldMappings', updatedFieldMapping).subscribe({
             next: () => console.log('Field mapping updated in IndexedDB:', updatedFieldMapping),
             error: (error: any) => console.error('Error updating field mapping in IndexedDB:', error)
@@ -249,7 +261,7 @@ export class FieldMappingService {
       }),
       catchError(this.handleError<any>('updateFieldMapping'))
     );
-  }
+  }  
 
   switchUserAndFinancialYear(userId: number, financialYear: string): Observable<any> {
     this.clearCache();

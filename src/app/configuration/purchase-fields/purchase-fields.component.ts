@@ -131,7 +131,9 @@ export class PurchaseFieldsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.fetchFields();
+              // Add the new field to the original data
+      this.originalData = [...this.originalData, result];
+      this.applyFilter(); // Reapply filters to update the displayed data
       }
     });
   }
@@ -144,14 +146,20 @@ export class PurchaseFieldsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.fetchFields();
+        console.log(this.originalData);
+              // Update the existing field in the original data
+      this.originalData = this.originalData.map(f => f.id === result.id ? result : f);
+      console.log(this.originalData);
+      this.applyFilter(); // Reapply filters to update the displayed data
       }
     });
   }
 
   deleteField(fieldId: number): void {
     this.fieldMappingService.deleteFieldMapping(fieldId).subscribe(() => {
-      this.fetchFields();
+          // Remove the field from the original data
+    this.originalData = this.originalData.filter(f => f.id !== fieldId);
+    this.applyFilter(); // Reapply filters to update the displayed data
     });
   }
 }

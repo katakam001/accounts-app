@@ -87,20 +87,20 @@ export class AddEditFieldMappingDialogComponent implements OnInit {
     if (this.fieldForm.valid) {
       const field = {
         ...this.fieldForm.value,
-        userId: this.userId,
-        financialYear: this.financialYear
+        user_id: this.userId,
+        financial_year: this.financialYear
       };
       if (this.data.field) {
-        this.fieldMappingService.updateFieldMapping(this.data.field.id, field).subscribe(() => {
-          this.dialogRef.close(true);
+        this.fieldMappingService.updateFieldMapping(this.data.field.id, field).subscribe((response) => {
+          this.dialogRef.close(response);
         });
       } else {
-        this.fieldMappingService.addFieldMapping(field).subscribe(() => {
-          this.dialogRef.close(true);
+        this.fieldMappingService.addFieldMapping(field).subscribe((response) => {
+          this.dialogRef.close(response);
         });
       }
     }
-  }
+  } 
 
   onCancel(): void {
     this.dialogRef.close();

@@ -68,7 +68,6 @@ export class AddEditEntryDialogComponent implements OnInit {
       if (this.data.entry) {
         this.entryForm.patchValue(this.data.entry);
         this.onCategoryChange(this.data.entry.category_id);
-        this.mapNamesToIds();
       }
     });
   }
@@ -136,23 +135,27 @@ export class AddEditEntryDialogComponent implements OnInit {
 
   fetchDynamicFields(categoryId: number): void {
     this.fieldMappingService.getFieldMappingsByCategory(this.data.userId, this.data.financialYear, categoryId).subscribe((data: any[]) => {
-      if (this.data.type === 3 && !this.data.entry) {
-        // Exclude fields with field_category === 1 and exclude_from_total for new purchase returns
-        this.dynamicFields = data.filter(field => !(field.field_category === 1 && field.exclude_from_total));
-      } else if (this.data.type === 2 || this.data.type === 4) {
-        // Exclude fields with field_category === 1 and exclude_from_total for sale entries (type 2 and 4)
-        this.dynamicFields = data.filter(field => !(field.field_category === 1 && field.exclude_from_total));
-      } else {
-        this.dynamicFields = data;
-      }
+      const excludeFields = (field: any) => !(field.field_category === 1 && field.exclude_from_total);
+      this.dynamicFields = data.filter(field => {
+        if (this.data.type === 3 && !this.data.entry) {
+          return excludeFields(field);
+        } else if (this.data.type === 2 || this.data.type === 4) {
+          return excludeFields(field);
+        }
+        return true;
+      });
+
       this.dynamicFields.forEach(field => {
         const entryField = this.data.entry?.fields.find((f: any) => f.field_name === field.field_name);
-        const defaultValue = entryField ? entryField.field_value : (field.field_type === 'number' ? 0 : '');
+        let defaultValue = entryField ? entryField.field_value : (field.field_type === 'number' ? 0 : '');
+        if (['broker', 'Area'].includes(field.field_name)) {
+          defaultValue = parseInt(defaultValue, 10);
+        }
         const validators = field.required ? [Validators.required] : [];
         this.entryForm.addControl(field.field_name, new FormControl(defaultValue, validators));
       });
     });
-  }
+}
 
   fetchUnits(categoryId: number): void {
     this.categoryUnitService.getUnitsByCategory(this.data.userId, this.data.financialYear, categoryId).subscribe((data: any[]) => {
@@ -160,21 +163,6 @@ export class AddEditEntryDialogComponent implements OnInit {
     });
   }
 
-  mapNamesToIds(): void {
-    this.dynamicFields.forEach(field => {
-      if (field.field_name === 'broker') {
-        const broker = this.brokers.find(b => b.name === field.field_value);
-        if (broker) {
-          this.entryForm.get(field.field_name)?.setValue(broker.id);
-        }
-      } else if (field.field_name === 'area') {
-        const area = this.areas.find(a => a.name === field.field_value);
-        if (area) {
-          this.entryForm.get(field.field_name)?.setValue(area.id);
-        }
-      }
-    });
-  }
 
   onQuantityChange(): void {
     this.updateTotalAmount();
