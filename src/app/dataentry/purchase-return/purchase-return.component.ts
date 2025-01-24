@@ -12,6 +12,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { CommonModule } from '@angular/common';
 import { BrokerService } from '../../services/broker.service';
 import { AreaService } from '../../services/area.service';
+import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
 
 @Component({
   selector: 'app-purchase-return',
@@ -39,15 +40,16 @@ export class PurchaseReturnComponent implements OnInit {
     private storageService: StorageService,
     private financialYearService: FinancialYearService,
     private brokerService: BrokerService,
-    private areaService: AreaService
+    private areaService: AreaService,
+    private webSocketService: WebSocketService // Inject WebSocket service
   ) {
     this.entries = new MatTableDataSource<any>([]);
   }
 
   ngOnInit(): void {
     this.getFinancialYear();
+    this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
-
   getFinancialYear() {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
@@ -111,11 +113,7 @@ export class PurchaseReturnComponent implements OnInit {
       data: { userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 3 }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.fetchEntries();
-      }
-    });
+    dialogRef.afterClosed().subscribe();
   }
 
   openEditEntryDialog(entry: any): void {
@@ -124,20 +122,50 @@ export class PurchaseReturnComponent implements OnInit {
       data: { entry, userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 3 }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.fetchEntries();
-      }
-    });
+    dialogRef.afterClosed().subscribe();
   }
 
   deleteEntry(entryId: number): void {
-    this.entryService.deleteEntry(entryId).subscribe(() => {
-      this.fetchEntries();
-    });
+    this.entryService.deleteEntry(entryId).subscribe();
   }
 
   expand(entry: any): void {
     this.expandedRows[entry.id] = !this.expandedRows[entry.id];
+  }
+
+  subscribeToWebSocketEvents(): void {
+    const currentUserId = this.storageService.getUser().id;
+    const currentFinancialYear = this.financialYear;
+
+    const handleEvent = (data: any, action: 'INSERT' | 'UPDATE' | 'DELETE') => {
+      if (data.entryType === 'entry' && data.data.type === 3 && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+        switch (action) {
+          case 'INSERT':
+            this.entries.data = [...this.entries.data, data.data.entry];
+            break;
+          case 'UPDATE':
+            const updateIndex = this.entries.data.findIndex(entry => entry.id === data.data.id);
+            if (updateIndex !== -1) {
+              this.entries.data[updateIndex] = {
+                ...this.entries.data[updateIndex],
+                ...data.data.entry,
+              };
+              this.entries.data = [...this.entries.data];
+            }
+            break;
+          case 'DELETE':
+            const deleteIndex = this.entries.data.findIndex(entry => entry.id === data.data.id);
+            if (deleteIndex !== -1) {
+              this.entries.data.splice(deleteIndex, 1);
+            }
+            break;
+        }
+        this.updateEntriesWithDynamicFields(this.entries.data);
+      }
+    };
+
+    this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT'));
+    this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE'));
+    this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE'));
   }
 }

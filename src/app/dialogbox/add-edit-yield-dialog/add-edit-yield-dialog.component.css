@@ -1,0 +1,95 @@
+.add-edit-yield-dialog-form {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    background-color: #f5f5f5; /* Light grey background */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  }
+  
+  .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  
+  .form-field {
+    flex: 1;
+    margin-right: 16px;
+  }
+  
+  .full-width {
+    width: 100%;
+  }
+  
+  .mat-mdc-dialog-actions {
+    display: flex;
+    position: relative;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end; /* Align buttons to the right */
+    box-sizing: border-box;
+    min-height: 52px;
+    margin: 0;
+    padding: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0);
+    padding: var(--mat-dialog-actions-padding, 16px 24px);
+  }
+  .remove-button {
+    margin-left: 10px;
+    background-color: #ff5252;
+    color: white;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+  }
+
+  .cancel-button {
+    background-color: #f44336;
+    color: white;
+    margin-right: 10px;
+    border-radius: 20px;
+    padding: 10px 20px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .cancel-button:hover {
+    background-color: #d32f2f;
+  }
+  
+  .save-button {
+    background-color: #2196f3;
+    color: white;
+    border-radius: 20px;
+    padding: 10px 20px;
+    transition: background-color 0.3s ease;
+  }
+    
+  .save-button:hover {
+    background-color: #303f9f; /* Darker blue on hover */
+  }
+  .add-processed-item-button,
+  .add-by-product-button {
+  background-color: #4caf50; /* Green background */
+  color: white; /* White text */
+  border: none; /* Remove border */
+  padding: 8px 16px; /* Add padding */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  font-size: 14px; /* Font size */
+  font-weight: bold; /* Bold text */
+  display: flex; /* Flexbox for alignment */
+  align-items: center; /* Center items vertically */
+  justify-content: center; /* Center items horizontally */
+  margin-bottom: 16px; /* Add margin at the bottom */
+}
+
+.add-processed-item-button:hover,
+.add-by-product-button:hover {
+  background-color: #388e3c; /* Darker green on hover */
+}
+
+.add-processed-item-button mat-icon,
+.add-by-product-button mat-icon {
+  margin-right: 8px; /* Add margin to the right of the icon */
+}

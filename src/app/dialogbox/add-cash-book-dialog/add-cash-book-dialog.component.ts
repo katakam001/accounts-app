@@ -4,7 +4,7 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { AccountService } from '../../services/account.service';
 import { StorageService } from '../../services/storage.service';
 import { Account } from '../../models/account.interface';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -28,6 +28,7 @@ export class AddCashBookDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<AddCashBookDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private accountService: AccountService,
+    private datePipe: DatePipe, // Inject DatePipe
     private storageService: StorageService
   ) {}
 
@@ -98,9 +99,12 @@ export class AddCashBookDialogComponent implements OnInit {
 
   onSave(): void {
     this.cashBookForm.controls['narration_description'].enable();
-    console.log(this.cashBookForm.value);
     if (this.cashBookForm.valid) {
-      this.dialogRef.close(this.cashBookForm.value);
+      const cashEntry = {
+        ...this.cashBookForm.value,
+        cash_entry_date: this.datePipe.transform(this.cashBookForm.get('cash_entry_date')?.value, 'yyyy-MM-dd', 'en-IN') // Transform the date
+      };
+      this.dialogRef.close(cashEntry);
     }
   }
 

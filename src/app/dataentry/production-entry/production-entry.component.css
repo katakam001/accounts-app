@@ -1,0 +1,254 @@
+.production-container {
+    margin: 20px;
+  }
+  
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #3f51b5;
+    color: white;
+    padding: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .toolbar:hover {
+    background-color: #303f9f; /* Darker shade on hover */
+  }
+  
+  .title {
+    font-size: 24px;
+  }
+  
+  .spacer {
+    flex: 1 1 auto;
+  }
+  
+  .add-production-entry-button {
+    background: linear-gradient(45deg, #ff4081, #e91e63);
+    color: white;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: background 0.3s ease, transform 0.3s ease;
+    margin-right: 10px;
+  }
+  
+  .add-production-entry-button:hover {
+    background: linear-gradient(45deg, #e91e63, #ff4081);
+    transform: scale(1.05);
+  }
+  
+  .production-entry-card {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: #ffffff;
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .production-entry-card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  }
+  
+  .expansion-panel-header-content {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%; /* Ensure the header content takes the full width */
+  }
+  
+  .field {
+    flex: 1;
+    margin: 5px 10px;
+    min-width: 150px; /* Ensure minimum width to prevent wrapping */
+  }
+  
+  .label {
+    font-weight: bold;
+    color: #3f51b5; /* Primary color */
+  }
+  
+  .value {
+    margin-left: 5px;
+    color: #757575; /* Secondary color */
+  }
+  
+  .actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    margin-left: auto; /* Push actions to the right */
+  }
+  
+  .actions button {
+    margin-left: 5px;
+  }
+  
+  .expansion-panel-content {
+    margin-top: 10px;
+  }
+  
+  .mat-table {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .mat-card {
+    background-color: #f5f5f5; /* Light grey background */
+  }
+  
+  .mat-toolbar {
+    background-color: #3f51b5; /* Primary color */
+    color: white;
+  }
+  
+  .mat-expansion-panel-header {
+    background-color: #e8eaf6; /* Light blue background */
+  }
+  
+  .mat-expansion-panel-content {
+    background-color: #ffffff; /* White background */
+  }
+  
+  .mat-header-cell {
+    font-weight: bold;
+    background-color: #f5f5f5;
+  }
+  
+  .mat-cell {
+    padding: 10px;
+  }
+  
+  .mat-icon-button {
+    margin-right: 5px;
+  }
+  
+  .edit-button {
+    color: #4caf50; /* Green color for edit button */
+    transition: transform 0.3s ease;
+  }
+  
+  .edit-button:hover {
+    transform: scale(1.1);
+  }
+  
+  .delete-button {
+    color: #f44336; /* Red color for delete button */
+    transition: transform 0.3s ease;
+  }
+  
+  .delete-button:hover {
+    transform: scale(1.1);
+  }
+  
+  .mat-elevation-z8 {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .expansion-panel-content .custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    table-layout: fixed; /* Ensure fixed table layout */
+  }
+  
+  .expansion-panel-content .custom-table th.mat-header-cell,
+  .expansion-panel-content .custom-table td.mat-cell {
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 10px;
+    margin: 0;
+  }
+  
+  .expansion-panel-content .custom-table th.mat-header-cell {
+    background-color: #3f51b5; /* Primary color */
+    color: white;
+    font-weight: bold;
+    border-bottom: 2px solid #ddd; /* Custom border color */
+    transition: background-color 0.3s ease;
+  }
+  
+  .expansion-panel-content .custom-table th.mat-header-cell:hover {
+    background-color: #303f9f; /* Darker shade on hover */
+  }
+  
+  .expansion-panel-content .custom-table td.mat-cell {
+    background-color: #f5f5f5; /* Light grey background */
+    color: #333;
+    transition: background-color 0.3s ease;
+  }
+  
+  .expansion-panel-content .custom-table td.mat-cell:hover {
+    background-color: #e0e0e0; /* Light grey on hover */
+  }
+  
+  .expansion-panel-content .custom-table tr.mat-header-row {
+    height: 56px;
+  }
+  
+  .expansion-panel-content .custom-table tr.mat-row {
+    height: 48px;
+  }
+  
+  .expansion-panel-content .custom-table th.mat-header-cell:first-child,
+  .expansion-panel-content .custom-table td.mat-cell:first-child {
+    border-left: none; /* Remove left border for the first cell */
+  }
+  
+  .expansion-panel-content .custom-table th.mat-header-cell:last-child,
+  .expansion-panel-content .custom-table td.mat-cell:last-child {
+    border-right: none; /* Remove right border for the last cell */
+  }
+  
+  ::ng-deep .expansion-panel-content .custom-table th.mat-mdc-header-cell {
+    background-color: #3f51b5; /* Primary color */
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    border-bottom: 2px solid #ddd; /* Custom border color */
+  }
+  
+  ::ng-deep .expansion-panel-content .custom-table td.mat-mdc-cell {
+    background-color: #f5f5f5; /* Light grey background */
+    color: #333;
+    padding: 10px;
+  }
+  
+  ::ng-deep .expansion-panel-content .custom-table tr.mat-mdc-header-row {
+    height: 56px;
+  }
+  
+  ::ng-deep .expansion-panel-content .custom-table tr.mat-mdc-row {
+    height: 48px;
+  }
+  
+  ::ng-deep .expansion-panel-content .custom-table tr.mat-mdc-row:hover {
+    background-color: #e0e0e0; /* Light grey on hover */
+  }
+  
+  ::ng-deep .expansion-panel-content .custom-table th.mat-mdc-header-cell,
+  ::ng-deep .expansion-panel-content .custom-table td.mat-mdc-cell {
+    border: 1px solid #ddd; /* Border for cells */
+  }
+  
+  ::ng-deep .expansion-panel-content .custom-table th.mat-mdc-header-cell:first-child,
+  ::ng-deep .expansion-panel-content .custom-table td.mat-mdc-cell:first-child {
+    border-left: none; /* Remove left border for the first cell */
+  }
+  
+  ::ng-deep .expansion-panel-content .custom-table th.mat-mdc-header-cell:last-child,
+  ::ng-deep .expansion-panel-content .custom-table td.mat-mdc-cell:last-child {
+    border-right: none; /* Remove right border for the last cell */
+  }
+  

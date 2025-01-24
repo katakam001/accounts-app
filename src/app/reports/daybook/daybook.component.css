@@ -1,0 +1,194 @@
+.date {
+  font-weight: bold;
+  margin-top: 20px;
+  text-align: center; /* Center align the date */
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+tr {
+  height: 40px; /* Set a consistent height for all rows */
+}
+
+th, td {
+  border: 2px solid #ddd;
+  padding: 4px;
+}
+
+/* Add hover effect to table cells */
+td {
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+td:hover {
+  background-color: #f2f2f2; /* Change the background color on hover */
+}
+
+
+th {
+  background-color: #f2f2f2;
+  text-align: center; /* Center align the header */
+  border: 2px solid #000; /* Thicker border for bold lines */
+}
+
+td.right-align {
+  text-align: right;
+}
+
+td mat-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  color: #4caf50 !important; /* Green color for edit button */
+  transition: transform 0.3s ease !important;
+}
+
+td mat-icon:hover {
+  transform: scale(1.1) !important;
+}
+
+
+
+.bold-border {
+  border-top: 2px solid #000; /* Thicker top border for bold lines */
+}
+
+.pagination {
+  margin-top: 20px;
+  text-align: center;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-label {
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-family: 'Roboto', sans-serif;
+  color: #3f51b5;
+}
+
+.filter-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  padding: 16px;
+  border-radius: 8px;
+}
+
+
+.chip-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 8px;
+  background-color: #fff;
+  max-width: 50%; /* Reduce the size of the chip box */
+}
+
+.date-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+  margin-left: 16px; /* Add gap between chips and dates */
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 8px;
+  background-color: #fff;
+  height: auto; /* Adjust height to fit content */
+}
+
+.date-filters {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-label {
+  font-weight: bold;
+  margin-bottom: 4px;
+  font-family: 'Roboto', sans-serif;
+  color: #3f51b5;
+}
+
+button {
+  align-self: flex-end;
+  background: linear-gradient(45deg, #ff4081, #ff80ab);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 16px; /* Add gap between date filters and button */
+  font-family: 'Roboto', sans-serif;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+button:hover {
+  background-color: #ff4081;
+  transform: scale(1.05);
+}
+
+.selected-chip {
+  background: linear-gradient(45deg, #009688, #4caf50) !important; /* Teal and cyan gradient */
+  color: #fff !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border: 2px solid #00796b !important;
+  font-weight: bold;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  border-radius: 16px;
+}
+
+.unselected-chip {
+  background-color: #e0e0e0 !important;
+  color: #000 !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  border-radius: 16px;
+}
+
+.edit-button {
+  background: linear-gradient(45deg, #ff4081, #ff80ab);
+  color: #fff;
+  border: none;
+  padding: 2px; /* Reduced padding */
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.edit-button:hover {
+  background-color: #ff4081;
+  transform: scale(1.05);
+}
+

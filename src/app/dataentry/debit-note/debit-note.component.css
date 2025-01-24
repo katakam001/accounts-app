@@ -1,0 +1,119 @@
+.debit-note-container {
+    padding: 10px; /* Reduced padding */
+  }
+  
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #3f51b5;
+    color: white;
+  }
+  
+  .title {
+    flex-grow: 1;
+    text-align: left;
+  }
+  
+  .add-debit-note-button {
+    background-color: #ff4081;
+    color: white;
+    border-radius: 25px;
+    padding: 10px 20px; /* Reduced padding */
+    font-size: 16px;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  
+  .add-debit-note-button:hover {
+    background-color: #e91e63;
+    transform: scale(1.05);
+  }
+  
+  .mat-card {
+    margin-top: 20px;
+  }
+  
+  .mat-expansion-panel-header {
+    min-height: 70px; /* Further reduced minimum height */
+  }
+  
+  .expansion-panel-header-content {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%; /* Ensure the header content takes the full width */
+  }
+  
+  
+  .field, .dynamic-field {
+    display: flex;
+    flex-direction: column; /* Stack label and value vertically */
+    white-space: nowrap; /* Prevent text wrapping */
+  }
+  
+  .field .label, .dynamic-field .label {
+    font-weight: bold;
+  }
+  
+  .field .value, .dynamic-field .value {
+    margin-top: 5px;
+  }
+  
+  .field .value[title] {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100px; /* Adjust the width as needed */
+  }
+  
+  .actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  
+  .expansion-panel-content {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Ensure 4 columns per row */
+    gap: 20px; /* Reduced gap */
+    padding: 20px;
+  }
+  
+  .mat-header-cell {
+    font-weight: bold;
+    background-color: #f5f5f5;
+  }
+  
+  .mat-cell {
+    padding: 10px;
+  }
+  
+  .mat-icon-button {
+    margin-right: 5px;
+  }
+  
+  .edit-button {
+    color: #4caf50; /* Green color for edit button */
+    transition: transform 0.3s ease;
+  }
+  
+  .edit-button:hover {
+    transform: scale(1.1);
+  }
+  
+  .delete-button {
+    color: #f44336; /* Red color for delete button */
+    transition: transform 0.3s ease;
+  }
+  
+  .delete-button:hover {
+    transform: scale(1.1);
+  }
+  
+  .mat-elevation-z8 {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  

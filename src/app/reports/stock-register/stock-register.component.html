@@ -1,0 +1,93 @@
+<div class="stock-register-container">
+  <h2 class="report-title">Stock Register</h2>
+  <mat-toolbar class="toolbar">
+    <div class="toolbar-content">
+      <mat-form-field appearance="fill" class="custom-dropdown">
+        <mat-label>Select Item</mat-label>
+        <mat-select [(value)]="selectedItemId">
+          <mat-option *ngFor="let item of items; trackBy: trackById" [value]="item.id">
+            {{ item.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div class="export-buttons">
+        <button mat-raised-button class="generate-button" (click)="generateStockRegister()">Generate Stock Register</button>
+        <button mat-raised-button class="excel-button" (click)="exportToExcel()">
+          <mat-icon>description</mat-icon> Export to Excel
+        </button>
+        <button mat-raised-button class="pdf-button" (click)="exportToPDF()">
+          <mat-icon>picture_as_pdf</mat-icon> Export to PDF
+        </button>
+      </div>
+    </div>
+  </mat-toolbar>
+  <div *ngIf="isLoading" class="spinner-container">
+    <mat-spinner></mat-spinner>
+  </div>
+  <div *ngIf="!isLoading">
+    <app-stock-register-chart [chartData]="chartData"></app-stock-register-chart>
+    <div class="table-container">
+      <cdk-virtual-scroll-viewport itemSize="50" class="example-viewport">
+        <table id="stock-register-table" mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+          <!-- Date Column -->
+          <ng-container matColumnDef="Date">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sticky> Date </th>
+            <td mat-cell *matCellDef="let record"> {{ record.Date | date: 'dd-MM-yyyy':'IST' }} </td>
+          </ng-container>
+          <!-- Item Column -->
+          <ng-container matColumnDef="Item">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sticky> Item </th>
+            <td mat-cell *matCellDef="let record"> {{ record.Item }} </td>
+          </ng-container>
+          <!-- Opening Stock Column -->
+          <ng-container matColumnDef="Opening Stock">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sticky> Opening Stock </th>
+            <td mat-cell *matCellDef="let record"> {{ record['Opening Stock'] }} </td>
+          </ng-container>
+          <!-- Purchase Column -->
+          <ng-container matColumnDef="Purchase">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sticky> Purchase </th>
+            <td mat-cell *matCellDef="let record"> {{ record.Purchase }} </td>
+          </ng-container>
+          <!-- Sale Return Column -->
+          <ng-container matColumnDef="Sale Return">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sticky> Sale Return </th>
+            <td mat-cell *matCellDef="let record"> {{ record['Sale Return'] }} </td>
+          </ng-container>
+          <!-- Received From Process Column -->
+          <ng-container matColumnDef="Received From Process">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sticky> Received From Process </th>
+            <td mat-cell *matCellDef="let record"> {{ record['Received From Process'] }} </td>
+          </ng-container>
+          <!-- Total Column -->
+          <ng-container matColumnDef="Total">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sticky> Total </th>
+            <td mat-cell *matCellDef="let record"> {{ record.Total }} </td>
+          </ng-container>
+          <!-- Sales Column -->
+          <ng-container matColumnDef="Sales">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sticky> Sales </th>
+            <td mat-cell *matCellDef="let record"> {{ record.Sales }} </td>
+          </ng-container>
+          <!-- Purchase Return Column -->
+          <ng-container matColumnDef="Purchase Return">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sticky> Purchase Return </th>
+            <td mat-cell *matCellDef="let record"> {{ record['Purchase Return'] }} </td>
+          </ng-container>
+          <!-- Dispatch To Process Column -->
+          <ng-container matColumnDef="Dispatch To Process">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sticky> Dispatch To Process </th>
+            <td mat-cell *matCellDef="let record"> {{ record['Dispatch To Process'] }} </td>
+          </ng-container>
+          <!-- Closing Stock Column -->
+          <ng-container matColumnDef="Closing Stock">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header sticky> Closing Stock </th>
+            <td mat-cell *matCellDef="let record"> {{ record['Closing Stock'] }} </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns" sticky></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" [ngClass]="{'negative-stock': row['Closing Stock'] < 0, 'positive-stock': row['Closing Stock'] >= 0}"></tr>
+        </table>
+      </cdk-virtual-scroll-viewport>
+    </div>
+  </div>
+</div>

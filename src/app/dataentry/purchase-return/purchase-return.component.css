@@ -40,11 +40,11 @@
 }
 
 .expansion-panel-header-content {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr); /* Adjusted for 10 columns to include checkbox and actions */
-  gap: 15px; /* Further reduced gap */
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
   align-items: center;
-  padding: 5px 0; /* Further reduced padding */
+  width: 100%; /* Ensure the header content takes the full width */
 }
 
 .field, .dynamic-field {

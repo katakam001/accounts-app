@@ -1,0 +1,199 @@
+/* stock-register.component.css */
+.stock-register-container {
+  padding: 20px;
+  margin-top: 0;
+}
+
+.toolbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.toolbar {
+  background-color: #3f51b5;
+  color: white;
+  padding: 0;
+}
+
+.custom-dropdown {
+  width: 300px;
+  margin-right: 10px;
+}
+
+::ng-deep .mat-form-field-appearance-fill .mat-mdc-text-field-wrapper {
+  background-color: #f5f5f5 !important;
+  border-radius: 5px !important;
+  border: 1px solid #ccc !important;
+}
+
+::ng-deep .mat-form-field-appearance-fill .mat-mdc-floating-label {
+  color: #3f51b5 !important;
+  font-weight: bold !important;
+}
+
+::ng-deep .mat-mdc-select-arrow-wrapper .mat-mdc-select-arrow {
+  color: #3f51b5 !important;
+}
+
+::ng-deep .mat-mdc-option {
+  padding: 10px !important;
+  font-size: 16px !important;
+}
+
+::ng-deep .mat-mdc-option:hover {
+  background-color: #e0e0e0 !important;
+}
+
+::ng-deep .mat-mdc-select-panel .mat-mdc-option {
+  background-color: #f5f5f5 !important;
+  border-radius: 5px !important;
+  border: 1px solid #ccc !important;
+}
+
+mat-form-field {
+  flex: 1;
+  max-width: 300px;
+  height: auto;
+  margin-top: 16px;
+}
+
+.mat-mdc-form-field {
+  display: flex;
+  align-items: center;
+  height: auto;
+  margin-top: 16px;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.generate-button {
+  background-color: #ff9800;
+  color: white;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.excel-button {
+  background-color: #28a745;
+  color: white;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.pdf-button {
+  background-color: #dc3545;
+  color: white;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.generate-button mat-icon,
+.excel-button mat-icon,
+.pdf-button mat-icon {
+  margin-right: 10px;
+}
+
+.generate-button:hover {
+  background-color: #fb8c00;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.excel-button:hover {
+  background-color: #218838;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pdf-button:hover {
+  background-color: #c82333;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+}
+
+.table-container {
+  margin-top: 20px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: linear-gradient(45deg, #00c6ff, #0072ff) !important;
+  color: white !important;
+  padding: 10px;
+  font-weight: bold;
+  font-size: 16px;
+  border: 1px solid #0056b3;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+td {
+  border: 1px solid #ddd;
+}
+
+.stock-change {
+  background-color: lightgreen;
+}
+
+tr.negative-stock {
+  background-color: #ffcccc;
+}
+
+tr.positive-stock {
+  background-color: #ccffcc;
+}
+
+.example-viewport {
+  height: 400px; /* Adjust the height as needed */
+  width: 100%;
+  border: 1px solid #ccc;
+}
+.report-title {
+  font-size: 2.5em; /* Larger font size */
+  font-weight: bold; /* Bold text */
+  color: #009879; /* Eye-catching color */
+  text-align: center; /* Center alignment */
+  margin-bottom: 20px; /* Space below the title */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}

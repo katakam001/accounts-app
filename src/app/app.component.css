@@ -1,37 +1,94 @@
-.example-container {
-  display: flex;
-  flex-direction: column;
-  position: absolute;
+.sticky-toolbar {
+  position: sticky;
   top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  z-index: 2; /* Ensure toolbar stays above other elements */
+  background-color: #3f51b5; /* Match the toolbar background color */
+  color: white; /* Match the toolbar text color */
 }
 
-.example-is-mobile .example-toolbar {
-  position: fixed;
-  /* Make sure the toolbar will stay on top of the content as it scrolls past. */
-  z-index: 2;
+.menu-icon {
+  color: #ffffff; /* White color */
+  background-color: #3f51b5; /* Primary color */
+  border-radius: 50%; /* Circular shape */
+  padding: 8px; /* Padding around the icon */
+  transition: background-color 0.3s ease; /* Smooth transition for background color */
 }
 
-h1.example-app-name {
-  margin-left: 8px;
+.menu-icon:hover {
+  background-color: #303f9f; /* Darker shade on hover */
 }
+
 
 .example-sidenav-container {
-  /* When the sidenav is not fixed, stretch the sidenav container to fill the available space. This
-     causes `<mat-sidenav-content>` to act as our scrolling element for desktop layouts. */
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 64px); /* Set the height to 100% of the viewport height minus the toolbar height */
 }
 
-.example-is-mobile .example-sidenav-container {
-  /* When the sidenav is fixed, don't constrain the height of the sidenav container. This allows the
-     `<body>` to be our scrolling element for mobile layouts. */
-  flex: 1 0 auto;
+.mat-sidenav {
+  height: 100%; /* Set the height to 100% of the remaining viewport height */
+  overflow-y: auto; /* Enable vertical scrolling if content exceeds height */
+  background-color: #f9f9f9; /* Light background color for the sidenav */
 }
-.spacer 
-{ flex: 1 1 auto; 
-} 
-.content 
-{ padding: 16px;
+
+.mat-nav-list {
+  max-height: 100%; /* Set the max height to 100% of the remaining viewport height */
+  overflow-y: auto; /* Enable vertical scrolling if content exceeds height */
+  padding: 8px; /* Add padding to the navigation list */
+}
+
+.mat-nav-list h3 {
+  margin: 16px 0; /* Add margin to the section headers */
+  font-weight: bold; /* Make the section headers bold */
+  color: #3f51b5; /* Match the section headers color with the toolbar */
+  font-size: 18px; /* Increase font size for better visibility */
+  text-transform: uppercase; /* Make the text uppercase */
+  border-bottom: 2px solid #3f51b5; /* Add a bottom border for emphasis */
+  padding-bottom: 8px; /* Add padding to the bottom */
+}
+
+.mat-nav-list a {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px; /* Add padding to the navigation items */
+  margin: 4px 0; /* Add margin between navigation items */
+  text-decoration: none; /* Remove underline from links */
+  color: #333; /* Set the text color */
+  font-size: 14px; /* Set the font size */
+  border-radius: 4px; /* Add border radius for rounded corners */
+  transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+.mat-nav-list a.active {
+  background-color: #e0e0e0; /* Highlight the active item */
+}
+
+.mat-nav-list a:hover {
+  background-color: #f5f5f5; /* Add hover effect */
+}
+
+.mat-nav-list a mat-icon {
+  margin-right: 16px; /* Add margin to the right of the icons */
+  vertical-align: middle; /* Align icons vertically with the text */
+}
+
+.mat-nav-list a .nav-item {
+  display: flex;
+  align-items: center;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.content {
+  padding: 16px;
+}
+
+.section-heading {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #3f51b5; /* Primary color */
+  margin: 16px 0;
+  padding: 8px 0;
 }

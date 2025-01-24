@@ -8,8 +8,8 @@ import { environment } from '../../environments/environment';
 })
 export class EntryService {
   // private apiUrl = 'http://localhost:8080/api/entries';
-          private baseUrl = environment.apiUrl;
-          private apiUrl = `${this.baseUrl}/api/entries`; // Append the path to the base URL
+  private baseUrl = environment.apiUrl;
+  private apiUrl = `${this.baseUrl}/api/entries`; // Append the path to the base URL
 
   constructor(private http: HttpClient) {}
 
@@ -27,5 +27,10 @@ export class EntryService {
 
   deleteEntry(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${id}`);
+  }
+
+  // New method to fetch an entry by ID
+  getEntryById(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}`);
   }
 }

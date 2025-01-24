@@ -1,0 +1,85 @@
+<div class="debit-note-container">
+    <mat-toolbar color="primary" class="toolbar">
+      <span class="title">Debit Note</span>
+      <span class="spacer"></span>
+      <button mat-raised-button class="add-debit-note-button" (click)="openAddEntryDialog()">
+        Add New Debit Note
+      </button>
+    </mat-toolbar>
+  
+    <mat-card class="debit-note-card">
+      <mat-card-content>
+        <mat-accordion>
+          <mat-expansion-panel *ngFor="let entry of entries.data; let i = index" [expanded]="expandedRows[entry.id]">
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <div class="expansion-panel-header-content">
+                  <div class="field">
+                    <div class="label">Category</div>
+                    <div class="value" title="{{ entry.category_name }}">{{ entry.category_name }}</div>
+                  </div>
+                  <div class="field">
+                    <div class="label">Debit Date</div>
+                    <div class="value">{{ entry.entry_date | date }}</div>
+                  </div>
+                  <div class="field">
+                    <div class="label">Supplier</div>
+                    <div class="value" title="{{ entry.account_name }}">{{ entry.account_name }}</div>
+                  </div>
+                  <div class="field">
+                    <div class="label">Item Name</div>
+                    <div class="value" title="{{ entry.item_name }}">{{ entry.item_name || 'N/A' }}</div>
+                  </div>
+                  <div class="field">
+                    <div class="label">Quantity</div>
+                    <div class="value">{{ entry.quantity }}</div>
+                  </div>
+                  <div class="field">
+                    <div class="label">Unit</div>
+                    <div class="value">{{ entry.unit_name }}</div>
+                  </div>
+                  <div class="field">
+                    <div class="label">Unit Price</div>
+                    <div class="value">{{ entry.unit_price  | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+                  </div>
+                  <div class="field">
+                    <div class="label">Debit Value</div>
+                    <div class="value">{{ entry.value | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+                  </div>
+                  <div class="field">
+                    <div class="label">Total Amount</div>
+                    <div class="value">{{ entry.total_amount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+                  </div>
+                  <div class="actions">
+                    <button mat-icon-button class="edit-button" (click)="openEditEntryDialog(entry)">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button class="delete-button" (click)="deleteEntry(entry.id)">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </div>
+                </div>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <div class="expansion-panel-content">
+              <div class="dynamic-field" *ngFor="let field of entry.dynamicFields">
+                <div class="label">{{ field.field_name }}</div>
+                <div class="value">
+                  <ng-container *ngIf="field.field_name === 'broker'">
+                    {{ brokerMap[field.field_value] || 'N/A' }}
+                  </ng-container>
+                  <ng-container *ngIf="field.field_name === 'Area'">
+                    {{ areaMap[field.field_value] || 'N/A' }}
+                  </ng-container>
+                  <ng-container *ngIf="field.field_name !== 'broker' && field.field_name !== 'Area'">
+                    {{ field.field_value }}
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  

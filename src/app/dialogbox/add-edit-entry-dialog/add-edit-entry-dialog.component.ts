@@ -14,6 +14,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { FieldMappingService } from '../../services/field-mapping.service';
 import { BrokerService } from '../../services/broker.service';
 import { AreaService } from '../../services/area.service';
+import { ItemsService } from '../../services/items.service'; // Import ItemService
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-add-edit-entry-dialog',
@@ -30,6 +32,7 @@ export class AddEditEntryDialogComponent implements OnInit {
   suppliers: Account[] = [];
   brokers: any[] = [];
   areas: any[] = [];
+  items: any[] = []; // Add items array
 
   constructor(
     private fb: FormBuilder,
@@ -40,8 +43,10 @@ export class AddEditEntryDialogComponent implements OnInit {
     private accountService: AccountService,
     private brokerService: BrokerService,
     private areaService: AreaService,
+    private itemsService: ItemsService, // Inject ItemService
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<AddEditEntryDialogComponent>,
+    private route: ActivatedRoute, // Inject ActivatedRoute
     @Inject(MAT_DIALOG_DATA) public data: any,
     private datePipe: DatePipe
   ) {
@@ -49,7 +54,7 @@ export class AddEditEntryDialogComponent implements OnInit {
       category_id: ['', Validators.required],
       entry_date: ['', Validators.required],
       account_id: ['', Validators.required],
-      item_description: [''],
+      item_id: ['', Validators.required], // Replace item_description with item_id
       quantity: [null, Validators.min(0)],
       unit_id: ['', Validators.required],
       unit_price: [null, Validators.min(0)],
@@ -63,14 +68,38 @@ export class AddEditEntryDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const categoryType = (this.data.type === 1 || this.data.type === 3) ? 1 : 2;
-    this.fetchInitialData(categoryType).then(() => {
-      if (this.data.entry) {
-        this.entryForm.patchValue(this.data.entry);
-        this.onCategoryChange(this.data.entry.category_id);
+    this.route.paramMap.subscribe(params => {
+      const entryId = params.get('id');
+  
+      if (entryId) {
+        // Component is activated via a route with an entryId parameter
+        this.fetchEntry(entryId);
+      } else {
+        // Component is not activated via a route with an entryId parameter
+        const categoryType = (this.data.type === 1 || this.data.type === 3 || this.data.type === 5) ? 1 : 2;
+        this.fetchInitialData(categoryType).then(() => {
+          if (this.data.entry) {
+            this.entryForm.patchValue(this.data.entry);
+            this.onCategoryChange(this.data.entry.category_id);
+          }
+        });
       }
     });
   }
+  
+  fetchEntry(entryId: string): void {
+    // Fetch the entry by ID and initialize the form
+    // Assuming you have a service method to fetch the entry by ID
+    this.entryService.getEntryById(parseInt(entryId)).subscribe((entry: any) => {
+      this.entryForm.patchValue(entry);
+  
+      const categoryType = (entry.type === 1 || entry.type === 3 || entry.type === 5) ? 1 : 2;
+      this.fetchInitialData(categoryType).then(() => {
+        this.onCategoryChange(entry.category_id);
+      });
+    });
+  }
+    
 
   dateFilter = (date: Date | null): boolean => {
     if (!date || !this.data.financialYear) {
@@ -88,7 +117,8 @@ export class AddEditEntryDialogComponent implements OnInit {
       this.fetchCategories(categoryType),
       this.fetchSuppliers(),
       this.fetchBrokers(),
-      this.fetchAreas()
+      this.fetchAreas(),
+      this.fetchItems() // Fetch items
     ]).then(() => {});
   }
 
@@ -128,6 +158,15 @@ export class AddEditEntryDialogComponent implements OnInit {
     });
   }
 
+  fetchItems(): Promise<void> {
+    return new Promise((resolve) => {
+      this.itemsService.getItemsByUserIdAndFinancialYear(this.data.userId, this.data.financialYear).subscribe((data: any[]) => {
+        this.items = data;
+        resolve();
+      });
+    });
+  }
+
   onCategoryChange(categoryId: number): void {
     this.fetchDynamicFields(categoryId);
     this.fetchUnits(categoryId);
@@ -139,7 +178,7 @@ export class AddEditEntryDialogComponent implements OnInit {
       this.dynamicFields = data.filter(field => {
         if (this.data.type === 3 && !this.data.entry) {
           return excludeFields(field);
-        } else if (this.data.type === 2 || this.data.type === 4) {
+        } else if (this.data.type === 2 || this.data.type === 4 || this.data.type === 5|| this.data.type === 6) {
           return excludeFields(field);
         }
         return true;
@@ -162,7 +201,6 @@ export class AddEditEntryDialogComponent implements OnInit {
       this.units = data;
     });
   }
-
 
   onQuantityChange(): void {
     this.updateTotalAmount();
@@ -212,13 +250,18 @@ export class AddEditEntryDialogComponent implements OnInit {
         exclude_from_total: field.exclude_from_total
       }));
   
-      if (this.data.entry && (this.data.type === 1 || this.data.type === 2)) {
-        // Update existing entry for Purchase Entry (type 1) and Sale Entry (type 2)
+      if (this.data.entry && (this.data.isPurchaseReturn || this.data.isSaleReturn)) {
+        // Add new entry for Purchase Return (type 3) and Sale Return (type 4)
+        this.entryService.addEntry(entry, dynamicFieldValues).subscribe(() => {
+          this.dialogRef.close(true);
+        });
+      } else if (this.data.entry) {
+        // Update existing entry for Purchase Entry (type 1), Sale Entry (type 2),Purchase Return (type 3), Sale Return (type 4), Credit Note (type 5), and Debit Note (type 6)
         this.entryService.updateEntry(this.data.entry.id, entry, dynamicFieldValues).subscribe(() => {
           this.dialogRef.close(true);
         });
       } else {
-        // Add new entry for Purchase Return (type 3) and Sale Return (type 4)
+        // Add new entry for Purchase Entry (type 1), Sale Entry (type 2),Purchase Return (type 3), Sale Return (type 4), Credit Note (type 5), and Debit Note (type 6)
         this.entryService.addEntry(entry, dynamicFieldValues).subscribe(() => {
           this.dialogRef.close(true);
         });
@@ -228,7 +271,8 @@ export class AddEditEntryDialogComponent implements OnInit {
         duration: 3000,
       });
     }
-  }  
+  }
+    
 
   onCancel(): void {
     this.dialogRef.close();

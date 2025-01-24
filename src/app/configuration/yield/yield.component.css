@@ -1,0 +1,143 @@
+.yields-container {
+    padding: 16px;
+    background-color: #f5f5f5; /* Light grey background */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  }
+  
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .spacer {
+    flex: 1;
+  }
+  
+  .add-yield-button {
+    background-color: #4caf50; /* Green background */
+    color: white; /* White text */
+    border: none; /* Remove border */
+    padding: 8px 16px; /* Add padding */
+    border-radius: 4px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s ease; /* Smooth transition */
+  }
+  
+  .add-yield-button:hover {
+    background-color: #388e3c; /* Darker green on hover */
+  }
+  
+  .yields-card-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  .yields-card {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 16px;
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+  }
+  
+  .yields-card:hover {
+    transform: translateY(-5px); /* Lift effect on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Deeper shadow on hover */
+  }
+  
+  .yields-card-header {
+    background: linear-gradient(45deg, #3f51b5, #5c6bc0); /* Gradient background */
+    color: white; /* White text */
+    padding: 16px; /* Add padding */
+    border-top-left-radius: 8px; /* Rounded corners */
+    border-top-right-radius: 8px; /* Rounded corners */
+    display: flex;
+    align-items: center;
+  }
+  
+  .header-icon {
+    margin-right: 8px;
+    font-size: 24px;
+  }
+  
+  .mat-card-title {
+    font-size: 1.2em; /* Larger font size */
+    font-weight: bold; /* Bold text */
+  }
+  
+  .mat-card-content {
+    padding: 16px; /* Add padding */
+  }
+  
+  .section-header {
+    display: flex;
+    align-items: center;
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+  
+  .section-icon {
+    margin-right: 8px;
+    font-size: 24px;
+    color: #3f51b5; /* Blue color */
+  }
+  
+  .section-title {
+    font-size: 1.2em; /* Larger font size */
+    font-weight: bold; /* Bold text */
+    color: #3f51b5; /* Blue color */
+  }
+  
+  .mat-card-actions {
+    display: flex;
+    justify-content: flex-end; /* Align actions to the right */
+    padding: 16px; /* Add padding */
+  }
+  
+  .mat-chip-set {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .mat-chip {
+    background-color: #e0e0e0; /* Light grey background */
+    color: #000; /* Black text */
+    padding: 8px;
+    border-radius: 16px; /* Rounded corners */
+    transition: background-color 0.3s ease; /* Smooth transition */
+  }
+  
+  .processed-chip {
+    background-color: #ffcc80 !important; /* Light orange background */
+  }
+  
+  .conversion-chip {
+    background-color: #80deea !important; /* Light blue background */
+  }
+  
+  .mat-chip:hover {
+    background-color: #d0d0d0 !important; /* Darker grey on hover */
+  }
+  
+  .conversion-icon {
+    margin: 0 4px; /* Add margin around the icon */
+    color: #4caf50; /* Green color for the icon */
+  } 
+  
+  .edit-button,
+  .delete-button {
+    color: #3f51b5; /* Blue color for icons */
+    transition: color 0.3s ease; /* Smooth transition */
+  }
+  
+  .edit-button:hover,
+  .delete-button:hover {
+    color: #303f9f; /* Darker blue on hover */
+  }
+  

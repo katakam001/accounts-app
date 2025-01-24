@@ -1,0 +1,35 @@
+<h1 mat-dialog-title>{{ data.conversion ? 'Edit Conversion' : 'Add Conversion' }}</h1>
+<div mat-dialog-content>
+  <form [formGroup]="conversionForm" class="add-edit-conversion-dialog-form">
+    <div class="form-row">
+      <mat-form-field class="form-field" appearance="fill">
+        <mat-label>From Unit</mat-label>
+        <mat-select formControlName="from_unit_id">
+          <mat-option *ngFor="let unit of units" [value]="unit.id">
+            {{ unit.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="form-field" appearance="fill">
+        <mat-label>To Unit</mat-label>
+        <mat-select formControlName="to_unit_id">
+          <mat-option *ngFor="let unit of units" [value]="unit.id">
+            {{ unit.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field class="form-field" appearance="fill">
+        <mat-label>Conversion Rate</mat-label>
+        <input matInput formControlName="rate" type="number">
+      </mat-form-field>
+    </div>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
+  <button mat-button class="save-button" (click)="onSave()" cdkFocusInitial>{{ data.conversion ? 'Save' : 'Add' }}</button>
+</div>

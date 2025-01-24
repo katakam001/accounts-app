@@ -10,6 +10,9 @@ import { CategoryService } from './category.service';
 import { FieldService } from './field.service';
 import { BrokerService } from './broker.service';
 import { CategoryUnitService } from './category-unit.service';
+import { ItemsService } from './items.service';
+import { YieldService } from './yield.service';
+import { ConversionService } from './conversion.service';
 
 const FINANCIAL_YEAR_KEY = 'financial-year';
 
@@ -29,6 +32,9 @@ export class FinancialYearService {
     private fieldService: FieldService,
     private brokerService: BrokerService,
     private categoryUnitService: CategoryUnitService,
+    private itemsService: ItemsService,
+    private yieldService: YieldService,
+    private conversionService:ConversionService,
   ) {}
 
   setFinancialYear(year: string, userId: number) {
@@ -47,7 +53,10 @@ export class FinancialYearService {
         this.categoryService.switchUserAndFinancialYear(userId, year).pipe(catchError(error => of(null))),
         this.fieldService.switchUserAndFinancialYear(userId, year).pipe(catchError(error => of(null))),
         this.brokerService.switchUserAndFinancialYear(userId, year).pipe(catchError(error => of(null))),
-        this.categoryUnitService.switchUserAndFinancialYear(userId, year).pipe(catchError(error => of(null)))
+        this.categoryUnitService.switchUserAndFinancialYear(userId, year).pipe(catchError(error => of(null))),
+        this.itemsService.switchUserAndFinancialYear(userId, year).pipe(catchError(error => of(null))),
+        this.yieldService.switchUserAndFinancialYear(userId, year).pipe(catchError(error => of(null))),
+        this.conversionService.switchUserAndFinancialYear(userId, year).pipe(catchError(error => of(null))),          
       ]).subscribe({
         next: () => {
           console.log('All services have been updated.');

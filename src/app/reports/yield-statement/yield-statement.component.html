@@ -1,0 +1,199 @@
+<div class="yield-container">
+  <div class="dropdown-container">
+    <label for="yield-select" class="yield-label">Select Raw Item:</label>
+    <mat-form-field appearance="fill">
+      <mat-label>Select Raw Item</mat-label>
+      <mat-select [(ngModel)]="selectedYield">
+        <mat-option *ngFor="let yield of yields" [value]="yield">{{ yield.rawItem.item_name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="button-container">
+    <button mat-raised-button class="generate-button" (click)="getLatestReport()">Get Latest Report</button>
+    <button mat-raised-button class="excel-button" (click)="exportToExcel()">
+      <mat-icon>description</mat-icon> Export to Excel
+    </button>
+    <button mat-raised-button class="pdf-button" (click)="exportToPDF()">
+      <mat-icon>picture_as_pdf</mat-icon> Export to PDF
+    </button>
+  </div>
+</div>
+
+<div *ngIf="reportLoaded" class="yield-statement">
+  <div class="yield-card">
+    <div class="yield-card-content">
+      <table class="yield-table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th colspan="2">Quantity</th>
+            <th>Issued to Production</th>
+            <th>Percentage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="item-name-styling">
+            <td>{{ selectedYield.rawItem.item_name }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Opening Stock</td>
+            <td></td>
+            <td class="right-align">0</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Purchase</td>
+            <td></td>
+            <td class="right-align">{{ consolidatedStockDetails[selectedYield.rawItem.item_id]?.total_purchase }}</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Sale Return</td>
+            <td></td>
+            <td class="right-align">{{ consolidatedStockDetails[selectedYield.rawItem.item_id]?.total_sale_return }}</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Total</td>
+            <td></td>
+            <td class="right-align">{{ calculateTotal(selectedYield.rawItem.item_id) }}</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Sales</td>
+            <td class="right-align">{{ consolidatedStockDetails[selectedYield.rawItem.item_id]?.total_sales }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Purchase Return</td>
+            <td class="right-align">{{ consolidatedStockDetails[selectedYield.rawItem.item_id]?.total_purchase_return }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Closing Stock</td>
+            <td class="right-align">{{ consolidatedStockDetails[selectedYield.rawItem.item_id]?.total_closing_balance }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Total</td>
+            <td class="right-align">{{ calculateTotalFields(selectedYield.rawItem.item_id) }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>Issued to Production</td>
+            <td></td>
+            <td></td>
+            <td class="right-align" style="text-decoration: underline; font-weight: bold;">
+              {{ consolidatedStockDetails[selectedYield.rawItem.item_id]?.total_dispatch_to_process }}
+            </td>
+            <td class="right-align" style="text-decoration: underline; font-weight: bold;">100.00%</td>
+          </tr>
+          <ng-container *ngFor="let processedItem of selectedYield.processedItems">
+            <tr class="item-name-styling">
+              <td>{{ processedItem.item_name }}</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Opening Stock</td>
+              <td></td>
+              <td class="right-align">0</td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Purchase</td>
+              <td></td>
+              <td class="right-align">{{ consolidatedStockDetails[processedItem.item_id]?.total_purchase }}</td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Sale Return</td>
+              <td></td>
+              <td class="right-align">{{ consolidatedStockDetails[processedItem.item_id]?.total_sale_return }}</td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Total</td>
+              <td></td>
+              <td class="right-align">{{ calculateTotal(processedItem.item_id) }}</td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Sales</td>
+              <td class="right-align">{{ consolidatedStockDetails[processedItem.item_id]?.total_sales }}</td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Purchase Return</td>
+              <td class="right-align">{{ consolidatedStockDetails[processedItem.item_id]?.total_purchase_return }}</td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Closing Stock</td>
+              <td class="right-align">{{ consolidatedStockDetails[processedItem.item_id]?.total_closing_balance }}</td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Total</td>
+              <td class="right-align">{{ calculateTotalFields(processedItem.item_id) }}</td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Received from Production</td>
+              <td></td>
+              <td></td>
+              <td class="right-align" style="text-decoration: underline; font-weight: bold;">
+                {{ consolidatedStockDetails[processedItem.item_id]?.total_received_from_process }}
+              </td>
+              <td class="right-align" style="text-decoration: underline; font-weight: bold;">{{ calculatePercentage(processedItem.item_id, selectedYield.rawItem.item_id) }}%</td>
+            </tr>
+          </ng-container>
+          <tr>
+            <td colspan="3">Shortage</td>
+            <td class="right-align" style="text-decoration: underline; font-weight: bold;">{{ calculateShortage(selectedYield.rawItem.item_id) }}</td>
+            <td class="right-align" style="text-decoration: underline; font-weight: bold;">{{ calculateShortagePercentage(selectedYield.rawItem.item_id) }}%</td>
+          </tr>
+          <tr>
+            <td colspan="3">Total</td>
+            <td class="right-align" style="text-decoration: underline; font-weight: bold;">
+              {{ getTotal(selectedYield.rawItem.item_id) }}
+            </td>
+            <td class="right-align" style="text-decoration: underline; font-weight: bold;">
+              {{ getTotalPercentage(selectedYield.rawItem.item_id) }}%
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

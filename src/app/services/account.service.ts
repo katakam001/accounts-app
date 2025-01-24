@@ -62,6 +62,78 @@ export class AccountService {
     );
   }
 
+  getAccount(userId: number, financialYear: string,name?: string, id?: number): Observable<Account | undefined> {
+    // First, try to fetch the account from the in-memory cache
+    const cachedAccounts = this.getCachedAccounts();
+    const cachedAccount = name
+      ? cachedAccounts.find(account => account.name === name)
+      : cachedAccounts.find(account => account.id === id);
+
+    if (cachedAccount) {
+      // If the account is found in the in-memory cache, return it
+      return of(cachedAccount);
+    }
+
+    // If the account is not found in the in-memory cache, try to fetch it from IndexedDB
+    const dbObservable = name
+      ? this.dbService.getAll('accounts').pipe(
+          map((accounts: unknown[]) => accounts as Account[]), // Assert the type to Account[]
+          map((accounts: Account[]) => accounts.find(account => account.name === name))
+        )
+      : this.dbService.getByKey<Account>('accounts', id!);
+
+    return dbObservable.pipe(
+      switchMap((account: Account | undefined) => {
+        if (account) {
+          // If the account is found in IndexedDB, return it
+          return of(account);
+        } else {
+          // If the account is not found in IndexedDB, fetch it from the server
+          const params = new HttpParams()
+            .set('userId', userId.toString())
+            .set('financialYear', financialYear);
+
+          const url = name ? `${this.apiUrl}/name/${name}` : `${this.apiUrl}/${id}`;
+
+          return this.http.get<Account>(url, { params }).pipe(
+            tap((fetchedAccount: Account) => {
+              const cachedAccounts = this.getCachedAccounts();
+              let lastAccount: Account | undefined = undefined;
+
+              // Check if the cache exceeds the capacity
+              if (cachedAccounts.length + 1 > this.cacheCapacity) {
+                lastAccount = cachedAccounts.pop(); // Remove the last account
+              }
+
+              cachedAccounts.push(fetchedAccount); // Push the new account to the last index
+              this.setCachedAccounts(cachedAccounts);
+              // Increment totalAccountsCount by 1
+              this.setTotalAccountsCount(this.getTotalAccountsCount() + 1);
+
+              if (lastAccount) {
+                this.dbService.getByKey('accounts', lastAccount.id).subscribe(existingAccount => {
+                  if (existingAccount) {
+                    this.dbService.update('accounts', lastAccount).subscribe({
+                      next: () => console.log('Account updated in IndexedDB:', lastAccount),
+                      error: (error: any) => console.error('Error updating account in IndexedDB:', error)
+                    });
+                  } else {
+                    this.dbService.add('accounts', lastAccount).subscribe({
+                      next: () => console.log('Account added to IndexedDB:', lastAccount),
+                      error: (error: any) => console.error('Error adding account to IndexedDB:', error)
+                    });
+                  }
+                });
+              }
+            }),
+            catchError(this.handleError<Account>('getAccount'))
+          );
+        }
+      }),
+      catchError(this.handleError<Account>('getAccount'))
+    );
+  }
+  
   private fetchAccountsFromServer(userId: number, financialYear: string, groups: string[] | undefined, cachedAccounts: Account[]): Observable<Account[]> {
     let params = new HttpParams()
       .set('userId', userId.toString())

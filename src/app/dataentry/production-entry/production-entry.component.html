@@ -1,0 +1,66 @@
+<div class="production-container">
+  <mat-toolbar color="primary" class="toolbar">
+    <span class="title">Production Entry</span>
+    <span class="spacer"></span>
+    <button mat-raised-button class="add-production-entry-button" (click)="openAddEntryDialog()">
+      Add New Production Entry
+    </button>
+  </mat-toolbar>
+
+  <mat-card class="production-entry-card">
+    <mat-card-content>
+      <mat-accordion>
+        <mat-expansion-panel *ngFor="let entry of entries; let i = index" [expanded]="expandedRows[entry.id]">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <div class="expansion-panel-header-content">
+                <div class="field">
+                  <div class="label">Item Name</div>
+                  <div class="value" title="{{ entry.raw_item_name }}">{{ entry.raw_item_name }}</div>
+                </div>
+                <div class="field">
+                  <div class="label">Production Date</div>
+                  <div class="value">{{ entry.production_date | date }}</div>
+                </div>
+                <div class="field">
+                  <div class="label">Quantity</div>
+                  <div class="value">{{ entry.quantity }}</div>
+                </div>
+                <div class="field">
+                  <div class="label">Unit Name</div>
+                  <div class="value">{{ entry.unit_name }}</div>
+                </div>
+                <div class="actions">
+                  <button mat-icon-button class="edit-button" (click)="openEditEntryDialog(entry)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button class="delete-button" (click)="deleteEntry(entry.id)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </div>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="expansion-panel-content">
+            <table mat-table [dataSource]="entry.processedItems" class="mat-elevation-z8 custom-table">
+              <ng-container matColumnDef="item_name">
+                <th mat-header-cell *matHeaderCellDef> Processed Item </th>
+                <td mat-cell *matCellDef="let item"> {{item.item_name}} </td>
+              </ng-container>
+              <ng-container matColumnDef="quantity">
+                <th mat-header-cell *matHeaderCellDef> Quantity </th>
+                <td mat-cell *matCellDef="let item"> {{item.quantity}} </td>
+              </ng-container>
+              <ng-container matColumnDef="unit_name">
+                <th mat-header-cell *matHeaderCellDef> Units </th>
+                <td mat-cell *matCellDef="let item"> {{item.unit_name}} </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="['item_name', 'quantity', 'unit_name']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['item_name', 'quantity', 'unit_name'];"></tr>
+            </table>
+          </div>          
+        </mat-expansion-panel>
+      </mat-accordion>
+    </mat-card-content>
+  </mat-card>
+</div>

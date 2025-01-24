@@ -1,54 +1,192 @@
-  <mat-toolbar color="primary">
-    <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/home" routerLinkActive="active">Home</button>
-    <button *ngIf="storageService.isLoggedIn()" mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
-    <span class="spacer"></span>
-    <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/login">Login</button>
-    <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/register">Sign Up</button>
-    <button *ngIf="storageService.isLoggedIn()" mat-button (click)="logout()">Logout</button>
-  </mat-toolbar>
+<mat-toolbar color="primary" class="sticky-toolbar">
+  <button *ngIf="storageService.isLoggedIn()" mat-icon-button (click)="snav.toggle()" class="menu-icon">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/home" routerLinkActive="active">Home</button>
+  <button *ngIf="storageService.isLoggedIn()" mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
+  <span class="spacer"></span>
+  <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/login">Login</button>
+  <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/register">Sign Up</button>
+  <button *ngIf="storageService.isLoggedIn()" mat-button (click)="logout()">Logout</button>
+</mat-toolbar>
 
-  <mat-sidenav-container class="example-sidenav-container" *ngIf="storageService.isLoggedIn()">
-    <mat-sidenav #snav mode="side">
-      <mat-nav-list>
-        <h3>Configuration</h3>
-        <a mat-list-item routerLink="/groupList" routerLinkActive="active">Group Setting</a>
-        <a mat-list-item routerLink="/accountList" routerLinkActive="active">Account Setting</a>
-        <a mat-list-item routerLink="/categories" routerLinkActive="active">Categories</a>
-        <a mat-list-item routerLink="/fields" routerLinkActive="active">Fields Setting</a>
-        <a mat-list-item routerLink="/fieldMapping" routerLinkActive="active">Fields Mapping</a>
-        <a mat-list-item routerLink="/units" routerLinkActive="active">Units</a>
-        <a mat-list-item routerLink="/categoryUnits" routerLinkActive="active">Category Units</a>
-        <a mat-list-item routerLink="/groupMapping" routerLinkActive="active">Group Mapping</a>
-        <a mat-list-item routerLink="/areaList" routerLinkActive="active">Area Setting</a>
-        <a mat-list-item routerLink="/brokerList" routerLinkActive="active">Broker Setting</a>
-      </mat-nav-list>
-      <mat-nav-list>
-        <h3>Data Entry</h3>
-        <a mat-list-item routerLink="/journalEntries" routerLinkActive="active">Journal Entries</a>
-        <a mat-list-item routerLink="/cashBook" routerLinkActive="active">Cash Book</a>
-        <a mat-list-item routerLink="/purchaseEntry" routerLinkActive="active">Purchase Entry</a>
-        <a mat-list-item routerLink="/saleEntry" routerLinkActive="active">Sale Entry</a>
-        <a mat-list-item routerLink="/purchaseReturn" routerLinkActive="active">Purchase Register</a>
-        <a mat-list-item routerLink="/saleReturn" routerLinkActive="active">Sale Register</a>  
-      </mat-nav-list>
-      <mat-nav-list>
-        <h3>Reports</h3>
-        <a mat-list-item routerLink="/trailBalance" routerLinkActive="active">Trail Balance</a>
-      </mat-nav-list>
-    </mat-sidenav>
+<mat-sidenav-container class="example-sidenav-container" *ngIf="storageService.isLoggedIn()">
+  <mat-sidenav #snav mode="side">
+    <mat-nav-list>
+      <h3 class="section-heading">Configuration</h3>
+      <a mat-list-item routerLink="/groupList" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">group</mat-icon>
+          <span>Group Setting</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/accountList" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">account_circle</mat-icon>
+          <span>Account Setting</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/categories" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">category</mat-icon>
+          <span>Categories</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/fields" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">settings</mat-icon>
+          <span>Fields Setting</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/fieldMapping" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">map</mat-icon>
+          <span>Fields Mapping</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/units" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">straighten</mat-icon>
+          <span>Units</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/categoryUnits" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">view_list</mat-icon>
+          <span>Category Units</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/groupMapping" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">group_work</mat-icon>
+          <span>Group Mapping</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/areaList" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">location_on</mat-icon>
+          <span>Area Setting</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/brokerList" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">person</mat-icon>
+          <span>Broker Setting</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/itemList" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">inventory</mat-icon>
+          <span>Item Setting</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/yieldList" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">bar_chart</mat-icon>
+          <span>Yield Setting</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/conversionList" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">swap_horiz</mat-icon>
+          <span>Conversion Setting</span>
+        </div>
+      </a>
+    </mat-nav-list>
+    <mat-nav-list>
+      <h3 class="section-heading">Data Entry</h3>
+      <a mat-list-item routerLink="/journalEntries" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">edit</mat-icon>
+          <span>Journal Entries</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/cashBook" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">book</mat-icon>
+          <span>Cash Book</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/purchaseEntry" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">shopping_cart</mat-icon>
+          <span>Purchase Register</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/saleEntry" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">receipt</mat-icon>
+          <span>Sale Register</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/purchaseReturn" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">undo</mat-icon>
+          <span>Purchase Return</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/saleReturn" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">redo</mat-icon>
+          <span>Sale Return</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/creditNote" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">credit_card</mat-icon>
+          <span>Credit Note</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/debitNote" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">credit_card</mat-icon>
+          <span>Debit Note</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/productionEntry" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">build</mat-icon>
+          <span>Production Entry</span>
+        </div>
+      </a>
+    </mat-nav-list>
+    <mat-nav-list>
+      <h3 class="section-heading">Reports</h3>
+      <a mat-list-item routerLink="/trailBalance" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">balance</mat-icon>
+          <span>Trail Balance</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/stockRegister" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">storage</mat-icon>
+          <span>Stock Register</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/yieldStatement" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">trending_up</mat-icon>
+          <span>Yield Statment</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/daybook" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">event_note</mat-icon>
+          <span>Day Book</span>
+        </div>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
 
-    <mat-sidenav-content>
-      <mat-toolbar class="example-toolbar">
-        <button mat-icon-button (click)="snav.toggle()"><mat-icon>menu</mat-icon></button>
-        <h1 class="example-app-name">Accounting Package</h1>
-      </mat-toolbar>
-      <div class="content">
-        <router-outlet></router-outlet>
-      </div>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+  <mat-sidenav-content>
+    <div class="content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
 
-  <!-- Display router-outlet directly if not logged in -->
-  <div *ngIf="!storageService.isLoggedIn()">
-    <router-outlet></router-outlet>
-  </div>
+<!-- Display router-outlet directly if not logged in -->
+<div *ngIf="!storageService.isLoggedIn()">
+  <router-outlet></router-outlet>
+</div>

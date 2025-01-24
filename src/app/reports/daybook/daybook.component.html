@@ -1,0 +1,97 @@
+<div class="filters">
+  <div class="filter-box">
+    <div class="chip-container">
+      <label class="filter-label">Filter by Type</label>
+      <mat-chip-listbox multiple>
+        <mat-chip-option *ngFor="let type of entryTypes; let i = index" 
+                         [selected]="selectedTypes.includes(type.value)" 
+                         (click)="toggleType(type)"
+                         [ngClass]="{'selected-chip': selectedTypes.includes(type.value), 'unselected-chip': !selectedTypes.includes(type.value)}"
+                         [style.flex-basis]="'calc(25% - 8px)'">
+          {{ type.label }}
+        </mat-chip-option>
+      </mat-chip-listbox>
+    </div>
+    <div class="date-container">
+      <label class="filter-label">Filter by Date</label>
+      <div class="date-filters">
+        <div class="date-field">
+          <label class="date-label">Start Date</label>
+          <mat-form-field>
+            <input matInput [matDatepicker]="startDatePicker" placeholder="Start Date" [matDatepickerFilter]="dateFilter"
+                   [(ngModel)]="startDate">
+            <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #startDatePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <div class="date-field">
+          <label class="date-label">End Date</label>
+          <mat-form-field>
+            <input matInput [matDatepicker]="endDatePicker" placeholder="End Date" [matDatepickerFilter]="dateFilter"
+                   [(ngModel)]="endDate">
+            <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #endDatePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+    <button mat-raised-button color="primary" (click)="applyFilters()">Apply Filters</button>
+  </div>
+</div>
+
+<div *ngFor="let day of filteredEntries">
+  <div class="date">{{ day.date | date: 'dd-MM-yyyy (EEEE)' }}</div>
+  <table>
+    <thead class="bold-border">
+      <tr>
+        <th>Cash Credit</th>
+        <th>Journal Credit</th>
+        <th>Particular (Account Name)</th>
+        <th>Journal Debit</th>
+        <th>Cash Debit</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let entry of day.entries" (click)="navigateToEditPage(entry)">
+        <td class="right-align">{{ entry.cashCredit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+        <td class="right-align">{{ entry.journalCredit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+        <td>{{ entry.particular }}</td>
+        <td class="right-align">{{ entry.journalDebit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+        <td class="right-align">{{ entry.cashDebit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+        <td>
+          <mat-icon>edit</mat-icon>
+        </td>
+      </tr>
+      <tr class="bold-border">
+        <td class="right-align">{{ day.totalCashCredit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+        <td class="right-align">{{ day.totalJournalCredit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+        <td></td>
+        <td class="right-align">{{ day.totalJournalDebit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+        <td class="right-align">{{ day.totalCashDebit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="right-align">{{ day.totalCashDebit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+        <td class="right-align">{{ day.totalJournalDebit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr class="bold-border">
+        <td class="right-align">{{ day.balanceCarryForward | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+        <td class="right-align">{{ day.journalBalanceCarryForward | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+        <td>Balance Carry forward</td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="pagination">
+  <button (click)="previousPage()" [disabled]="currentPage === 1">Previous</button>
+  <button (click)="nextPage()" [disabled]="currentPage * pageSize >= groupedDayBookEntries.length">Next</button>
+</div>

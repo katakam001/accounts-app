@@ -1,9 +1,9 @@
-// src/app/indexed-db.config.ts
 import { DBConfig } from 'ngx-indexed-db';
+import { DB_VERSION } from './db-version.config';
 
 export const dbConfig: DBConfig = {
   name: 'MyAppDB',
-  version: 2, // Increment the version number
+  version: DB_VERSION, // Use the version from the configuration file
   objectStoresMeta: [
     {
       store: 'fieldMappings',
@@ -31,6 +31,13 @@ export const dbConfig: DBConfig = {
         { name: 'debit_balance', keypath: 'debit_balance', options: { unique: false } },
         { name: 'isDealer', keypath: 'isDealer', options: { unique: false } },
         { name: 'address', keypath: 'address', options: { unique: false } } // Store address object directly
+      ]
+    },
+    {
+      store: 'dayBookEntries', // Add the dayBookEntries object store
+      storeConfig: { keyPath: 'key', autoIncrement: true },
+      storeSchema: [
+        { name: 'entries', keypath: 'entries', options: { unique: false } }
       ]
     }
   ]

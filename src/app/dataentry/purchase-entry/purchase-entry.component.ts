@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { BrokerService } from '../../services/broker.service';
 import { AreaService } from '../../services/area.service';
+import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
 
 @Component({
   selector: 'app-purchase-entry',
@@ -46,15 +47,16 @@ export class PurchaseEntryComponent implements OnInit {
     private financialYearService: FinancialYearService,
     private snackBar: MatSnackBar,
     private brokerService: BrokerService,
-    private areaService: AreaService
+    private areaService: AreaService,
+    private webSocketService: WebSocketService // Inject WebSocket service
   ) {
     this.entries = new MatTableDataSource<any>([]);
   }
 
   ngOnInit(): void {
     this.getFinancialYear();
+    this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
-
   getFinancialYear() {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
@@ -64,7 +66,6 @@ export class PurchaseEntryComponent implements OnInit {
       });
     }
   }
-  
 
   async fetchBrokersAndAreas(): Promise<void> {
     await Promise.all([this.fetchBrokers(), this.fetchAreas()]);
@@ -119,30 +120,20 @@ export class PurchaseEntryComponent implements OnInit {
       data: { userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 1 }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.fetchEntries();
-      }
-    });
+    dialogRef.afterClosed().subscribe();
   }
 
-  openEditEntryDialog(entry: any, type: number = 1): void {
+  openEditEntryDialog(entry: any, type: number = 1, isPurchaseReturn: boolean = false): void {
     const dialogRef = this.dialog.open(AddEditEntryDialogComponent, {
       width: '1000px',
-      data: { entry, userId: this.storageService.getUser().id, financialYear: this.financialYear, type }
+      data: { entry, userId: this.storageService.getUser().id, financialYear: this.financialYear, type, isPurchaseReturn }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.fetchEntries();
-      }
-    });
+    dialogRef.afterClosed().subscribe();
   }
 
   deleteEntry(entryId: number): void {
-    this.entryService.deleteEntry(entryId).subscribe(() => {
-      this.fetchEntries();
-    });
+    this.entryService.deleteEntry(entryId).subscribe();
   }
 
   expand(entry: any): void {
@@ -155,7 +146,7 @@ export class PurchaseEntryComponent implements OnInit {
       const selectedEntry = selectedEntries[0];
       selectedEntry.type = 3; // Explicitly set the type to 3 for purchase returns
       console.log(selectedEntry);
-      this.openEditEntryDialog(selectedEntry, 3);
+      this.openEditEntryDialog(selectedEntry, 3, true);
     } else if (selectedEntries.length > 1) {
       this.snackBar.open('Please select one purchase entry to return it.', 'Close', {
         duration: 3000,
@@ -165,5 +156,41 @@ export class PurchaseEntryComponent implements OnInit {
         duration: 3000,
       });
     }
+  }
+
+  subscribeToWebSocketEvents(): void {
+    const currentUserId = this.storageService.getUser().id;
+    const currentFinancialYear = this.financialYear;
+
+    const handleEvent = (data: any, action: 'INSERT' | 'UPDATE' | 'DELETE') => {
+      if (data.entryType === 'entry' && data.data.type === 1 && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+        switch (action) {
+          case 'INSERT':
+            this.entries.data = [...this.entries.data, data.data.entry];
+            break;
+          case 'UPDATE':
+            const updateIndex = this.entries.data.findIndex(entry => entry.id === data.data.id);
+            if (updateIndex !== -1) {
+              this.entries.data[updateIndex] = {
+                ...this.entries.data[updateIndex],
+                ...data.data.entry,
+              };
+              this.entries.data = [...this.entries.data];
+            }
+            break;
+          case 'DELETE':
+            const deleteIndex = this.entries.data.findIndex(entry => entry.id === data.data.id);
+            if (deleteIndex !== -1) {
+              this.entries.data.splice(deleteIndex, 1);
+            }
+            break;
+        }
+        this.updateEntriesWithDynamicFields(this.entries.data);
+      }
+    };
+
+    this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT'));
+    this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE'));
+    this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE'));
   }
 }

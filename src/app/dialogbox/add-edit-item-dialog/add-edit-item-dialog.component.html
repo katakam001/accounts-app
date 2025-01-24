@@ -1,0 +1,15 @@
+<h1 mat-dialog-title>{{ data.item ? 'Edit Item' : 'Add Item' }}</h1>
+<div mat-dialog-content>
+  <form [formGroup]="itemForm" class="add-edit-item-dialog-form">
+    <div class="form-row">
+      <mat-form-field class="form-field full-width">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name">
+      </mat-form-field>
+    </div>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
+  <button mat-button color="primary" class="save-button" (click)="onSave()">Save</button>
+</div>

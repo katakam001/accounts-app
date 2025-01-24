@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, AbstractControl, FormControl, ValidationErrors } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -30,6 +30,7 @@ export class AddJournalEntryDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: string,
     private accountService: AccountService,
     private groupService: GroupService,
+    private datePipe: DatePipe, // Inject DatePipe
     private storageService: StorageService
   ) {}
 
@@ -138,9 +139,12 @@ export class AddJournalEntryDialogComponent implements OnInit {
         amount
       };
     });
-  
-    this.dialogRef.close({
+    const journalEntry = {
       ...this.addJournalEntryForm.value,
+      journal_date: this.datePipe.transform(this.addJournalEntryForm.get('journal_date')?.value, 'yyyy-MM-dd', 'en-IN') // Transform the date
+    };
+    this.dialogRef.close({
+      ...journalEntry,
       items
     });
   }

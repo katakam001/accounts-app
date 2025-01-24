@@ -1,0 +1,37 @@
+<div class="conversions-container">
+  <mat-toolbar color="primary" class="toolbar">
+    <span>Conversions</span>
+    <span class="spacer"></span>
+    <button mat-raised-button class="add-conversion-button" (click)="openAddConversionDialog()">
+      <mat-icon>add</mat-icon> Add New Conversion
+    </button>
+  </mat-toolbar>
+
+  <div class="conversions-card-container" matSort>
+    <mat-card *ngFor="let conversion of dataSource.data" class="conversions-card">
+      <mat-card-header class="conversions-card-header">
+        <div class="unit-container">
+          <span class="unit">{{ conversion.from_unit_name }}</span>
+          <mat-icon class="header-icon">swap_horiz</mat-icon>
+          <span class="unit">{{ conversion.to_unit_name }}</span>
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="conversion-details">
+          <p class="rate">
+            <mat-icon class="rate-icon">trending_up</mat-icon>
+            <strong class="rate-label">Rate:</strong> <span class="rate-value">{{ conversion.rate }}</span>
+          </p>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-icon-button class="edit-button" (click)="openEditConversionDialog(conversion)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button class="delete-button" (click)="deleteConversion(conversion.id)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

@@ -1,8 +1,12 @@
 <h1 mat-dialog-title>
   {{ data.type === 1 ? (data.entry ? 'Edit Purchase Entry' : 'Add New Purchase Entry') : 
      data.type === 2 ? (data.entry ? 'Edit Sale Entry' : 'Add New Sale Entry') : 
-     data.type === 3 ? 'Purchase Return' : 'Sale Return' }}
+     data.type === 3 ? (data.entry ? 'Edit Purchase Return' : 'Add New Purchase Return') : 
+     data.type === 4 ? (data.entry ? 'Edit Sale Return' : 'Add New Sale Return') : 
+     data.type === 5 ? (data.entry ? 'Edit Credit Note' : 'Add New Credit Note') : 
+     data.type === 6 ? (data.entry ? 'Edit Debit Note' : 'Add New Debit Note') : '' }}
 </h1>
+
 <div mat-dialog-content>
   <form [formGroup]="entryForm" class="add-edit-entry-dialog-form">
     <mat-form-field appearance="fill" class="form-field">
@@ -14,12 +18,22 @@
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">
-      <mat-label>{{ data.type === 2 ? 'Sale Date' : data.type === 3 || data.type === 4 ? 'Return Date' : 'Purchase Date' }}</mat-label>
+      <mat-label>
+        {{ data.type === 2 ? 'Sale Date' : 
+           data.type === 3 || data.type === 4 ? 'Return Date' : 
+           data.type === 5 || data.type === 6 ? 'Date' : 
+           'Purchase Date' }}
+      </mat-label>
       <input matInput [matDatepicker]="picker" formControlName="entry_date" [matDatepickerFilter]="dateFilter" required>
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
-      <mat-error *ngIf="entryForm.get('entry_date')?.hasError('required')">{{ data.type === 2 ? 'Sale date' : data.type === 3 || data.type === 4 ? 'Return date' : 'Purchase date' }} is required</mat-error>
-    </mat-form-field>
+      <mat-error *ngIf="entryForm.get('entry_date')?.hasError('required')">
+        {{ data.type === 2 ? 'Sale date' : 
+           data.type === 3 || data.type === 4 ? 'Return date' : 
+           data.type === 5 || data.type === 6 ? 'Date' : 
+           'Purchase date' }} is required
+      </mat-error>
+    </mat-form-field>    
 
     <mat-form-field appearance="fill" class="form-field">
       <mat-label>{{ data.type === 2 ? 'Customer Name' : data.type === 3 || data.type === 4 ? 'Return Supplier Name' : 'Supplier Name' }}</mat-label>
@@ -30,8 +44,11 @@
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">
-      <mat-label>Item Description</mat-label>
-      <textarea matInput formControlName="item_description"></textarea>
+      <mat-label>Item</mat-label>
+      <mat-select formControlName="item_id" required>
+        <mat-option *ngFor="let item of items" [value]="item.id">{{ item.name }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="entryForm.get('item_id')?.hasError('required')">Item is required</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">

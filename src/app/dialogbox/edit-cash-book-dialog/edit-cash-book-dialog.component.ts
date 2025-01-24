@@ -3,18 +3,18 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { AccountService } from '../../services/account.service';
 import { StorageService } from '../../services/storage.service';
+import { CashEntriesService } from '../../services/cash-entries.service';
 import { Account } from '../../models/account.interface';
-import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { CashEntry } from '../../models/cash-entry.interface';
 
 @Component({
   selector: 'app-edit-cash-book-dialog',
   standalone: true,
-  imports: [ MatInputModule, ReactiveFormsModule,CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
+  imports: [MatInputModule, ReactiveFormsModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
   templateUrl: './edit-cash-book-dialog.component.html',
   styleUrls: ['./edit-cash-book-dialog.component.css']
 })
@@ -30,26 +30,59 @@ export class EditCashBookDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<EditCashBookDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private accountService: AccountService,
-    private storageService: StorageService
-  ) {}
+    private datePipe: DatePipe,
+    private storageService: StorageService,
+    private cashEntriesService: CashEntriesService
+  ) {
+    this.initializeForm(); // Initialize the form with default values
+  }
 
   ngOnInit(): void {
-    this.runningBalance = this.data.currentBalance;
-    this.cashBookForm = this.fb.group({
-      id:[this.data.entry.id, Validators.required],
-      cash_entry_date: [new Date(this.data.entry.cash_entry_date), Validators.required],
-      account_id: [this.data.entry.account_id, Validators.required],
-      account_name: [this.data.entry.account_name, Validators.required],
-      narration: [this.calculateNarration(this.data.entry.narration_description), Validators.required],
-      narration_description: [{ value: this.data.entry.narration_description, disabled: !this.isCustomNarration }, Validators.required],
-      cash_debit: [this.data.entry.cash_debit, Validators.required],
-      cash_credit: [this.data.entry.cash_credit, Validators.required],
-      amount: [this.data.entry.amount, Validators.required],
-      type: [this.data.entry.type, Validators.required]
-    });
+    if (this.data.entryId) {
+      this.fetchCashEntry(this.data.entryId);
+      this.runningBalance = this.data.currentBalance;
+    } else {
+      this.patchFormValues(this.data.entry);
+    }
     this.fetchAccountList();
   }
-  
+
+  initializeForm(): void {
+    this.cashBookForm = this.fb.group({
+      id: [null, Validators.required],
+      cash_entry_date: [null, Validators.required],
+      account_id: [null, Validators.required],
+      account_name: [null, Validators.required],
+      narration: [null, Validators.required],
+      narration_description: [{ value: null, disabled: !this.isCustomNarration }, Validators.required],
+      cash_debit: [null, Validators.required],
+      cash_credit: [null, Validators.required],
+      amount: [null, Validators.required],
+      type: [null, Validators.required]
+    });
+  }
+
+  patchFormValues(entry: CashEntry): void {
+    this.cashBookForm.patchValue({
+      id: entry.id,
+      cash_entry_date: new Date(entry.cash_entry_date),
+      account_id: entry.account_id,
+      account_name: entry.account_name,
+      narration: this.calculateNarration(entry.narration_description),
+      narration_description: entry.narration_description,
+      cash_debit: entry.cash_debit,
+      cash_credit: entry.cash_credit,
+      amount: entry.amount,
+      type: entry.type
+    });
+  }
+
+  fetchCashEntry(entryId: number): void {
+    this.cashEntriesService.getCashEntry(entryId).subscribe((entry: CashEntry) => {
+      this.patchFormValues(entry);
+    });
+  }
+
   dateFilter = (date: Date | null): boolean => {
     if (!date || !this.data.financialYear) {
       return false;
@@ -91,9 +124,10 @@ export class EditCashBookDialogComponent implements OnInit {
       });
     }
   }
+
   calculateNarration(narrationDescription: string): string {
     return this.narrations.includes(narrationDescription) && narrationDescription !== 'CUSTOM' ? narrationDescription : 'CUSTOM';
-  } 
+  }
 
   updateRunningBalance(): void {
     const cashDebit = parseFloat(this.cashBookForm.value.cash_debit) || 0;
@@ -104,7 +138,11 @@ export class EditCashBookDialogComponent implements OnInit {
   onSave(): void {
     this.cashBookForm.controls['narration_description'].enable();
     if (this.cashBookForm.valid) {
-      this.dialogRef.close(this.cashBookForm.value);
+      const cashEntry = {
+        ...this.cashBookForm.value,
+        cash_entry_date: this.datePipe.transform(this.cashBookForm.get('cash_entry_date')?.value, 'yyyy-MM-dd', 'en-IN') // Transform the date
+      };
+      this.dialogRef.close(cashEntry);
     }
   }
 

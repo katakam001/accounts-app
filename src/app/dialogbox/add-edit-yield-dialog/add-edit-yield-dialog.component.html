@@ -1,0 +1,60 @@
+<h1 mat-dialog-title>{{ data.yield ? 'Edit Yield' : 'Add Yield' }}</h1>
+<div mat-dialog-content>
+  <form [formGroup]="yieldForm" class="add-edit-yield-dialog-form">
+    <div class="form-row">
+      <mat-form-field class="form-field full-width">
+        <mat-label>Raw Item</mat-label>
+        <mat-select formControlName="raw_item_id">
+          <mat-option *ngFor="let item of items" [value]="item.id">{{ item.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="form-field full-width">
+        <mat-label>Unit</mat-label>
+        <mat-select formControlName="unit_id">
+          <mat-option *ngFor="let unit of units" [value]="unit.id">{{ unit.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <button mat-button class="add-processed-item-button" (click)="addProcessedItem()">
+        <mat-icon>add</mat-icon> Add Processed Item
+      </button>
+    </div>
+    <div formArrayName="processedItems">
+      <div *ngFor="let item of processedItems.controls; let i = index" [formGroupName]="i" class="form-row">
+        <mat-form-field class="form-field full-width">
+          <mat-label>Processed Item</mat-label>
+          <mat-select formControlName="item_id">
+            <mat-option *ngFor="let item of items" [value]="item.id">{{ item.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field class="form-field full-width">
+          <mat-label>Percentage</mat-label>
+          <input matInput formControlName="percentage" type="number">
+        </mat-form-field>
+        <mat-form-field class="form-field full-width">
+          <mat-label>Unit</mat-label>
+          <mat-select formControlName="unit_id" (selectionChange)="updateAvailableConversions(i)">
+            <mat-option *ngFor="let unit of units" [value]="unit.id">{{ unit.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field class="form-field full-width">
+          <mat-label>Conversion</mat-label>
+          <mat-select formControlName="conversion_id">
+            <mat-option *ngFor="let conversion of availableConversions[i]" [value]="conversion.id">
+              {{ conversion.from_unit_name }} -> {{ conversion.to_unit_name }} (Rate: {{ conversion.rate }})
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-icon-button (click)="removeProcessedItem(i)" class="remove-button">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+<div mat-dialog-actions>
+  <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
+  <button mat-button color="primary" class="save-button" (click)="onSave()">Save</button>
+</div>

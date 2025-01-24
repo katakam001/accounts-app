@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
 import { JournalService } from '../../services/journal.service';
@@ -11,15 +11,18 @@ import { StorageService } from '../../services/storage.service';
 import { AddJournalEntryDialogComponent } from '../../dialogbox/add-journal-entry-dialog/add-journal-entry-dialog.component';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { ActivatedRoute } from '@angular/router';
+import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
+import { Subscription } from 'rxjs'; // Import Subscription
 
 @Component({
   selector: 'app-journal-list',
   standalone: true,
-  imports: [MatTableModule, MatToolbarModule,MatCardModule,CommonModule],
+  imports: [MatTableModule, MatToolbarModule, MatCardModule, CommonModule],
   templateUrl: './journal-list.component.html',
   styleUrls: ['./journal-list.component.css']
 })
-export class JournalListComponent implements OnInit {
+export class JournalListComponent implements OnInit, OnDestroy {
+  private subscription: Subscription = new Subscription(); // Initialize the subscription
   journalEntries = new MatTableDataSource<JournalEntry>();
   displayedColumns: string[] = ['journal_date', 'journal_description', 'user_name', 'actions'];
   nestedDisplayedColumns: string[] = ['account_name', 'group_name', 'debit_amount', 'credit_amount'];
@@ -33,8 +36,9 @@ export class JournalListComponent implements OnInit {
     public dialog: MatDialog,
     private storageService: StorageService,
     private financialYearService: FinancialYearService,
-    private route: ActivatedRoute
-  ) {}
+    private route: ActivatedRoute,
+    private webSocketService: WebSocketService // Inject WebSocket service
+  ) { }
 
   ngOnInit(): void {
     this.getFinancialYear();
@@ -43,8 +47,12 @@ export class JournalListComponent implements OnInit {
       this.groupName = params['groupName'] || null;
       this.fetchJournalEntries();
     });
+    this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
-
+  ngOnDestroy() {
+    this.subscription.unsubscribe(); // Clean up the subscription
+    this.webSocketService.close();
+  }
   getFinancialYear() {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
@@ -52,7 +60,6 @@ export class JournalListComponent implements OnInit {
       this.fetchJournalEntries();
     }
   }
-  
 
   fetchJournalEntries(): void {
     const userId = this.storageService.getUser().id;
@@ -70,7 +77,6 @@ export class JournalListComponent implements OnInit {
       });
     }
   }
-
   addJournalEntry(): void {
     const dialogRef = this.dialog.open(AddJournalEntryDialogComponent, {
       width: '800px',
@@ -79,9 +85,7 @@ export class JournalListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.journalService.addJournalEntry(result).subscribe(() => {
-          this.fetchJournalEntries(); // Refresh the journal list after adding a new entry
-        });
+        this.journalService.addJournalEntry(result).subscribe();
       }
     });
   }
@@ -94,20 +98,55 @@ export class JournalListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.updateJournalItem(result);
+        this.journalService.updateJournalEntry(result).subscribe();
       }
     });
   }
 
   deleteJournalEntry(id: number): void {
-    this.journalService.deleteJournalEntry(id).subscribe(() => {
-      this.fetchJournalEntries(); // Refresh the table by fetching the updated list of journal entries
-    });
+    this.journalService.deleteJournalEntry(id).subscribe();
   }
 
-  updateJournalItem(updatedEntry: JournalEntry): void {
-    this.journalService.updateJournalEntry(updatedEntry).subscribe(() => {
-      this.fetchJournalEntries(); // Refresh the table by fetching the updated list of journal entries
-    });
+  subscribeToWebSocketEvents(): void {
+    console.log("hello");
+    const currentUserId = this.storageService.getUser().id;
+    const currentFinancialYear = this.financialYear;
+
+    const handleEvent = (data: any, action: 'INSERT' | 'UPDATE' | 'DELETE') => {
+      console.log(`Handling event: ${action}`, data);
+      if (data.entryType === 'journal' && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+        switch (action) {
+          case 'INSERT':
+            console.log('Processing INSERT event');
+            this.journalEntries.data = [...this.journalEntries.data, data.data];
+            console.log('Inserted data:', this.journalEntries.data);
+            break;
+          case 'UPDATE':
+            console.log('Processing UPDATE event');
+            const updateIndex = this.journalEntries.data.findIndex(entry => entry.id === data.data.id);
+            if (updateIndex !== -1) {
+              this.journalEntries.data[updateIndex] = {
+                ...this.journalEntries.data[updateIndex],
+                ...data.data,
+              };
+              this.journalEntries.data = [...this.journalEntries.data];
+              console.log('Updated data:', this.journalEntries.data);
+            }
+            break;
+          case 'DELETE':
+            console.log('Processing DELETE event');
+            const deleteIndex = this.journalEntries.data.findIndex(entry => entry.id === data.data.id);
+            if (deleteIndex !== -1) {
+              this.journalEntries.data.splice(deleteIndex, 1);
+            }
+            break;
+        }
+      }
+    };
+
+    this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
+    this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
+    this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
   }
+
 }
