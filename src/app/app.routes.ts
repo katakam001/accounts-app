@@ -42,12 +42,4 @@ export const routes: Routes = [
   { path: 'yieldStatement', loadChildren: () => import('./reports/yield-statement/yield-statement.module').then(m => m.YieldStatementModule), title: 'Yield Statment page', canActivate: [AuthGuard] },
   { path: 'daybook', loadChildren: () => import('./reports/daybook/daybook.module').then(m => m.DayBookModule), title: 'Day Book page', canActivate: [AuthGuard] },
   { path: 'details/:id', loadChildren: () => import('./details/details.module').then(m => m.DetailsModule), title: 'Home details', canActivate: [AuthGuard] },
-  { path: 'cash-entry/edit/:id/:currentBalance', component: EditCashBookDialogComponent },
-  { path: 'journal-entry/edit/:id', component: EditJournalEntryDialogComponent },
-  { path: 'purchase-entry/edit/:id', component: AddEditEntryDialogComponent },
-  { path: 'sale-entry/edit/:id', component: AddEditEntryDialogComponent },
-  { path: 'purchase-return/edit/:id', component: AddEditEntryDialogComponent },
-  { path: 'sale-return/edit/:id', component: AddEditEntryDialogComponent },
-  { path: 'credit-note/edit/:id', component: AddEditEntryDialogComponent },
-  { path: 'debit-note/edit/:id', component: AddEditEntryDialogComponent },
 ];

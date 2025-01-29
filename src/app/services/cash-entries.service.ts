@@ -19,29 +19,6 @@ export class CashEntriesService {
     return this.http.get<CashEntry[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}`);
   }
 
-  // New method to fetch cash entries for the day book
-  getCashEntriesForDayBook(userId: number, financialYear: string, limit: number, cursorDate?: string, cursorId?: number): Observable<{ entries: any[], nextCursorDate: string | null, nextCursorId: number | null }> {
-    let params = new HttpParams()
-      .set('userId', userId.toString())
-      .set('financialYear', financialYear)
-      .set('limit', limit.toString());
-  
-    if (cursorDate) {
-      params = params.set('cursorDate', cursorDate);
-    }
-    if (cursorId) {
-      params = params.set('cursorId', cursorId.toString());
-    }
-  
-    return this.http.get<{ entries: any[], nextCursorDate: string | null, nextCursorId: number | null }>(`${this.apiUrl}/daybook`, { params }).pipe(
-      map((response: { entries: any[], nextCursorDate: string | null, nextCursorId: number | null }) => ({
-        entries: response.entries,
-        nextCursorDate: response.nextCursorDate,
-        nextCursorId: response.nextCursorId
-      }))
-    );
-  }
- 
   getCashEntry(id: number): Observable<CashEntry> {
     return this.http.get<CashEntry>(`${this.apiUrl}/${id}`);
   }

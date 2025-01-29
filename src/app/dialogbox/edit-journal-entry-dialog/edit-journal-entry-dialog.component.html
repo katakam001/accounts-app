@@ -3,41 +3,40 @@
   <form [formGroup]="editJournalEntryForm">
     <mat-form-field appearance="fill">
       <mat-label>Journal Date</mat-label>
-      <input matInput [matDatepicker]="picker" formControlName="journal_date" [ngModel]="data.journal_date" [matDatepickerFilter]="dateFilter">
+      <input matInput [matDatepicker]="picker" formControlName="journal_date" [matDatepickerFilter]="dateFilter">
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
-    
 
     <mat-form-field appearance="fill">
       <mat-label>Description</mat-label>
-      <input matInput formControlName="description" [ngModel]="data.description">
+      <input matInput formControlName="description">
     </mat-form-field>
 
     <div formArrayName="items">
       <div *ngFor="let item of items.controls; let i=index" [formGroupName]="i" class="item-group">
         <mat-form-field appearance="fill">
           <mat-label>Account Name</mat-label>
-          <mat-select formControlName="account_name" [ngModel]="item.value.account_name" (selectionChange)="onAccountSelectionChange($event, i)">
+          <mat-select formControlName="account_name" (selectionChange)="onAccountSelectionChange($event, i)">
             <mat-option *ngFor="let account of accountList" [value]="account.account_name">{{account.account_name}}</mat-option>
           </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="fill">
           <mat-label>Group Name</mat-label>
-          <mat-select formControlName="group_name" [ngModel]="item.value.group_name" (selectionChange)="onGroupSelectionChange($event, i)">
+          <mat-select formControlName="group_name" (selectionChange)="onGroupSelectionChange($event, i)">
             <mat-option *ngFor="let group of groupList" [value]="group.group_name">{{group.group_name}}</mat-option>
           </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="fill">
           <mat-label>Debit Amount</mat-label>
-          <input matInput formControlName="debit_amount" [ngModel]="item.value.debit_amount">
+          <input matInput formControlName="debit_amount">
         </mat-form-field>
 
         <mat-form-field appearance="fill">
           <mat-label>Credit Amount</mat-label>
-          <input matInput formControlName="credit_amount" [ngModel]="item.value.credit_amount">
+          <input matInput formControlName="credit_amount">
         </mat-form-field>
 
         <button mat-icon-button color="warn" (click)="removeItem(i)" class="remove-button">

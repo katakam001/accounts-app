@@ -3,13 +3,20 @@ import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { JournalEntry } from '../models/journal-entry.interface';
 import { environment } from '../../environments/environment';
+import { saveAs } from 'file-saver';
 
 @Injectable({
   providedIn: 'root'
 })
 export class JournalService {
 
+  exportToExcel(userId: number, financialYear: string): Observable<Blob> {
+    let params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('financialYear', financialYear);
 
+    return this.http.get(`${this.apiUrl}/exportDaybookToExcel`, { params, responseType: 'blob' });
+  }
   // private apiUrl = 'http://localhost:8080/api/journal-entries';
   private baseUrl = environment.apiUrl;
   private apiUrl = `${this.baseUrl}/api/journal-entries`; // Append the path to the base URL
@@ -20,29 +27,24 @@ export class JournalService {
     return this.http.get<JournalEntry[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}`);
   }
 
-  // New method to fetch journal entries for the day book
-  getJournalEntriesForDayBook(userId: number, financialYear: string, limit: number, cursorDate?: string, cursorId?: number): Observable<{ entries: any[], nextCursorDate: string | null, nextCursorId: number | null }> {
+  // New method to fetch combined entries for the day book
+  getCombinedEntriesForDayBook(
+    userId: number,
+    financialYear: string,
+    limit: number,
+    rowCursor?: number
+  ): Observable<{ entries: any[], nextRowCursor: number | null, hasNextPage: boolean }> {
     let params = new HttpParams()
       .set('userId', userId.toString())
       .set('financialYear', financialYear)
       .set('limit', limit.toString());
-  
-    if (cursorDate) {
-      params = params.set('cursorDate', cursorDate);
+
+    if (rowCursor !== undefined) {
+      params = params.set('rowCursor', rowCursor.toString());
     }
-    if (cursorId) {
-      params = params.set('cursorId', cursorId.toString());
-    }
-  
-    return this.http.get<{ entries: any[], nextCursorDate: string | null, nextCursorId: number | null }>(`${this.apiUrl}/daybook`, { params }).pipe(
-      map((response: { entries: any[], nextCursorDate: string | null, nextCursorId: number | null }) => ({
-        entries: response.entries,
-        nextCursorDate: response.nextCursorDate,
-        nextCursorId: response.nextCursorId
-      }))
-    );
+
+    return this.http.get<{ entries: any[], nextRowCursor: number | null, hasNextPage: boolean }>(`${this.apiUrl}/daybook`, { params });
   }
-  
 
   getJournalEntriesByAccount(accountName: string, userId: number, financialYear: string): Observable<any[]> {
     return this.http.get<JournalEntry[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}&accountName=${accountName}`);
@@ -70,5 +72,14 @@ export class JournalService {
 
   deleteJournalEntry(id: number): Observable<HttpResponse<void>> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`, { observe: 'response' });
+  }
+
+  // New method to export daybook to PDF
+  exportToPDF(userId: number, financialYear: string): Observable<Blob> {
+    let params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('financialYear', financialYear);
+
+    return this.http.get(`${this.apiUrl}/exportDaybookToPDF`, { params, responseType: 'blob' });
   }
 }

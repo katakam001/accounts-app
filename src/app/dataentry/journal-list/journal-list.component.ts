@@ -135,9 +135,12 @@ export class JournalListComponent implements OnInit, OnDestroy {
             break;
           case 'DELETE':
             console.log('Processing DELETE event');
+            console.log(data.data.id);
             const deleteIndex = this.journalEntries.data.findIndex(entry => entry.id === data.data.id);
+            console.log(deleteIndex);
             if (deleteIndex !== -1) {
               this.journalEntries.data.splice(deleteIndex, 1);
+              this.journalEntries.data = [...this.journalEntries.data];
             }
             break;
         }

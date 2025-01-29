@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableDataSource } from '@angular/material/table';
 import { AddEditEntryDialogComponent } from '../../dialogbox/add-edit-entry-dialog/add-edit-entry-dialog.component';
@@ -16,6 +16,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { BrokerService } from '../../services/broker.service';
 import { AreaService } from '../../services/area.service';
 import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
+import { Subscription } from 'rxjs'; // Import Subscription
 
 @Component({
   selector: 'app-purchase-entry',
@@ -33,7 +34,8 @@ import { WebSocketService } from '../../services/websocket.service'; // Import W
   templateUrl: './purchase-entry.component.html',
   styleUrls: ['./purchase-entry.component.css']
 })
-export class PurchaseEntryComponent implements OnInit {
+export class PurchaseEntryComponent implements OnInit, OnDestroy {
+  private subscription: Subscription = new Subscription(); // Initialize the subscription
   entries: MatTableDataSource<any>;
   financialYear: string;
   expandedRows: { [key: number]: boolean } = {};
@@ -56,6 +58,10 @@ export class PurchaseEntryComponent implements OnInit {
   ngOnInit(): void {
     this.getFinancialYear();
     this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
+  }
+  ngOnDestroy() {
+    this.subscription.unsubscribe(); // Clean up the subscription
+    this.webSocketService.close();
   }
   getFinancialYear() {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
@@ -109,6 +115,7 @@ export class PurchaseEntryComponent implements OnInit {
 
   updateEntriesWithDynamicFields(data: any[]): void {
     data.forEach(entry => {
+      console.log(entry);
       entry.dynamicFields = entry.fields;
     });
     this.entries.data = data;
@@ -159,38 +166,56 @@ export class PurchaseEntryComponent implements OnInit {
   }
 
   subscribeToWebSocketEvents(): void {
+    console.log("hello");
     const currentUserId = this.storageService.getUser().id;
     const currentFinancialYear = this.financialYear;
-
+  
     const handleEvent = (data: any, action: 'INSERT' | 'UPDATE' | 'DELETE') => {
-      if (data.entryType === 'entry' && data.data.type === 1 && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+      console.log(`Handling event: ${action}`, data);
+      if (data.entryType === 'entry' && data.data.entry.type === 1 && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
         switch (action) {
           case 'INSERT':
-            this.entries.data = [...this.entries.data, data.data.entry];
+            const convertedObjectInsert = {
+              ...data.data.entry,
+              dynamicFields: [...data.data.entry.fields]
+            };
+            console.log('Processing INSERT event');
+            this.entries.data = [...this.entries.data, convertedObjectInsert];
+            console.log('Inserted data:', this.entries.data);
             break;
           case 'UPDATE':
-            const updateIndex = this.entries.data.findIndex(entry => entry.id === data.data.id);
+            console.log('Processing UPDATE event');
+            const updateIndex = this.entries.data.findIndex(entry => entry.id === data.data.entry.id);
             if (updateIndex !== -1) {
+              const convertedObjectUpdate = {
+                ...data.data.entry,
+                dynamicFields: [...data.data.entry.fields]
+              };
               this.entries.data[updateIndex] = {
                 ...this.entries.data[updateIndex],
-                ...data.data.entry,
+                ...convertedObjectUpdate,
               };
               this.entries.data = [...this.entries.data];
+              console.log('Updated data:', this.entries.data);
             }
             break;
           case 'DELETE':
-            const deleteIndex = this.entries.data.findIndex(entry => entry.id === data.data.id);
+            console.log('Processing DELETE event');
+            console.log(data.data.entry.id);
+            const deleteIndex = this.entries.data.findIndex(entry => entry.id === data.data.entry.id);
+            console.log(deleteIndex);
             if (deleteIndex !== -1) {
               this.entries.data.splice(deleteIndex, 1);
+              this.entries.data = [...this.entries.data];
             }
             break;
         }
-        this.updateEntriesWithDynamicFields(this.entries.data);
       }
     };
-
-    this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT'));
-    this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE'));
-    this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE'));
+  
+    this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
+    this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
+    this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
   }
+  
 }

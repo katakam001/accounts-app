@@ -1,6 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CashEntriesService } from '../../services/cash-entries.service';
 import { JournalService } from '../../services/journal.service';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
@@ -13,14 +12,17 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
 import { BalanceService } from '../../services/balance.service';
 import { MatDialog } from '@angular/material/dialog';
 import { EditCashBookDialogComponent } from '../../dialogbox/edit-cash-book-dialog/edit-cash-book-dialog.component';
-
+import { EditJournalEntryDialogComponent } from '../../dialogbox/edit-journal-entry-dialog/edit-journal-entry-dialog.component';
+import { AddEditEntryDialogComponent } from '../../dialogbox/add-edit-entry-dialog/add-edit-entry-dialog.component';
+import { Subscription } from 'rxjs'; // Import Subscription
+import { DatePipe } from '@angular/common';
+import saveAs from 'file-saver';
 
 @Component({
   selector: 'app-daybook',
@@ -32,21 +34,20 @@ import { EditCashBookDialogComponent } from '../../dialogbox/edit-cash-book-dial
     MatNativeDateModule,
     MatFormFieldModule,
     MatInputModule,
-    RouterModule,
     MatIconModule,
     FormsModule
   ],
   templateUrl: './daybook.component.html',
   styleUrls: ['./daybook.component.css']
 })
-export class DayBookComponent implements OnInit {
-  cashEntries: any[] = [];
-  journalEntries: any[] = [];
+export class DayBookComponent implements OnInit, OnDestroy {
+  private subscription: Subscription = new Subscription(); // Initialize the subscription
+  combinedEntries: any[] = [];
   dayBookEntries: any[] = []; // Initialize as an empty array
   groupedDayBookEntries: any[] = [];
   userId: number;
   financialYear: string;
-  limit: number = 50; // Align limit with pageSize
+  limit: number = 100; // Align limit with pageSize
   offset: number = 0; // Example offset
   totalPages: number = 0;
   cacheKeys: string[] = [];
@@ -73,13 +74,10 @@ export class DayBookComponent implements OnInit {
   currentBalance: number = 0; // Initialize current balance
   openingBalance: number = 0; // Initialize opening balance
   // New properties for cursor-based pagination
-  nextCashCursorDate: string | null = null;
-  nextCashCursorId: number | null = null;
-  nextJournalCursorDate: string | null = null;
-  nextJournalCursorId: number | null = null;
-
+  rowCursor: number | null = 0;
+  hasNextPage: boolean = false;
+  dbHasNextPage: boolean = false; // Variable to keep track of hasNextPage state from the database
   constructor(
-    private cashEntriesService: CashEntriesService,
     private journalService: JournalService,
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
@@ -87,9 +85,8 @@ export class DayBookComponent implements OnInit {
     private accountService: AccountService, // Add AccountService to the constructor
     private dbService: NgxIndexedDBService,
     private webSocketService: WebSocketService, // Inject WebSocket service
-    private router: Router,
-    public dialog: MatDialog
-
+    public dialog: MatDialog,
+    private datePipe: DatePipe, // Inject DatePipe
   ) { }
 
   ngOnInit(): void {
@@ -99,7 +96,10 @@ export class DayBookComponent implements OnInit {
     });
     this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
-
+  ngOnDestroy() {
+    this.subscription.unsubscribe(); // Clean up the subscription
+    this.webSocketService.close();
+  }
   getFinancialYear(): void {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
@@ -113,12 +113,11 @@ export class DayBookComponent implements OnInit {
       this.fetchEntries();
     }
   }
-  
+
   dateFilter = (date: Date | null): boolean => {
     if (!date || !this.financialYear) {
       return false;
     }
-
     const [startYear, endYear] = this.financialYear.split('-').map(Number);
     const startDate = new Date(startYear, 3, 1); // April 1st of start year
     const endDate = new Date(endYear, 2, 31); // March 31st of end year
@@ -127,42 +126,58 @@ export class DayBookComponent implements OnInit {
 
   fetchEntries(): void {
     const cacheKey = `${this.userId}-${this.financialYear}-${this.offset}`;
+    console.log(cacheKey);
     if (!this.cacheKeys.includes(cacheKey)) {
       this.cacheKeys.push(cacheKey);
     }
     if (this.inMemoryCache.has(cacheKey)) {
       this.dayBookEntries = this.inMemoryCache.get(cacheKey) || []; // Ensure dayBookEntries is not undefined
-      this.processData();
+      this.updatePaginationState(this.dayBookEntries.length >= this.pageSize);
+      this.processRealTimeUpdate();
     } else {
       this.dbService.getByKey('dayBookEntries', cacheKey).subscribe((cachedData: any) => {
+        console.log(cachedData);
+        console.log(cacheKey);
         if (cachedData) {
           this.dayBookEntries = cachedData.entries || []; // Ensure dayBookEntries is not undefined
           this.addToMemoryCache(cacheKey, this.dayBookEntries);
-          this.processData();
+          this.updatePaginationState(this.dayBookEntries.length >= this.pageSize);
+          this.processRealTimeUpdate();
         } else {
-          this.fetchCashEntries();
-          this.fetchJournalEntries();
+          this.fetchCombinedEntries();
         }
       });
     }
   }
 
-  fetchCashEntries(): void {
-    this.cashEntriesService.getCashEntriesForDayBook(this.userId, this.financialYear, this.limit, this.nextCashCursorDate || undefined, this.nextCashCursorId || undefined).subscribe(data => {
-      this.cashEntries = data.entries;
-      this.nextCashCursorDate = data.nextCursorDate;
-      this.nextCashCursorId = data.nextCursorId;
-      this.checkDataFetchCompletion();
+  fetchCombinedEntries(): void {
+    this.journalService.getCombinedEntriesForDayBook(this.userId, this.financialYear, this.limit, this.rowCursor || 0 // Use rowCursor for pagination
+    ).subscribe(data => {
+      this.combinedEntries = data.entries;
+      this.rowCursor = data.nextRowCursor; // Update rowCursor for the next batch  
+      this.updatePaginationState(data.hasNextPage); // Update pagination state based on backend response
+      this.processData();
     });
   }
 
-  fetchJournalEntries(): void {
-    this.journalService.getJournalEntriesForDayBook(this.userId, this.financialYear, this.limit, this.nextJournalCursorDate || undefined, this.nextJournalCursorId || undefined).subscribe(data => {
-      this.journalEntries = data.entries;
-      this.nextJournalCursorDate = data.nextCursorDate;
-      this.nextJournalCursorId = data.nextCursorId;
-      this.checkDataFetchCompletion();
+  exportToPDF() {
+    this.journalService.exportToPDF(this.userId, this.financialYear).subscribe((response: Blob) => {
+      saveAs(response, `daybook_${this.userId}_${this.financialYear}.pdf`);
+    }, error => {
+      console.error('Error exporting PDF:', error);
     });
+  }
+  exportToExcel(){
+    this.journalService.exportToExcel(this.userId, this.financialYear).subscribe((response: Blob) => {
+      saveAs(response, `daybook_${this.userId}_${this.financialYear}.xlsx`);
+    }, error => {
+      console.error('Error exporting PDF:', error);
+    });
+  }
+
+  updatePaginationState(hasMoreRecords: boolean): void {
+    this.hasNextPage = hasMoreRecords;
+    this.dbHasNextPage = hasMoreRecords; // Update dbHasNextPage with the value from the database
   }
 
   fetchOpeningBalance(): void {
@@ -181,62 +196,41 @@ export class DayBookComponent implements OnInit {
     });
   }
 
-  checkDataFetchCompletion(): void {
-    this.dataFetchCounter++;
-    if (this.dataFetchCounter === 2) {
-      this.processData();
-      this.dataFetchCounter = 0; // Reset dataFetchCounter after processing data
-    }
-  }
-
   async processData(): Promise<void> {
     let totalCashCredit = 0;
     let totalJournalCredit = 0;
     let totalJournalDebit = 0;
     let totalCashDebit = 0;
+    this.dayBookEntries = []; // Clear existing entries
 
-    // Process cashEntries and journalItems to create dayBookEntries
-    for (const entry of this.cashEntries) {
+    console.log(this.combinedEntries);
+
+    // Process combinedEntries to create dayBookEntries
+    for (const entry of this.combinedEntries) {
       const accountName = await this.getAccountName(entry.account_id);
-      const cashCredit = entry.type ? entry.amount : 0;
-      const cashDebit = entry.type ? 0 : entry.amount;
+      const cashCredit = entry.entry_type === 7 && entry.type ? entry.amount : 0;
+      const cashDebit = entry.entry_type === 7 && !entry.type ? entry.amount : 0;
+      const journalCredit = entry.entry_type >= 0 && entry.entry_type <= 6 && entry.type ? entry.amount : 0;
+      const journalDebit = entry.entry_type >= 0 && entry.entry_type <= 6 && !entry.type ? entry.amount : 0;
 
       totalCashCredit += cashCredit;
       totalCashDebit += cashDebit;
+      totalJournalCredit += journalCredit;
+      totalJournalDebit += journalDebit;
 
       this.dayBookEntries.push({
-        id: entry.id, // Include id attribute
-        date: entry.cash_entry_date,
+        id: entry.entry_type === 7 ? entry.id : entry.entry_id, // Include id attribute based on entry_type
+        date: entry.date,
         cashCredit,
-        journalCredit: 0,
+        journalCredit,
         particular: accountName,
-        journalDebit: 0,
+        account_id: entry.account_id,
+        journalDebit,
         cashDebit,
-        type: 7 // Mark as Cash Entry
+        type: entry.entry_type
       });
     }
 
-    for (const journalEntry of this.journalEntries) {
-      for (const item of journalEntry.items) {
-        const accountName = await this.getAccountName(item.account_id);
-        const journalCredit = item.type ? item.amount : 0;
-        const journalDebit = item.type ? 0 : item.amount;
-
-        totalJournalCredit += journalCredit;
-        totalJournalDebit += journalDebit;
-
-        this.dayBookEntries.push({
-          id: journalEntry.type === 0 ? journalEntry.journal_id : journalEntry.entry_id, // Include id attribute based on type
-          date: journalEntry.journal_date,
-          cashCredit: 0,
-          journalCredit,
-          particular: accountName,
-          journalDebit,
-          cashDebit: 0,
-          type: journalEntry.type
-        });
-      }
-    }
     console.log(this.dayBookEntries);
 
     // Cache the fetched data in both in-memory cache and IndexedDB
@@ -313,10 +307,12 @@ export class DayBookComponent implements OnInit {
   addToMemoryCache(key: string, value: any[]): void {
     if (this.inMemoryCache.size >= this.maxCacheSize) {
       const firstKey = this.inMemoryCache.keys().next().value;
+      console.log(firstKey);
       if (firstKey !== undefined) {
         this.inMemoryCache.delete(firstKey);
       }
     }
+    console.log(this.inMemoryCache);
     this.inMemoryCache.set(key, value);
   }
 
@@ -336,13 +332,6 @@ export class DayBookComponent implements OnInit {
     return account ? account.name : 'Unknown Account';
   }
 
-  // Pagination methods
-  get paginatedEntries(): any[] {
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
-    return this.groupedDayBookEntries.slice(startIndex, endIndex);
-  }
-
   nextPage(): void {
     this.currentPage++;
     this.offset = (this.currentPage - 1) * this.limit;
@@ -354,68 +343,83 @@ export class DayBookComponent implements OnInit {
     if (this.currentPage > 1) {
       this.currentPage--;
       this.offset = (this.currentPage - 1) * this.limit;
+      this.hasNextPage = true; // Update hasNextPage to true when moving to the previous page
       this.fetchEntriesSubject.next();
     }
+  }
+  canMoveToNextPage(): boolean {
+    return this.hasNextPage || this.dbHasNextPage;
   }
 
   subscribeToWebSocketEvents(): void {
     const currentUserId = this.storageService.getUser().id;
     const currentFinancialYear = this.financialYear;
     const entryTypes = ['entry', 'journal', 'cash'];
-
+  
     entryTypes.forEach(type => {
-      this.webSocketService.onEvent('INSERT').subscribe((data: any) => {
-        if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
-          this.handleInsertEvent(data.data, type);
-        }
-      });
-
-      this.webSocketService.onEvent('UPDATE').subscribe((data: any) => {
-        if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
-          this.handleUpdateEvent(data.data, type);
-        }
-      });
-
-      this.webSocketService.onEvent('DELETE').subscribe((data: any) => {
-        if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
-          this.handleDeleteEvent(data.data, type);
-        }
-      });
+      this.subscription.add(
+        this.webSocketService.onEvent('INSERT').subscribe(async (data: any) => {
+          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+            console.log("first");
+            await this.handleInsertEvent(data.data, type);
+          }
+        })
+      );
+      this.subscription.add(
+          this.webSocketService.onEvent('UPDATE').subscribe(async (data: any) => {
+          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+            console.log("second");
+            await this.handleUpdateEvent(data.data, type);
+          }
+        })
+      );
+      this.subscription.add(
+        this.webSocketService.onEvent('DELETE').subscribe(async (data: any) => {
+          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+            console.log("third");
+            await this.handleDeleteEvent(data.data, type);
+          }
+        })
+      );
     });
   }
 
-  handleInsertEvent(data: any, type: string): void {
+  async handleInsertEvent(data: any, type: string): Promise<void> {
     let newEntry: any;
 
     if (type === 'entry' || type === 'journal') {
+      console.log("insert");
       const journalEntry = data.journalEntry || data;
-      journalEntry.items.forEach((item: any) => {
+      for (const item of journalEntry.items) {
+        const accountName = await this.getAccountName(item.account_id);
+        console.log(item);
         const journalCredit = item.type ? item.amount : 0;
         const journalDebit = item.type ? 0 : item.amount;
 
         newEntry = {
-          id: journalEntry.type === 0 ? journalEntry.journal_id : journalEntry.entry_id,
-          date: journalEntry.journal_date,
+          id: journalEntry.type === 0 ? journalEntry.journal_id : data.entry.id,
+          date: this.datePipe.transform(journalEntry.journal_date, 'yyyy-MM-dd', 'en-IN'),
           cashCredit: 0,
           journalCredit,
-          particular: item.account_name,
+          particular: accountName,
+          account_id: item.account_id,
           journalDebit,
           cashDebit: 0,
           type: journalEntry.type
         };
 
-        this.insertEntry(newEntry);
-      });
+        await this.insertEntry(newEntry);
+      }
     } else if (type === 'cash') {
       const entry = data.entry;
-      const accountName = this.getAccountName(entry.account_id);
+      const accountName = await this.getAccountName(entry.account_id);
       const cashCredit = entry.type ? entry.amount : 0;
       const cashDebit = entry.type ? 0 : entry.amount;
       this.currentBalance += cashCredit - cashDebit;
 
       newEntry = {
         id: entry.id,
-        date: entry.entry_date,
+        date: this.datePipe.transform(entry.entry_date, 'yyyy-MM-dd', 'en-IN'),
         cashCredit,
         journalCredit: 0,
         particular: accountName,
@@ -424,307 +428,322 @@ export class DayBookComponent implements OnInit {
         type: 7
       };
 
-      this.insertEntry(newEntry);
+      await this.insertEntry(newEntry);
     }
-
   }
 
-  insertEntry(newEntry: any): void {
-    // Check if the new entry's date falls within the existing dates in IndexedDB
-    const checkPromises = this.cacheKeys.map(cacheKey => {
-      return this.dbService.getByKey('dayBookEntries', cacheKey).toPromise().then((cachedData: any) => {
+  async insertEntry(newEntry: any): Promise<void> {
+    // Sequentially check if the new entry's date falls within the existing dates in IndexedDB
+    const checkSequentially = async () => {
+      for (const cacheKey of this.cacheKeys) {
+        const cachedData: any = await this.dbService.getByKey('dayBookEntries', cacheKey).toPromise();
+        if (cachedData) {
+          console.log(cacheKey);
+          console.log(cachedData);
+          const existingEntries = cachedData.entries || [];
+          const entryIndex = existingEntries.findIndex((entry: any) => entry.date > newEntry.date);
+          const sameDateExists = existingEntries.some((entry: any) => entry.date === newEntry.date);
+          console.log(entryIndex);
+          if (entryIndex !== -1 || sameDateExists) {
+            // Insert the new entry at the correct position in IndexedDB
+            console.log(existingEntries);
+  
+            // Update IndexedDB and then update the in-memory cache sequentially
+            await this.updateIndexDBAndCache(cacheKey, existingEntries, newEntry);
+            return;
+          }
+        }
+      }
+  
+      // If the new entry's date does not fall within any existing dates, insert it in the last cacheKey
+      if (!this.hasNextPage) {
+        const lastCacheKey = this.cacheKeys[this.cacheKeys.length - 1];
+        const lastCachedData: any = await this.dbService.getByKey('dayBookEntries', lastCacheKey).toPromise();
+        const lastExistingEntries = lastCachedData ? lastCachedData.entries || [] : [];
+  
+        // Check if the new entry's date should be inserted
+        const index = lastExistingEntries.findIndex((entry :any) => entry.date > newEntry.date);
+        if (index === -1) {
+          lastExistingEntries.push(newEntry); 
+          await this.dbService.update('dayBookEntries', { key: lastCacheKey, entries: lastExistingEntries }).toPromise();
+          // Ensure the in-memory cache is updated after IndexedDB update
+          if (this.inMemoryCache.has(lastCacheKey)) {
+            this.addToMemoryCache(lastCacheKey, lastExistingEntries);
+          }
+        }
+      }
+    }; 
+    await checkSequentially();
+  }
+  
+  async updateCacheAndDB(newEntry: any): Promise<void> {
+    const cacheKey = `${this.userId}-${this.financialYear}-${this.offset}`;
+  
+    // Update IndexedDB with the new entry
+    const cachedData: any = await this.dbService.getByKey('dayBookEntries', cacheKey).toPromise();
+    const existingEntries = cachedData ? cachedData.entries || [] : [];
+    existingEntries.push(newEntry);
+    existingEntries.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
+    await this.dbService.update('dayBookEntries', { key: cacheKey, entries: existingEntries }).toPromise();
+    // Ensure the in-memory cache is updated after IndexedDB update
+    this.addToMemoryCache(cacheKey, existingEntries);
+    this.processRealTimeUpdate();
+  }
+  
+  async updateIndexDBAndCache(cacheKey: string, existingEntries: any[], newEntry: any): Promise<void> {
+    existingEntries.push(newEntry);
+    existingEntries.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
+    await this.dbService.update('dayBookEntries', { key: cacheKey, entries: existingEntries }).toPromise();
+    // Ensure the in-memory cache is updated after IndexedDB update
+    if (this.inMemoryCache.has(cacheKey)) {
+      this.addToMemoryCache(cacheKey, existingEntries);
+    }
+  
+    // Update the in-memory dayBookEntries if the entry is on the current page
+    const currentPageIndex = this.dayBookEntries.findIndex(entry => entry.date > newEntry.date);
+    const sameDateExistsInMemory = this.dayBookEntries.some(entry => entry.date === newEntry.date);
+    if (currentPageIndex !== -1) {
+      this.dayBookEntries.splice(currentPageIndex, 0, newEntry);
+      this.dayBookEntries = [...this.dayBookEntries];
+      this.processRealTimeUpdate();
+    }
+    if(sameDateExistsInMemory){
+      this.dayBookEntries.push(newEntry);
+      this.processRealTimeUpdate();
+    }
+  }
+  
+  processRealTimeUpdate(): void {
+    // Group entries by date
+    const groupedEntries = this.groupByDate(this.dayBookEntries);
+
+    // Calculate totals and balance carry forward for each day
+    this.groupedDayBookEntries = Object.keys(groupedEntries).map((date, index, array) => {
+      const entries = groupedEntries[date];
+      const totalCashCredit = entries.reduce((sum: number, entry: any) => sum + entry.cashCredit, 0);
+      const totalJournalCredit = entries.reduce((sum: number, entry: any) => sum + entry.journalCredit, 0);
+      const totalJournalDebit = entries.reduce((sum: number, entry: any) => sum + entry.journalDebit, 0);
+      const totalCashDebit = entries.reduce((sum: number, entry: any) => sum + entry.cashDebit, 0);
+      const balanceCarryForward = totalCashCredit - totalCashDebit;
+      const journalBalanceCarryForward = totalJournalCredit - totalJournalDebit;
+
+      // Add opening balance for the next day
+      if (index < array.length - 1) {
+        const nextDate = array[index + 1];
+        groupedEntries[nextDate].unshift({
+          date: nextDate,
+          cashCredit: balanceCarryForward, // Corrected to cashCredit
+          journalCredit: 0,
+          particular: 'Opening Balance',
+          journalDebit: 0,
+          cashDebit: 0
+        });
+      }
+
+      return {
+        date,
+        entries,
+        totalCashCredit,
+        totalJournalCredit,
+        totalJournalDebit,
+        totalCashDebit,
+        balanceCarryForward,
+        journalBalanceCarryForward
+      };
+    });
+
+    // Apply initial filters
+    this.applyFilters();
+  }
+  async handleUpdateEvent(data: any, type: string): Promise<void> {
+    if (type === 'entry' || type === 'journal') {
+      const journalEntry = data.journalEntry || data;
+      const updatedEntries = await Promise.all(journalEntry.items.map(async (item: any) => ({
+        id: journalEntry.type === 0 ? journalEntry.journal_id : data.entry.id,
+        date: this.datePipe.transform(journalEntry.journal_date, 'yyyy-MM-dd', 'en-IN'),
+        cashCredit: 0,
+        journalCredit: item.type ? item.amount : 0,
+        particular: await this.getAccountName(item.account_id),
+        account_id: item.account_id,
+        journalDebit: item.type ? 0 : item.amount,
+        cashDebit: 0,
+        type: journalEntry.type
+      })));
+  
+      await this.updateEntries(updatedEntries); // Ensure sequential update
+    } else if (type === 'cash') {
+      const entry = data.entry;
+      const updatedEntry = {
+        id: entry.id,
+        date: this.datePipe.transform(entry.entry_date, 'yyyy-MM-dd', 'en-IN'),
+        cashCredit: entry.type ? entry.amount : 0,
+        journalCredit: 0,
+        particular: await this.getAccountName(entry.account_id),
+        journalDebit: 0,
+        cashDebit: entry.type ? 0 : entry.amount,
+        type: 7
+      };
+  
+      await this.updateEntries([updatedEntry]); // Ensure sequential update
+    }
+  }
+  
+  async updateEntries(updatedEntries: any[]): Promise<void> {
+    for (const cacheKey of this.cacheKeys) {
+      const cachedData: any = await this.dbService.getByKey('dayBookEntries', cacheKey).toPromise();
+      if (cachedData) {
+        const existingEntries = cachedData.entries || [];
+        const entryIndices = existingEntries.reduce((indices: number[], entry: any, index: number) => {
+          if (entry.id === updatedEntries[0].id) {
+            indices.push(index);
+          }
+          return indices;
+        }, []);
+  
+        if (entryIndices.length >= updatedEntries.length) {
+          for (let i = 0; i < updatedEntries.length; i++) {
+            const entryIndex = entryIndices[i];
+            const oldEntry = existingEntries[entryIndex];
+            const oldCashCredit = oldEntry.cashCredit;
+            const oldCashDebit = oldEntry.cashDebit;
+            const newCashCredit = updatedEntries[i].cashCredit;
+            const newCashDebit = updatedEntries[i].cashDebit;
+  
+            this.currentBalance += (newCashCredit - newCashDebit) - (oldCashCredit - oldCashDebit);
+  
+            existingEntries[entryIndex] = updatedEntries[i];
+          }
+  
+          await this.dbService.update('dayBookEntries', { key: cacheKey, entries: existingEntries }).toPromise();
+  
+          // Ensure the in-memory cache is updated after IndexedDB update
+          if (this.inMemoryCache.has(cacheKey)) {
+            this.addToMemoryCache(cacheKey, existingEntries);
+          }
+  
+          // Update the in-memory dayBookEntries if the entry is on the current page
+          const currentPageIndices = this.dayBookEntries.reduce((indices: number[], entry: any, index: number) => {
+            if (entry.id === updatedEntries[0].id) {
+              indices.push(index);
+            }
+            return indices;
+          }, []);
+  
+          if (currentPageIndices.length >= updatedEntries.length) {
+            for (let i = 0; i < updatedEntries.length; i++) {
+              const currentPageIndex = currentPageIndices[i];
+              this.dayBookEntries[currentPageIndex] = updatedEntries[i];
+            }
+            this.dayBookEntries = [...this.dayBookEntries];
+            this.processRealTimeUpdate();
+          }
+          break; // Move to the next cacheKey
+        }
+      }
+    }
+  }
+  
+  async handleDeleteEvent(data: any, type: string): Promise<void> {
+    if (type === 'entry' || type === 'journal') {
+        const id = type === 'entry' ? data.entry.id : data.id;
+  
+      // Check IndexedDB for existing record
+      for (const cacheKey of this.cacheKeys) {
+        const cachedData: any = await this.dbService.getByKey('dayBookEntries', cacheKey).toPromise();
         if (cachedData) {
           const existingEntries = cachedData.entries || [];
-          const entryIndex = existingEntries.findIndex((entry: any) => new Date(entry.date).getTime() > new Date(newEntry.date).getTime());
-          if (entryIndex !== -1) {
-            // Insert the new entry at the correct position in IndexedDB
-            existingEntries.splice(entryIndex, 0, newEntry);
-            this.dbService.update('dayBookEntries', { key: cacheKey, entries: existingEntries }).subscribe();
-
+          const entryIndices = existingEntries.reduce((indices: number[], e: any, index: number) => {
+            if (e.id === id) {
+              indices.push(index);
+            }
+            return indices;
+          }, []);
+  
+          if (entryIndices.length > 0) {
+            const startIndex = entryIndices[0];
+            const endIndex = entryIndices[entryIndices.length - 1];
+            existingEntries.splice(startIndex, endIndex - startIndex + 1);
+  
+            await this.dbService.update('dayBookEntries', { key: cacheKey, entries: existingEntries }).toPromise();
+  
             // Update the in-memory cache if it exists
             if (this.inMemoryCache.has(cacheKey)) {
               this.addToMemoryCache(cacheKey, existingEntries);
             }
-
-            // Update the in-memory dayBookEntries if the entry is on the current page
-            const currentPageIndex = this.dayBookEntries.findIndex(entry => new Date(entry.date).getTime() > new Date(newEntry.date).getTime());
-            if (currentPageIndex !== -1) {
-              this.dayBookEntries.splice(currentPageIndex, 0, newEntry);
-              this.updateCacheAndDB(newEntry);
-              this.processData();
+  
+            const filteredEntries = this.dayBookEntries.filter(e => e.id !== id);
+            if (filteredEntries.length !== this.dayBookEntries.length) {
+              this.dayBookEntries = filteredEntries;
+              this.processRealTimeUpdate();
             }
-            return true;
-          }
-        }
-        return false;
-      });
-    });
-
-    Promise.all(checkPromises).then(results => {
-      // If the new entry's date does not fall within any existing dates, insert it in the current set of records
-      if (!results.includes(true)) {
-        // Insert the new entry at the correct position based on the sorting criteria
-        const index = this.dayBookEntries.findIndex(entry => new Date(entry.date).getTime() > new Date(newEntry.date).getTime());
-        if (index === -1) {
-          if (this.dayBookEntries.length < 100) {
-            this.dayBookEntries.push(newEntry);
-            // Update IndexedDB and in-memory cache
-            this.updateCacheAndDB(newEntry);
-            this.processData();
           }
         }
       }
-    });
-  }
-
-  updateCacheAndDB(newEntry: any): void {
-    const cacheKey = `${this.userId}-${this.financialYear}-${this.offset}`;
-    this.addToMemoryCache(cacheKey, this.dayBookEntries);
-
-    // Update IndexedDB with the new entry
-    this.dbService.getByKey('dayBookEntries', cacheKey).subscribe((cachedData: any) => {
-      if (cachedData) {
-        const existingEntries = cachedData.entries || [];
-        existingEntries.push(newEntry);
-        existingEntries.sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
-        this.dbService.update('dayBookEntries', { key: cacheKey, entries: existingEntries }).subscribe();
-      } else {
-        this.dbService.update('dayBookEntries', { key: cacheKey, entries: [newEntry] }).subscribe();
-      }
-    });
-  }
-
-  handleUpdateEvent(data: any, type: string): void {
-    let updatedEntry: any;
-  
-    if (type === 'entry' || type === 'journal') {
-      const journalEntry = data.journalEntry || data;
-      journalEntry.items.forEach((item: any) => {
-        // Check IndexedDB for existing record
-        this.cacheKeys.map(cacheKey => {
-          return this.dbService.getByKey('dayBookEntries', cacheKey).toPromise().then((cachedData: any) => {
-            if (cachedData) {
-              const existingEntries = cachedData.entries || [];
-              const entryIndex = existingEntries.findIndex((e: any) => e.id === item.id);
-              if (entryIndex !== -1) {
-                const accountName = this.getAccountName(item.account_id);
-                const journalCredit = item.type ? item.amount : 0;
-                const journalDebit = item.type ? 0 : item.amount;
-  
-                updatedEntry = {
-                  ...existingEntries[entryIndex],
-                  date: journalEntry.journal_date,
-                  journalCredit,
-                  particular: accountName,
-                  journalDebit,
-                  type: journalEntry.type
-                };
-  
-                existingEntries[entryIndex] = updatedEntry;
-                this.dbService.update('dayBookEntries', { key: cacheKey, entries: existingEntries }).subscribe();
-  
-                // Update the in-memory cache if it exists
-                if (this.inMemoryCache.has(cacheKey)) {
-                  this.addToMemoryCache(cacheKey, existingEntries);
-                }
-  
-                // Update the in-memory dayBookEntries if the entry is on the current page
-                const currentPageIndex = this.dayBookEntries.findIndex(e => e.id === item.id);
-                if (currentPageIndex !== -1) {
-                  this.dayBookEntries[currentPageIndex] = updatedEntry;
-                  this.updateEntry(currentPageIndex, updatedEntry);
-                  this.processData();
-                }
-  
-                return true;
-              }
-            }
-            return false;
-          });
-        });
-      });
-    } else if (type === 'cash') {
-      const entry = data.entry;
-      const accountName = this.getAccountName(entry.account_id);
-      const newCashCredit = entry.type ? entry.amount : 0;
-      const newCashDebit = entry.type ? 0 : entry.amount;
-  
-      // Check IndexedDB for existing record
-      this.cacheKeys.map(cacheKey => {
-        return this.dbService.getByKey('dayBookEntries', cacheKey).toPromise().then((cachedData: any) => {
-          if (cachedData) {
-            const existingEntries = cachedData.entries || [];
-            const entryIndex = existingEntries.findIndex((e: any) => e.id === entry.id);
-            if (entryIndex !== -1) {
-              const oldEntry = existingEntries[entryIndex];
-              const oldCashCredit = oldEntry.type ? oldEntry.amount : 0;
-              const oldCashDebit = oldEntry.type ? 0 : oldEntry.amount;
-  
-              this.currentBalance += (newCashCredit - newCashDebit) - (oldCashCredit - oldCashDebit);
-  
-              updatedEntry = {
-                ...oldEntry,
-                date: entry.entry_date,
-                cashCredit: newCashCredit,
-                particular: accountName,
-                cashDebit: newCashDebit,
-                type: 7
-              };
-  
-              existingEntries[entryIndex] = updatedEntry;
-              this.dbService.update('dayBookEntries', { key: cacheKey, entries: existingEntries }).subscribe();
-  
-              // Update the in-memory cache if it exists
-              if (this.inMemoryCache.has(cacheKey)) {
-                this.addToMemoryCache(cacheKey, existingEntries);
-              }
-  
-              // Update the in-memory dayBookEntries if the entry is on the current page
-              const currentPageIndex = this.dayBookEntries.findIndex(e => e.id === entry.id);
-              if (currentPageIndex !== -1) {
-                this.dayBookEntries[currentPageIndex] = updatedEntry;
-                this.updateEntry(currentPageIndex, updatedEntry);
-                this.processData();
-              }
-  
-              return true;
-            }
-          }
-          return false;
-        });
-      });
-    }
-  }
-
-  updateEntry(index: number, updatedEntry: any): void {
-    // Update the entry in the in-memory cache
-    this.dayBookEntries[index] = updatedEntry;
-
-    // Update IndexedDB with the updated entry
-    const cacheKey = `${this.userId}-${this.financialYear}-${this.offset}`;
-    this.dbService.getByKey('dayBookEntries', cacheKey).subscribe((cachedData: any) => {
-      if (cachedData) {
-        const existingEntries = cachedData.entries || [];
-        const entryIndex = existingEntries.findIndex((e: any) => e.id === updatedEntry.id);
-        if (entryIndex !== -1) {
-          existingEntries[entryIndex] = updatedEntry;
-          this.dbService.update('dayBookEntries', { key: cacheKey, entries: existingEntries }).subscribe();
-
-          // Update the in-memory cache if it exists
-          if (this.inMemoryCache.has(cacheKey)) {
-            this.addToMemoryCache(cacheKey, existingEntries);
-          }
-        }
-      }
-    });
-    this.processData();
-  }
-
-
-  handleDeleteEvent(data: any, type: string): void {
-    if (type === 'entry' || type === 'journal') {
-      const journalEntry = data.journalEntry || data;
-  
-      // Check IndexedDB for existing record
-      this.cacheKeys.map(cacheKey => {
-        return this.dbService.getByKey('dayBookEntries', cacheKey).toPromise().then((cachedData: any) => {
-          if (cachedData) {
-            const existingEntries = cachedData.entries || [];
-            const entryIndex = existingEntries.findIndex((e: any) => e.id === journalEntry.id);
-            if (entryIndex !== -1) {
-              existingEntries.splice(entryIndex, 1);
-              this.dbService.update('dayBookEntries', { key: cacheKey, entries: existingEntries }).subscribe();
-  
-              // Update the in-memory cache if it exists
-              if (this.inMemoryCache.has(cacheKey)) {
-                this.addToMemoryCache(cacheKey, existingEntries);
-              }
-  
-              const initialLength = this.dayBookEntries.length;
-              this.dayBookEntries = this.dayBookEntries.filter(entry => entry.id !== journalEntry.id);
-              this.journalEntries = this.journalEntries.filter(entry => entry.journal_id !== journalEntry.id);
-              if (this.dayBookEntries.length < initialLength) {
-                this.processData();
-              }
-  
-              return true;
-            }
-          }
-          return false;
-        });
-      });
     } else if (type === 'cash') {
       const entry = data.entry;
   
       // Check IndexedDB for existing record
-      this.cacheKeys.map(cacheKey => {
-        return this.dbService.getByKey('dayBookEntries', cacheKey).toPromise().then((cachedData: any) => {
-          if (cachedData) {
-            const existingEntries = cachedData.entries || [];
-            const entryIndex = existingEntries.findIndex((e: any) => e.id === entry.id);
-            if (entryIndex !== -1) {
-              const oldEntry = existingEntries[entryIndex];
+      for (const cacheKey of this.cacheKeys) {
+        const cachedData: any = await this.dbService.getByKey('dayBookEntries', cacheKey).toPromise();
+        if (cachedData) {
+          const existingEntries = cachedData.entries || [];
+          const entryIndex = existingEntries.findIndex((e: any) => e.id === entry.id);
+          if (entryIndex !== -1) {
+            const oldEntry = existingEntries[entryIndex];
+            const oldCashCredit = oldEntry.type ? oldEntry.amount : 0;
+            const oldCashDebit = oldEntry.type ? 0 : oldEntry.amount;
+  
+            this.currentBalance -= (oldCashCredit - oldCashDebit);
+  
+            existingEntries.splice(entryIndex, 1);
+            await this.dbService.update('dayBookEntries', { key: cacheKey, entries: existingEntries }).toPromise();
+  
+            // Update the in-memory cache if it exists
+            if (this.inMemoryCache.has(cacheKey)) {
+              this.addToMemoryCache(cacheKey, existingEntries);
+            }
+  
+            const itemIndex = this.dayBookEntries.findIndex(e => e.id === entry.id);
+            if (itemIndex !== -1) {
+              const oldEntry = this.dayBookEntries[itemIndex];
               const oldCashCredit = oldEntry.type ? oldEntry.amount : 0;
               const oldCashDebit = oldEntry.type ? 0 : oldEntry.amount;
   
               this.currentBalance -= (oldCashCredit - oldCashDebit);
   
-              existingEntries.splice(entryIndex, 1);
-              this.dbService.update('dayBookEntries', { key: cacheKey, entries: existingEntries }).subscribe();
-  
-              // Update the in-memory cache if it exists
-              if (this.inMemoryCache.has(cacheKey)) {
-                this.addToMemoryCache(cacheKey, existingEntries);
-              }
-  
-              const initialLength = this.dayBookEntries.length;
-              const itemIndex = this.dayBookEntries.findIndex(e => e.id === entry.id);
-              if (itemIndex !== -1) {
-                const oldEntry = this.dayBookEntries[itemIndex];
-                const oldCashCredit = oldEntry.type ? oldEntry.amount : 0;
-                const oldCashDebit = oldEntry.type ? 0 : oldEntry.amount;
-  
-                this.currentBalance -= (oldCashCredit - oldCashDebit);
-  
-                this.dayBookEntries.splice(itemIndex, 1);
-              }
-  
-              this.cashEntries = this.cashEntries.filter(e => e.id !== entry.id);
-              if (this.dayBookEntries.length < initialLength) {
-                this.processData();
-              }
-  
-              return true;
+              this.dayBookEntries.splice(itemIndex, 1);
+              this.processRealTimeUpdate();
             }
           }
-          return false;
-        });
-      });
+        }
+      }
     }
-  }
+  }  
 
   navigateToEditPage(entry: any) {
     switch (entry.type) {
       case 1:
-        this.router.navigate(['/purchase-entry/edit', entry.id]);
+        this.openAddEditEntryDialog(entry.id, 1);
         break;
       case 2:
-        this.router.navigate(['/sale-entry/edit', entry.id]);
+        this.openAddEditEntryDialog(entry.id, 2);
         break;
       case 3:
-        this.router.navigate(['/purchase-return/edit', entry.id]);
+        this.openAddEditEntryDialog(entry.id, 3);
         break;
       case 4:
-        this.router.navigate(['/sale-return/edit', entry.id]);
+        this.openAddEditEntryDialog(entry.id, 4);
         break;
       case 5:
-        this.router.navigate(['/credit-note/edit', entry.id]);
+        this.openAddEditEntryDialog(entry.id, 5);
         break;
       case 6:
-        this.router.navigate(['/debit-note/edit', entry.id]);
+        this.openAddEditEntryDialog(entry.id, 6);
         break;
       case 0:
-        this.router.navigate(['/journal-entry/edit', entry.id]);
+        this.openEditJournalEntryDialog(entry.id);
         break;
       case 7:
         this.openEditCashBookDialog(entry.id, this.currentBalance);
@@ -732,6 +751,35 @@ export class DayBookComponent implements OnInit {
       default:
         console.error('Unknown entry type:', entry.type);
     }
+  }
+
+  openAddEditEntryDialog(entryId: number, type: number): void {
+    const dialogRef = this.dialog.open(AddEditEntryDialogComponent, {
+      width: '1000px',
+      data: { entryId, type, financialYear: this.financialYear, userId: this.userId }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Handle the result from the dialog
+        console.log('Dialog result:', result);
+      }
+    });
+  }
+
+  openEditJournalEntryDialog(journalId: number): void {
+    console.log(journalId);
+    const dialogRef = this.dialog.open(EditJournalEntryDialogComponent, {
+      width: '800px',
+      data: { journalId, financialYear: this.financialYear }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Handle the result from the dialog
+        console.log('Dialog result:', result);
+      }
+    });
   }
 
   openEditCashBookDialog(entryId: number, currentBalance: number): void {
@@ -747,5 +795,4 @@ export class DayBookComponent implements OnInit {
       }
     });
   }
-
 }

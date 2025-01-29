@@ -9,16 +9,25 @@ export class WebSocketService {
   private insertSubject = new Subject<any>();
   private updateSubject = new Subject<any>();
   private deleteSubject = new Subject<any>();
+  private reconnectInterval = 5000; // Reconnect interval in milliseconds
+  private isConnected = false;
 
   constructor() {
+    this.connect();
+  }
+
+  private connect() {
     this.socket = new WebSocket('ws://localhost:8080'); // Use your WebSocket server URL
 
     this.socket.onopen = () => {
       console.log('WebSocket connection established');
+      this.isConnected = true;
     };
 
     this.socket.onclose = () => {
       console.log('WebSocket connection closed');
+      this.isConnected = false;
+      setTimeout(() => this.connect(), this.reconnectInterval); // Attempt to reconnect
     };
 
     this.socket.onmessage = (messageEvent) => {
@@ -37,7 +46,10 @@ export class WebSocketService {
       }
     };
 
-    this.socket.onerror = (event) => console.error(event);
+    this.socket.onerror = (event) => {
+      console.error('WebSocket error:', event);
+      this.isConnected = false;
+    };
   }
 
   onEvent(event: string): Observable<any> {
@@ -54,10 +66,18 @@ export class WebSocketService {
   }
 
   sendMessage(msg: string) {
-    this.socket.send(msg);
+    if (this.isConnected) {
+      this.socket.send(msg);
+    } else {
+      console.error('WebSocket is not connected. Message not sent:', msg);
+    }
   }
 
   close() {
     this.socket.close();
+  }
+
+  getConnectionStatus(): boolean {
+    return this.isConnected;
   }
 }

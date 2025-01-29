@@ -36,6 +36,8 @@
       </div>
     </div>
     <button mat-raised-button color="primary" (click)="applyFilters()">Apply Filters</button>
+    <button (click)="exportToPDF()">Export to PDF</button>
+    <button (click)="exportToExcel()">Export to Excel</button>
   </div>
 </div>
 
@@ -93,5 +95,5 @@
 
 <div class="pagination">
   <button (click)="previousPage()" [disabled]="currentPage === 1">Previous</button>
-  <button (click)="nextPage()" [disabled]="currentPage * pageSize >= groupedDayBookEntries.length">Next</button>
+  <button (click)="nextPage()" [disabled]="!canMoveToNextPage()">Next</button>
 </div>

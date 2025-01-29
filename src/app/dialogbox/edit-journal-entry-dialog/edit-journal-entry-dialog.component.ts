@@ -1,6 +1,6 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, AbstractControl, Validators } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,9 +11,9 @@ import { AccountService } from '../../services/account.service';
 import { GroupService } from '../../services/group.service';
 import { Account } from '../../models/account.interface';
 import { Group } from '../../models/group.interface';
-import { ActivatedRoute } from '@angular/router'; // Import ActivatedRoute
 import { JournalEntry } from '../../models/journal-entry.interface';
 import { JournalService } from '../../services/journal.service';
+import { StorageService } from '../../services/storage.service';
 
 @Component({
   selector: 'app-edit-journal-entry-dialog',
@@ -35,60 +35,63 @@ export class EditJournalEntryDialogComponent implements OnInit {
     private datePipe: DatePipe, // Inject DatePipe
     private groupService: GroupService,
     private journalService: JournalService,
-    private route: ActivatedRoute // Inject ActivatedRoute
-  ) { }
+    private storageService: StorageService,
+  ) {
+    this.initializeForm(); // Initialize the form with default values
+  }
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      const entryId = params.get('id');
-
-      if (entryId) {
-        // Component is activated via a route with an entryId parameter
-        this.fetchJournalEntry(entryId);
-      } else {
-        // Component is not activated via a route with an entryId parameter
-        this.initializeForm();
-      }
-    });
-
+    if (this.data.journalId) {
+      this.fetchJournalEntry(this.data.journalId);
+    } else {
+      this.patchFormValues(this.data);
+    }
     this.fetchAccountList();
     this.fetchGroupList();
   }
 
   initializeForm(): void {
     this.editJournalEntryForm = this.fb.group({
-      id: [this.data.id],
-      journal_date: [this.data.journal_date],
-      description: [this.data.description],
-      user_id: [this.data.user_id],
-      user_name: [this.data.user_name],
-      financial_year: [this.data.financial_year],
-      items: this.fb.array(this.data.items.map((item: JournalItem) => this.createItemGroup(item)))
+      id: [null, Validators.required],
+      journal_date: [null, Validators.required],
+      description: [null, Validators.required],
+      user_id: [this.storageService.getUser().id],
+      user_name: [this.storageService.getUser().username],
+      financial_year: [null, Validators.required],
+      items: this.fb.array([])
     });
   }
 
-  fetchJournalEntry(entryId: string): void {
-    // Fetch the journal entry by ID and initialize the form
-    // Assuming you have a service method to fetch the journal entry by ID
-    this.journalService.getJournalEntryById(parseInt(entryId)).subscribe((entry: JournalEntry) => {
-      this.editJournalEntryForm = this.fb.group({
-        id: [entry.id],
-        journal_date: [new Date(entry.journal_date)],
-        description: [entry.description],
-        user_id: [entry.user_id],
-        user_name: [entry.user_name],
-        financial_year: [entry.financial_year],
-        items: this.fb.array((entry.items || []).map((item: JournalItem) => this.createItemGroup(item)))
-      });
+  patchFormValues(entry: JournalEntry): void {
+    this.editJournalEntryForm.patchValue({
+      id: entry.id,
+      journal_date: new Date(entry.journal_date),
+      description: entry.description,
+      user_id: entry.user_id,
+      user_name: entry.user_name,
+      financial_year: entry.financial_year
     });
-  }  
+    this.setItems(entry.items || []);
+  }
+
+  setItems(items: JournalItem[]): void {
+    const itemGroups = items.map(item => this.createItemGroup(item));
+    const formArray = this.fb.array(itemGroups);
+    this.editJournalEntryForm.setControl('items', formArray);
+  }
+
+  fetchJournalEntry(journalId: number): void {
+    this.journalService.getJournalEntryById(journalId).subscribe((entry: JournalEntry) => {
+      this.patchFormValues(entry);
+    });
+  }
 
   dateFilter = (date: Date | null): boolean => {
-    if (!date || !this.data) {
+    if (!date || !this.editJournalEntryForm.get('financial_year')?.value) {
       return false;
     }
 
-    const [startYear, endYear] = this.data.financial_year.split('-').map(Number);
+    const [startYear, endYear] = this.editJournalEntryForm.get('financial_year')?.value.split('-').map(Number);
     const startDate = new Date(startYear, 3, 1); // April 1st of start year
     const endDate = new Date(endYear, 2, 31); // March 31st of end year
     return date >= startDate && date <= endDate;
@@ -131,7 +134,7 @@ export class EditJournalEntryDialogComponent implements OnInit {
   }
 
   fetchAccountList(): void {
-    this.accountService.getAccountsByUserIdAndFinancialYear(this.data.user_id, this.data.financial_year).subscribe((accounts: Account[]) => {
+    this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id, this.editJournalEntryForm.get('financial_year')?.value).subscribe((accounts: Account[]) => {
       this.accountList = accounts.map(account => ({
         id: account.id,
         account_name: account.name
@@ -140,7 +143,7 @@ export class EditJournalEntryDialogComponent implements OnInit {
   }
 
   fetchGroupList(): void {
-    this.groupService.getGroupsByUserIdAndFinancialYear(this.data.user_id, this.data.financial_year).subscribe((groups: Group[]) => {
+    this.groupService.getGroupsByUserIdAndFinancialYear(this.storageService.getUser().id, this.editJournalEntryForm.get('financial_year')?.value).subscribe((groups: Group[]) => {
       this.groupList = groups.map(group => ({
         id: group.id,
         group_name: group.name

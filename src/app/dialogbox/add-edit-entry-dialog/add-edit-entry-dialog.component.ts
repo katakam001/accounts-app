@@ -68,12 +68,10 @@ export class AddEditEntryDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      const entryId = params.get('id');
-  
-      if (entryId) {
+ 
+      if (this.data.entryId) {
         // Component is activated via a route with an entryId parameter
-        this.fetchEntry(entryId);
+        this.fetchEntry(this.data.entryId);
       } else {
         // Component is not activated via a route with an entryId parameter
         const categoryType = (this.data.type === 1 || this.data.type === 3 || this.data.type === 5) ? 1 : 2;
@@ -84,17 +82,23 @@ export class AddEditEntryDialogComponent implements OnInit {
           }
         });
       }
-    });
   }
   
-  fetchEntry(entryId: string): void {
+  fetchEntry(entryId: number): void {
     // Fetch the entry by ID and initialize the form
     // Assuming you have a service method to fetch the entry by ID
-    this.entryService.getEntryById(parseInt(entryId)).subscribe((entry: any) => {
+    this.entryService.getEntryById(entryId).subscribe((entry: any) => {
       this.entryForm.patchValue(entry);
-  
+      const convertedObject = {
+        ...entry,
+        dynamicFields: [...entry.fields]
+      };
+      this.data.entry = convertedObject
+      console.log(entry.type);
       const categoryType = (entry.type === 1 || entry.type === 3 || entry.type === 5) ? 1 : 2;
+      console.log(categoryType);
       this.fetchInitialData(categoryType).then(() => {
+        console.log(entry.category_id);
         this.onCategoryChange(entry.category_id);
       });
     });
@@ -173,6 +177,7 @@ export class AddEditEntryDialogComponent implements OnInit {
   }
 
   fetchDynamicFields(categoryId: number): void {
+    console.log(categoryId);
     this.fieldMappingService.getFieldMappingsByCategory(this.data.userId, this.data.financialYear, categoryId).subscribe((data: any[]) => {
       const excludeFields = (field: any) => !(field.field_category === 1 && field.exclude_from_total);
       this.dynamicFields = data.filter(field => {
