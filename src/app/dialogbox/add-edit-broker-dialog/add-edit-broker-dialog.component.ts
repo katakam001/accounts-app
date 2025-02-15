@@ -49,20 +49,16 @@ export class AddEditBrokerDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.brokerForm.valid) {
-      const broker = {
-        ...this.brokerForm.value,
+      const formValue = this.brokerForm.value;
+      const updatedBroker = {
+        id: this.data.broker?.id,
+        name: formValue.name,
+        contact: formValue.contact,
+        email: formValue.email,
         user_id: this.userId,
         financial_year: this.financialYear
       };
-      if (this.data.broker) {
-        this.brokerService.updateBroker(this.data.broker.id, broker).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      } else {
-        this.brokerService.addBroker(broker).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      }
+      this.dialogRef.close(updatedBroker);
     }
   }
 

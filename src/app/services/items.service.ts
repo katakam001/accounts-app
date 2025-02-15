@@ -46,7 +46,7 @@ export class ItemsService {
   addItem(item: any): Observable<Item> {
     return this.http.post<Item>(this.apiUrl, item).pipe(
       tap(newItem => {
-        this.items.push(newItem);
+        this.items = [...this.items, newItem];
         this.saveToLocalStorage();
       }),
       catchError(this.handleError<Item>('addItem'))

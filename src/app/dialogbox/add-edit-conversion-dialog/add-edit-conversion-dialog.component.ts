@@ -68,19 +68,14 @@ export class AddEditConversionDialogComponent implements OnInit {
   onSave(): void {
     if (this.conversionForm.valid) {
       const conversionData = {
-        ...this.conversionForm.value,
+        id: this.data.conversion?.id,
+        from_unit_id: this.conversionForm.value.from_unit_id,
+        to_unit_id: this.conversionForm.value.to_unit_id,
+        rate: this.conversionForm.value.rate,
         user_id: this.userId,
         financial_year: this.financialYear
       };
-      if (this.data.conversion) {
-        this.conversionService.updateConversion(this.data.conversion.id, conversionData).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      } else {
-        this.conversionService.addConversion(conversionData).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      }
+      this.dialogRef.close(conversionData);
     }
   }
 

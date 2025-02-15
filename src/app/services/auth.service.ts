@@ -54,6 +54,18 @@ export class AuthService {
     );
   }
 
+  changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    return this.http.post<any>(
+      AUTH_API + 'change-password',
+      {
+        currentPassword,
+        newPassword
+      }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     // Customize error handling logic as needed
     console.error('An error occurred:', error);

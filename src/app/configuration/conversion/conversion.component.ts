@@ -31,7 +31,6 @@ import { StorageService } from '../../services/storage.service';
   styleUrls: ['./conversion.component.css']
 })
 export class ConversionComponent implements OnInit {
-  displayedColumns: string[] = ['fromUnit', 'toUnit', 'rate', 'actions'];
   dataSource: MatTableDataSource<any>;
   conversions: any[] = [];
   userId: number;
@@ -75,7 +74,7 @@ export class ConversionComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadConversions();
+        this.addConversionToList(result);
       }
     });
   }
@@ -88,14 +87,39 @@ export class ConversionComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadConversions();
+        this.updateConversion(result);
       }
     });
   }
 
-  deleteConversion(conversionId: number): void {
-    this.conversionService.deleteConversion(conversionId).subscribe(() => {
-      this.loadConversions();
+  addConversionToList(conversion: any): void {
+    this.conversionService.addConversion(conversion).subscribe(response => {
+      // Create a *new* array with the added conversion
+      const newData = [...this.dataSource.data, response];
+      this.dataSource.data = newData; // Assign the new array
+      this.dataSource._updateChangeSubscription(); // Refresh the table
     });
   }
+  
+  updateConversion(conversion: any): void {
+    this.conversionService.updateConversion(conversion.id, conversion).subscribe(response => {
+      const index = this.dataSource.data.findIndex(c => c.id === response.id);
+      if (index !== -1) {
+        // Create a *new* array with the updated conversion
+        const newData = [...this.dataSource.data]; // Copy existing data
+        newData[index] = response; // Update the copied array
+        this.dataSource.data = newData; // Assign the new array
+        this.dataSource._updateChangeSubscription(); // Refresh the table
+      }
+    });
+  }
+  
+  deleteConversion(conversionId: number): void {
+    this.conversionService.deleteConversion(conversionId).subscribe(() => {
+      // Create a *new* array without the deleted conversion
+      const newData = this.dataSource.data.filter(conversion => conversion.id !== conversionId);
+      this.dataSource.data = newData; // Assign the new array
+      this.dataSource._updateChangeSubscription(); // Refresh the table
+    });
+  }  
 }

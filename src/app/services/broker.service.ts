@@ -43,7 +43,8 @@ export class BrokerService {
   addBroker(broker: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, broker).pipe(
       tap(newBroker => {
-        this.brokers.push(newBroker);
+        console.log("Broker added (service):", newBroker); // Log in the service
+        this.brokers = [...this.brokers, newBroker];
         this.saveToLocalStorage();
       }),
       catchError(this.handleError<any>('addBroker'))

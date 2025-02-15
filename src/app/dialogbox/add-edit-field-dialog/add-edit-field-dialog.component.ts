@@ -50,22 +50,14 @@ export class AddEditFieldDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.fieldForm.valid) {
-      const field = {
-        ...this.fieldForm.value,
-        userId: this.userId,
-        financialYear: this.financialYear
+      const formValue = this.fieldForm.value;
+      const updatedField = {
+        id: this.data.field?.id,
+        field_name: formValue.field_name,
+        user_id: this.userId,
+        financial_year: this.financialYear
       };
-      if (this.data.field) {
-        this.fieldService.updateField(this.data.field.id, field).subscribe(() => {
-          this.dialogRef.close(true);
-          this.snackBar.open('Field updated successfully', 'Close', { duration: 3000 });
-        });
-      } else {
-        this.fieldService.addField(field).subscribe(() => {
-          this.dialogRef.close(true);
-          this.snackBar.open('Field added successfully', 'Close', { duration: 3000 });
-        });
-      }
+      this.dialogRef.close(updatedField);
     }
   }
 

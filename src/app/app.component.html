@@ -5,9 +5,28 @@
   <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/home" routerLinkActive="active">Home</button>
   <button *ngIf="storageService.isLoggedIn()" mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
   <span class="spacer"></span>
+  <ng-container *ngIf="storageService.isLoggedIn()">
+    <button mat-button [matMenuTriggerFor]="userMenu">
+      <span>Welcome, {{ storageService.getUser().username }}!</span>
+      <mat-icon class="down-arrow-icon">expand_more</mat-icon>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <button mat-menu-item routerLink="/accountInfo">
+        <mat-icon>account_circle</mat-icon>
+        <span>Account Information</span>
+      </button>
+      <button mat-menu-item routerLink="/changePassword">
+        <mat-icon>lock</mat-icon>
+        <span>Change Password</span>
+      </button>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Logout</span>
+      </button>
+    </mat-menu>
+  </ng-container>
   <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/login">Login</button>
   <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/register">Sign Up</button>
-  <button *ngIf="storageService.isLoggedIn()" mat-button (click)="logout()">Logout</button>
 </mat-toolbar>
 
 <mat-sidenav-container class="example-sidenav-container" *ngIf="storageService.isLoggedIn()">

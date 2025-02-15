@@ -94,17 +94,17 @@ export class AccountListComponent implements OnInit {
         console.log("save the add account:" + result);
         this.accountService.addAccount(result).subscribe({
           next: (response) => {
-            this.accounts.data.push(response); // Add the account if it doesn't exist
+            this.accounts.data = [...this.accounts.data, response]; // Create a new array with the added account
             this.accounts._updateChangeSubscription(); // Refresh the table
             this.calculateTotals(); // Recalculate totals after update
           },
           error: (error) => {
-            console.error('Error updating account:', error);
+            console.error('Error adding account:', error);
           }
         });
       }
     });
-  } 
+  }
 
   editAccount(account: Account): void {
     const dialogRef = this.dialog.open(EditAccountDialogComponent, {
@@ -114,7 +114,6 @@ export class AccountListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        // Convert result to Account object and populate extra fields
         const newAccount: Account = {
           id: result.id,
           name: result.name,
@@ -123,9 +122,9 @@ export class AccountListComponent implements OnInit {
           credit_balance: result.credit_balance,
           debit_balance: result.debit_balance,
           financial_year: result.financial_year,
-          group: result.group, // Add group to the account object
-          address: result.address, // Add address to the account object
-          isDealer: result.isDealer // Add isDealer to the account object
+          group: result.group,
+          address: result.address,
+          isDealer: result.isDealer
         };
         console.log('Updated account:', newAccount);
         this.updateAccount(newAccount);
@@ -134,26 +133,35 @@ export class AccountListComponent implements OnInit {
   }
 
   deleteAccount(id: number): void {
-    this.accountService.deleteAccount(id).subscribe(response => {
-      console.log('Response status:', response.status);
-      this.fetchAccounts(this.storageService.getUser().id, this.financialYear); // Refresh the table by fetching the updated list of accounts
+    this.accountService.deleteAccount(id).subscribe({
+      next: () => {
+        this.accounts.data = this.accounts.data.filter(account => account.id !== id);
+        this.accounts._updateChangeSubscription();
+        this.calculateTotals();
+      },
+      error: (error) => {
+        console.error('Error deleting account:', error);
+        // Handle the error
+      }
     });
   }
 
-  updateAccount(updatedAccount: Account): void {
-    this.accountService.updateAccount(updatedAccount).subscribe({
-      next: (response) => {
-        const index = this.accounts.data.findIndex(account => account.id === updatedAccount.id);
-        if (index !== -1) {
-          this.accounts.data[index] = response; // Use the response object to update the account
-          this.accounts._updateChangeSubscription(); // Refresh the table
-          this.calculateTotals(); // Recalculate totals after update
-        }
-      },
-      error: (error) => {
-        console.error('Error updating account:', error);
+updateAccount(updatedAccount: Account): void {
+  this.accountService.updateAccount(updatedAccount).subscribe({
+    next: (response) => {
+      const index = this.accounts.data.findIndex(account => account.id === updatedAccount.id);
+      if (index !== -1) {
+        // Create a new array with the updated account
+        const newData = [...this.accounts.data];
+        newData[index] = response;
+        this.accounts.data = newData;
+        this.accounts._updateChangeSubscription(); // Refresh the table
+        this.calculateTotals(); // Recalculate totals after update
       }
-    });
-  }  
-  
+    },
+    error: (error) => {
+      console.error('Error updating account:', error);
+    }
+  });
+}
 }

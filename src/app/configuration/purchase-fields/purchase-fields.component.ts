@@ -62,7 +62,6 @@ export class PurchaseFieldsComponent implements OnInit {
   ngOnInit(): void {
     this.userId = this.storageService.getUser().id;
     this.getFinancialYear();
-    this.fields.sort = this.sort; // Initialize sorting
   }
 
   getFinancialYear() {

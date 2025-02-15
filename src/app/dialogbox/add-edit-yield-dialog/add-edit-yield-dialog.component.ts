@@ -61,7 +61,7 @@ export class AddEditYieldDialogComponent implements OnInit {
     this.loadConversions();
     if (this.data.yield) {
       this.yieldForm.patchValue({
-        raw_item_id: this.data.yield.rawItem.id,
+        raw_item_id: this.data.yield.rawItem.item_id,
         unit_id: this.data.yield.rawItem.unit_id
       });
       this.setProcessedItems(this.data.yield.processedItems);
@@ -95,7 +95,7 @@ export class AddEditYieldDialogComponent implements OnInit {
       item_id: ['', Validators.required],
       percentage: [0, Validators.required],
       unit_id: ['', Validators.required],
-      conversion_id: ['']
+      conversion_id: [null]
     }));
     this.availableConversions.push([]);
   }
@@ -127,26 +127,55 @@ export class AddEditYieldDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.yieldForm.valid) {
+      const rawItemId = this.yieldForm.value.raw_item_id;
+      const rawUnitId = this.yieldForm.value.unit_id;
+      const rawItemName = this.items.find(item => item.id === rawItemId)?.name || '';
+      const rawUnitName = this.units.find(unit => unit.id === rawUnitId)?.name || '';
+  
       const yieldData = {
         rawItem: {
-          item_id: this.yieldForm.value.raw_item_id,
-          unit_id: this.yieldForm.value.unit_id,
+          id: this.data.yield ? this.data.yield.rawItem.id : null, // Handle id initialization
+          item_id: rawItemId,
+          unit_id: rawUnitId,
           user_id: this.userId,
-          financial_year: this.financialYear
+          financial_year: this.financialYear,
+          item_name: rawItemName,
+          unit_name: rawUnitName
         },
-        processedItems: this.yieldForm.value.processedItems,
+        processedItems: this.yieldForm.value.processedItems.map((item:any) => {
+          const itemName = this.items.find(i => i.id === item.item_id)?.name || '';
+          const unitName = this.units.find(u => u.id === item.unit_id)?.name || '';
+          return {
+            ...item,
+            item_name: itemName,
+            unit_name: unitName,
+            user_id: this.userId,
+            financial_year: this.financialYear,
+            raw_item_id: this.data.yield ? this.data.yield.rawItem.id : null // Initialize raw_item_id similarly
+          };
+        }),
       };
+  
       if (this.data.yield) {
+        // Update existing yield
         this.yieldService.updateYield(this.data.yield.rawItem.id, yieldData).subscribe(() => {
-          this.dialogRef.close(true);
+          this.dialogRef.close(yieldData);
         });
       } else {
-        this.yieldService.createYield(yieldData).subscribe(() => {
-          this.dialogRef.close(true);
+        // Create new yield
+        this.yieldService.createYield(yieldData).subscribe((response: any) => {
+          // Update yieldData with the newRawItemId from the response
+          yieldData.rawItem.id = response.newRawItemId;
+          yieldData.processedItems = yieldData.processedItems.map((item : any) => ({
+            ...item,
+            raw_item_id: response.newRawItemId
+          }));
+          this.dialogRef.close(yieldData);
         });
       }
     }
   }
+  
 
   onCancel(): void {
     this.dialogRef.close();

@@ -38,7 +38,7 @@ export class CategoryUnitService {
             if (!this.categoryCache[individualCacheKey]) {
               this.categoryCache[individualCacheKey] = { data: [], timestamp: currentTime };
             }
-            this.categoryCache[individualCacheKey].data.push(categoryUnit);
+            this.categoryCache[individualCacheKey].data = [...this.categoryCache[individualCacheKey].data, categoryUnit];
           });
           this.lastCacheTime = currentTime;
           this.saveToLocalStorage();
@@ -72,13 +72,13 @@ export class CategoryUnitService {
   addCategoryUnit(categoryUnit: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, categoryUnit).pipe(
       tap(newCategoryUnit => {
-        const allCacheKey = `all_${categoryUnit.userId}_${categoryUnit.financialYear}`;
+        const allCacheKey = `all_${categoryUnit.user_id}_${categoryUnit.financial_year}`;
         if (this.categoryCache[allCacheKey]) {
-          this.categoryCache[allCacheKey].data.push(newCategoryUnit);
+          this.categoryCache[allCacheKey].data = [...this.categoryCache[allCacheKey].data, newCategoryUnit];
         }
-        const categoryCacheKey = `category_${categoryUnit.userId}_${categoryUnit.financialYear}_${newCategoryUnit.categoryId}`;
+        const categoryCacheKey = `category_${categoryUnit.user_id}_${categoryUnit.financial_year}_${newCategoryUnit.category_id}`;
         if (this.categoryCache[categoryCacheKey]) {
-          this.categoryCache[categoryCacheKey].data.push(newCategoryUnit);
+          this.categoryCache[categoryCacheKey].data = [...this.categoryCache[categoryCacheKey].data, newCategoryUnit];
         }
         this.saveToLocalStorage();
       }),
@@ -89,14 +89,14 @@ export class CategoryUnitService {
   updateCategoryUnit(categoryUnitId: number, categoryUnit: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/${categoryUnitId}`, categoryUnit).pipe(
       tap(updatedCategoryUnit => {
-        const allCacheKey = `all_${categoryUnit.userId}_${categoryUnit.financialYear}`;
+        const allCacheKey = `all_${categoryUnit.user_id}_${categoryUnit.financial_year}`;
         if (this.categoryCache[allCacheKey]) {
           const index = this.categoryCache[allCacheKey].data.findIndex(cu => cu.id === categoryUnitId);
           if (index !== -1) {
             this.categoryCache[allCacheKey].data[index] = updatedCategoryUnit;
           }
         }
-        const categoryCacheKey = `category_${categoryUnit.userId}_${categoryUnit.financialYear}_${updatedCategoryUnit.categoryId}`;
+        const categoryCacheKey = `category_${categoryUnit.user_id}_${categoryUnit.financial_year}_${updatedCategoryUnit.categoryId}`;
         if (this.categoryCache[categoryCacheKey]) {
           const index = this.categoryCache[categoryCacheKey].data.findIndex(cu => cu.id === categoryUnitId);
           if (index !== -1) {

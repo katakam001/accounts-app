@@ -44,7 +44,6 @@ export class CategoryUnitsComponent implements OnInit {
   ngOnInit(): void {
     this.userId = this.storageService.getUser().id;
     this.getFinancialYear();
-    this.categoryUnits.sort = this.sort; // Initialize sorting
   }
 
   getFinancialYear() {
@@ -98,7 +97,7 @@ export class CategoryUnitsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.fetchCategoryUnits();
+        this.addCategoryUnitToList(result);
       }
     });
   }
@@ -111,14 +110,39 @@ export class CategoryUnitsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.fetchCategoryUnits();
+        this.updateCategoryUnit(result);
       }
     });
   }
 
-  deleteCategoryUnit(categoryUnitId: number): void {
-    this.categoryUnitService.deleteCategoryUnit(categoryUnitId).subscribe(() => {
-      this.fetchCategoryUnits();
+  addCategoryUnitToList(categoryUnit: any): void {
+    this.categoryUnitService.addCategoryUnit(categoryUnit).subscribe(response => {
+      // Create a *new* array with the added category unit
+      const newData = [...this.categoryUnits.data, response];
+      this.categoryUnits.data = newData; // Assign the new array
+      this.categoryUnits._updateChangeSubscription(); // Refresh the table
     });
   }
+  
+  updateCategoryUnit(categoryUnit: any): void {
+    this.categoryUnitService.updateCategoryUnit(categoryUnit.id, categoryUnit).subscribe(response => {
+      const index = this.categoryUnits.data.findIndex(unit => unit.id === response.id);
+      if (index !== -1) {
+        // Create a *new* array with the updated category unit
+        const newData = [...this.categoryUnits.data]; // Copy existing data
+        newData[index] = response; // Update the copied array
+        this.categoryUnits.data = newData; // Assign the new array
+        this.categoryUnits._updateChangeSubscription(); // Refresh the table
+      }
+    });
+  }
+  
+  deleteCategoryUnit(categoryUnitId: number): void {
+    this.categoryUnitService.deleteCategoryUnit(categoryUnitId).subscribe(() => {
+      // Create a *new* array without the deleted category unit
+      const newData = this.categoryUnits.data.filter(unit => unit.id !== categoryUnitId);
+      this.categoryUnits.data = newData; // Assign the new array
+      this.categoryUnits._updateChangeSubscription(); // Refresh the table
+    });
+  }  
 }

@@ -60,20 +60,15 @@ export class AddEditCategoryUnitDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.categoryUnitForm.valid) {
-      const categoryUnit = {
-        ...this.categoryUnitForm.value,
-        userId: this.userId,
-        financialYear: this.financialYear
+      const formValue = this.categoryUnitForm.value;
+      const updatedCategoryUnit = {
+        id: this.data.categoryUnit?.id,
+        category_id: formValue.category_id,
+        unit_id: formValue.unit_id,
+        user_id: this.userId,
+        financial_year: this.financialYear
       };
-      if (this.data.categoryUnit) {
-        this.categoryUnitService.updateCategoryUnit(this.data.categoryUnit.id, categoryUnit).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      } else {
-        this.categoryUnitService.addCategoryUnit(categoryUnit).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      }
+      this.dialogRef.close(updatedCategoryUnit);
     }
   }
 

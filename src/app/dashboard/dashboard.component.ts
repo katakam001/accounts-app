@@ -23,10 +23,10 @@ export class DashboardComponent implements OnInit {
   constructor(private dialog: MatDialog, private financialYearService: FinancialYearService) {}
 
   ngOnInit(): void {
-    this.housingService.getAllHousingLocations().then((housingLocationList: HousingLocation[]) => {
-      this.housingLocationList = housingLocationList;
-      this.filteredLocationList = housingLocationList;
-    });
+    // this.housingService.getAllHousingLocations().then((housingLocationList: HousingLocation[]) => {
+    //   this.housingLocationList = housingLocationList;
+    //   this.filteredLocationList = housingLocationList;
+    // });
     this.getFinancialYear();
   }
 

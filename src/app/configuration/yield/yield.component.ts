@@ -73,17 +73,21 @@ export class YieldComponent implements OnInit {
   loadConversions(): void {
     this.conversionService.getConversionsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((conversions: any[]) => {
       this.yields.forEach(yieldData => {
-        yieldData.processedItems.forEach((item: any) => {
-          const conversion = conversions.find((c: any) => c.id === item.conversion_id);
-          item.conversion = conversion ? {
-            from_unit_name: conversion.from_unit_name,
-            to_unit_name: conversion.to_unit_name,
-            rate: conversion.rate
-          } : null;
-        });
+        this.processConversionsForYield(yieldData, conversions);
       });
       this.dataSource = new MatTableDataSource(this.yields);
       this.dataSource.sort = this.sort;
+    });
+  }
+
+  processConversionsForYield(yieldData: any, conversions: any[]): void {
+    yieldData.processedItems.forEach((item: any) => {
+      const conversion = conversions.find((c: any) => c.id === item.conversion_id);
+      item.conversion = conversion ? {
+        from_unit_name: conversion.from_unit_name,
+        to_unit_name: conversion.to_unit_name,
+        rate: conversion.rate
+      } : null;
     });
   }
 
@@ -95,7 +99,7 @@ export class YieldComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadYields();
+        this.addYieldToList(result);
       }
     });
   }
@@ -108,14 +112,40 @@ export class YieldComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadYields();
+        this.updateYield(result);
+      }
+    });
+  }
+
+  addYieldToList(yieldData: any): void {
+    this.conversionService.getConversionsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((conversions: any[]) => {
+      this.processConversionsForYield(yieldData, conversions);
+      // Create a *new* array with the added yield
+      const newData = [...this.yields, yieldData];
+      this.yields = newData; // Update yields array
+      this.dataSource.data = this.yields; // Update the dataSource's data property!
+    });
+  }
+
+  updateYield(yieldData: any): void {
+    this.conversionService.getConversionsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((conversions: any[]) => {
+      this.processConversionsForYield(yieldData, conversions);
+      const index = this.yields.findIndex(y => y.rawItem.id === yieldData.rawItem.id);
+      if (index !== -1) {
+        const newData = [...this.yields];
+        newData[index] = yieldData;
+        this.yields = newData;
+        this.dataSource.data = this.yields; // Update the dataSource's data property!
       }
     });
   }
 
   deleteYield(yieldId: number): void {
     this.yieldService.deleteYield(yieldId).subscribe(() => {
-      this.loadYields();
+      // Create a *new* array without the deleted yield
+      const newData = this.yields.filter(yieldData => yieldData.rawItem.id !== yieldId);
+      this.yields = newData; // Update yields array
+      this.dataSource.data = this.yields; // Update the dataSource's data property!
     });
   }
 }

@@ -43,8 +43,16 @@ export class YieldService {
 
   createYield(yieldData: any): Observable<Yield> {
     return this.http.post<Yield>(this.apiUrl, yieldData).pipe(
-      tap(newYield => {
-        this.yields.push(newYield);
+      tap((response: any) => {
+        const newYield = {
+          ...yieldData,
+          rawItem: { ...yieldData.rawItem, id: response.newRawItemId },
+          processedItems: yieldData.processedItems.map((item :any)=> ({
+            ...item,
+            raw_item_id: response.newRawItemId
+          }))
+        };
+        this.yields = [...this.yields, newYield];
         this.saveToLocalStorage();
       }),
       catchError(this.handleError<Yield>('createYield'))
@@ -53,10 +61,10 @@ export class YieldService {
 
   updateYield(id: number, yieldData: any): Observable<Yield> {
     return this.http.put<Yield>(`${this.apiUrl}/${id}`, yieldData).pipe(
-      tap(updatedYield => {
-        const index = this.yields.findIndex(y => y.id === id);
+      tap((response: any) => {
+        const index = this.yields.findIndex((y:any) => y.rawItem.id === id);
         if (index !== -1) {
-          this.yields[index] = updatedYield;
+          this.yields[index] = yieldData;
           this.saveToLocalStorage();
         }
       }),
@@ -67,7 +75,7 @@ export class YieldService {
   deleteYield(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${id}`).pipe(
       tap(() => {
-        this.yields = this.yields.filter(y => y.id !== id);
+        this.yields = this.yields.filter((y:any) => y.rawItem.id !== id);
         this.saveToLocalStorage();
       }),
       catchError(this.handleError<any>('deleteYield'))

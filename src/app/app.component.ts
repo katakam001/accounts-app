@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { StorageService } from './services/storage.service';
 import { AuthService } from './services/auth.service';
 import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule, RouterLink, RouterOutlet } from '@angular/router';
 
 @Component({
@@ -22,7 +23,8 @@ import { RouterModule, RouterLink, RouterOutlet } from '@angular/router';
     MatListModule,
     MatToolbarModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    MatMenuModule  // Add MatMenuModule for the dropdown menu
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']

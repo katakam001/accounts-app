@@ -47,7 +47,6 @@ export class GroupListComponent implements OnInit {
     }
   }
 
-
   fetchGroups(userId: number, financialYear: string): void {
     this.groupService.getGroupsByUserIdAndFinancialYear(userId, financialYear).subscribe((data: Group[]) => {
       this.groups.data = data;
@@ -63,8 +62,10 @@ export class GroupListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.groupService.addGroup(result).subscribe(() => {
-          this.fetchGroups(this.userId, this.financialYear); // Refresh the group list after adding a new group
+        this.groupService.addGroup(result).subscribe((response: Group) => {
+          // Create a new array with the added group
+          this.groups.data = [...this.groups.data, response];
+          this.groups._updateChangeSubscription(); // Refresh the table
         });
       }
     });
@@ -86,8 +87,10 @@ export class GroupListComponent implements OnInit {
   deleteGroup(id: number): void {
     this.groupService.deleteGroup(id).subscribe(
       () => {
+        // Create a new array without the deleted group
+        this.groups.data = this.groups.data.filter(group => group.id !== id);
+        this.groups._updateChangeSubscription(); // Refresh the table
         console.log('Group deleted successfully');
-        this.fetchGroups(this.userId, this.financialYear); // Refresh the table by fetching the updated list of groups
       },
       error => {
         console.error('Error deleting group:', error);
@@ -96,10 +99,13 @@ export class GroupListComponent implements OnInit {
   }
 
   updateGroup(updatedGroup: Group): void {
-    this.groupService.updateGroup(updatedGroup).subscribe(() => {
+    this.groupService.updateGroup(updatedGroup).subscribe((response: Group) => {
       const index = this.groups.data.findIndex(group => group.id === updatedGroup.id);
       if (index !== -1) {
-        this.groups.data[index] = updatedGroup;
+        // Create a new array with the updated group
+        const newData = [...this.groups.data];
+        newData[index] = response;
+        this.groups.data = newData;
         this.groups._updateChangeSubscription(); // Refresh the table
       }
     });

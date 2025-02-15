@@ -74,7 +74,7 @@ export class AreaComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadAreas();
+        this.addAreaToList(result);
       }
     });
   }
@@ -87,14 +87,39 @@ export class AreaComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadAreas();
+        this.updateArea(result);
       }
     });
   }
 
-  deleteArea(areaId: number): void {
-    this.areaService.deleteArea(areaId).subscribe(() => {
-      this.loadAreas();
+  addAreaToList(area: any): void {
+    this.areaService.addArea(area).subscribe(response => {
+      // Create a *new* array with the added area
+      const newData = [...this.dataSource.data, response];
+      this.dataSource.data = newData; // Assign the new array
+      this.dataSource._updateChangeSubscription(); // Refresh the table
     });
   }
+  
+  updateArea(area: any): void {
+    this.areaService.updateArea(area.id, area).subscribe(response => {
+      const index = this.dataSource.data.findIndex(a => a.id === response.id);
+      if (index !== -1) {
+        // Create a *new* array with the updated area
+        const newData = [...this.dataSource.data]; // Copy existing data
+        newData[index] = response; // Update the copied array
+        this.dataSource.data = newData; // Assign the new array
+        this.dataSource._updateChangeSubscription(); // Refresh the table
+      }
+    });
+  }
+  
+  deleteArea(areaId: number): void {
+    this.areaService.deleteArea(areaId).subscribe(() => {
+      // Create a *new* array without the deleted area
+      const newData = this.dataSource.data.filter(area => area.id !== areaId);
+      this.dataSource.data = newData; // Assign the new array
+      this.dataSource._updateChangeSubscription(); // Refresh the table
+    });
+  }  
 }

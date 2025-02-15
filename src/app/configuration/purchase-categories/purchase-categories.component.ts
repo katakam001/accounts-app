@@ -46,7 +46,6 @@ export class PurchaseCategoriesComponent implements OnInit {
     }
   }
 
-
   fetchCategories(userId: number, financialYear: string): void {
     this.categoryService.getCategoriesByUserIdAndFinancialYear(userId, financialYear).subscribe((data: any[]) => {
       this.categories.data = data;
@@ -57,12 +56,12 @@ export class PurchaseCategoriesComponent implements OnInit {
   openAddCategoryDialog(): void {
     const dialogRef = this.dialog.open(AddEditCategoryDialogComponent, {
       width: '400px',
-      data: { category: null }
+      data: { category: null, userId: this.storageService.getUser().id, financialYear: this.financialYear }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.fetchCategories(this.storageService.getUser().id, this.financialYear);
+        this.addCategory(result);
       }
     });
   }
@@ -70,19 +69,44 @@ export class PurchaseCategoriesComponent implements OnInit {
   openEditCategoryDialog(category: any): void {
     const dialogRef = this.dialog.open(AddEditCategoryDialogComponent, {
       width: '400px',
-      data: { category }
+      data: { category, userId: this.storageService.getUser().id, financialYear: this.financialYear }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.fetchCategories(this.storageService.getUser().id, this.financialYear);
+        this.updateCategory(result);
       }
     });
   }
 
-  deleteCategory(categoryId: number): void {
-    this.categoryService.deleteCategory(categoryId).subscribe(() => {
-      this.fetchCategories(this.storageService.getUser().id, this.financialYear);
+  addCategory(category: any): void {
+    this.categoryService.addCategory(category).subscribe((newCategory) => {
+      // Create a *new* array with the added category
+      const newData = [...this.categories.data, newCategory];
+      this.categories.data = newData; // Assign the new array
+      this.categories._updateChangeSubscription(); // Refresh the table
     });
   }
+  
+  updateCategory(updatedCategory: any): void {
+    this.categoryService.updateCategory(updatedCategory.id, updatedCategory).subscribe(() => {
+      const index = this.categories.data.findIndex(category => category.id === updatedCategory.id);
+      if (index !== -1) {
+        // Create a *new* array with the updated category
+        const newData = [...this.categories.data]; // Copy existing data
+        newData[index] = updatedCategory; // Update the copied array
+        this.categories.data = newData; // Assign the new array
+        this.categories._updateChangeSubscription(); // Refresh the table
+      }
+    });
+  }
+  
+  deleteCategory(categoryId: number): void {
+    this.categoryService.deleteCategory(categoryId).subscribe(() => {
+      // Create a *new* array without the deleted category
+      const newData = this.categories.data.filter(category => category.id !== categoryId);
+      this.categories.data = newData; // Assign the new array
+      this.categories._updateChangeSubscription(); // Refresh the table
+    });
+  }  
 }

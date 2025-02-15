@@ -63,7 +63,7 @@ export class UnitsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.fetchUnits(this.userId, this.financialYear);
+        this.addUnitToList(result);
       }
     });
   }
@@ -76,14 +76,39 @@ export class UnitsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.fetchUnits(this.userId, this.financialYear);
+        this.updateUnit(result);
       }
     });
   }
 
-  deleteUnit(unitId: number): void {
-    this.unitService.deleteUnit(unitId).subscribe(() => {
-      this.fetchUnits(this.userId, this.financialYear);
+  addUnitToList(unit: any): void {
+    this.unitService.addUnit(unit).subscribe(response => {
+      // Create a *new* array with the added unit
+      const newData = [...this.units.data, response];
+      this.units.data = newData; // Assign the new array
+      this.units._updateChangeSubscription(); // Refresh the table
     });
   }
+  
+  updateUnit(unit: any): void {
+    this.unitService.updateUnit(unit.id, unit).subscribe(response => {
+      const index = this.units.data.findIndex(u => u.id === response.id);
+      if (index !== -1) {
+        // Create a *new* array with the updated unit
+        const newData = [...this.units.data]; // Copy existing data
+        newData[index] = response; // Update the copied array
+        this.units.data = newData; // Assign the new array
+        this.units._updateChangeSubscription(); // Refresh the table
+      }
+    });
+  }
+  
+  deleteUnit(unitId: number): void {
+    this.unitService.deleteUnit(unitId).subscribe(() => {
+      // Create a *new* array without the deleted unit
+      const newData = this.units.data.filter(unit => unit.id !== unitId);
+      this.units.data = newData; // Assign the new array
+      this.units._updateChangeSubscription(); // Refresh the table
+    });
+  }  
 }

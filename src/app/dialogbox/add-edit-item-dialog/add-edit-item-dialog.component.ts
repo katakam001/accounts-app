@@ -47,20 +47,13 @@ export class AddEditItemDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.itemForm.valid) {
-      const item = {
-        ...this.itemForm.value,
+      const itemData = {
+        id: this.data.item?.id,
+        name: this.itemForm.value.name,
         user_id: this.userId,
         financial_year: this.financialYear
       };
-      if (this.data.item) {
-        this.itemsService.editItem(this.data.item.id, item).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      } else {
-        this.itemsService.addItem(item).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      }
+      this.dialogRef.close(itemData);
     }
   }
 

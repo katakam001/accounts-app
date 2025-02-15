@@ -44,7 +44,7 @@ export class GroupService {
   addGroup(group: Group): Observable<Group> {
     return this.http.post<Group>(this.apiUrl, group).pipe(
       tap(newGroup => {
-        this.groupCache.push(newGroup);
+        this.groupCache = [...this.groupCache, newGroup];
         this.saveToLocalStorage();
       }),
       catchError(this.handleError<Group>('addGroup'))

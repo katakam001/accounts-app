@@ -4,14 +4,15 @@ import { AuthGuard } from './guards/auth.guard';
 import { HomeComponent } from './home/home.component';
 import { RegisterComponent } from './register/register.component';
 import { PasswordResetComponent } from './password-reset/password-reset.component';
-import { EditCashBookDialogComponent } from './dialogbox/edit-cash-book-dialog/edit-cash-book-dialog.component';
-import { EditJournalEntryDialogComponent } from './dialogbox/edit-journal-entry-dialog/edit-journal-entry-dialog.component';
-import { AddEditEntryDialogComponent } from './dialogbox/add-edit-entry-dialog/add-edit-entry-dialog.component';
+import { AccountInformationComponent } from './account-information/account-information.component';
+import { ChangePasswordComponent } from './change-password/change-password.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'accountInfo', component: AccountInformationComponent },
+  { path: 'changePassword', component: ChangePasswordComponent },
   { path: 'password-reset/confirm', component: PasswordResetComponent },
   { path: 'home', component: HomeComponent, title: 'Home page' },
   { path: 'accountList', loadChildren: () => import('./configuration/account-list/account-list.module').then(m => m.AccountListModule), title: 'Account List page', canActivate: [AuthGuard] },

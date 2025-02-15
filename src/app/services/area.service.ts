@@ -43,7 +43,7 @@ export class AreaService {
   addArea(area: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, area).pipe(
       tap(newArea => {
-        this.areas.push(newArea);
+        this.areas = [...this.areas, newArea];
         this.saveToLocalStorage();
       }),
       catchError(this.handleError<any>('addArea'))

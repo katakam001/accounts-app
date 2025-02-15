@@ -73,7 +73,7 @@ export class ItemListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadItems();
+        this.addItemToList(result);
       }
     });
   }
@@ -86,14 +86,39 @@ export class ItemListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadItems();
+        this.updateItem(result);
       }
     });
   }
 
-  deleteItem(itemId: number): void {
-    this.itemsService.deleteItem(itemId).subscribe(() => {
-      this.loadItems();
+  addItemToList(item: any): void {
+    this.itemsService.addItem(item).subscribe(response => {
+      // Create a *new* array with the added item
+      const newData = [...this.dataSource.data, response];
+      this.dataSource.data = newData; // Assign the new array
+      this.dataSource._updateChangeSubscription(); // Refresh the table
     });
   }
+  
+  updateItem(item: any): void {
+    this.itemsService.editItem(item.id, item).subscribe(response => {
+      const index = this.dataSource.data.findIndex(i => i.id === response.id);
+      if (index !== -1) {
+        // Create a *new* array with the updated item
+        const newData = [...this.dataSource.data]; // Copy existing data
+        newData[index] = response; // Update the copied array
+        this.dataSource.data = newData; // Assign the new array
+        this.dataSource._updateChangeSubscription(); // Refresh the table
+      }
+    });
+  }
+  
+  deleteItem(itemId: number): void {
+    this.itemsService.deleteItem(itemId).subscribe(() => {
+      // Create a *new* array without the deleted item
+      const newData = this.dataSource.data.filter(item => item.id !== itemId);
+      this.dataSource.data = newData; // Assign the new array
+      this.dataSource._updateChangeSubscription(); // Refresh the table
+    });
+  }  
 }

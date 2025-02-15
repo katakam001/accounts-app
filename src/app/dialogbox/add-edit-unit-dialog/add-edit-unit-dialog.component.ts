@@ -38,20 +38,14 @@ export class AddEditUnitDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.unitForm.valid) {
-      const unit = {
-        ...this.unitForm.value,
-        userId: this.userId,
-        financialYear: this.financialYear
+      const formValue = this.unitForm.value;
+      const updatedUnit = {
+        id: this.data.unit?.id,
+        name: formValue.name,
+        user_id: this.userId,
+        financial_year: this.financialYear
       };
-      if (this.data.unit) {
-        this.unitService.updateUnit(this.data.unit.id, unit).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      } else {
-        this.unitService.addUnit(unit).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      }
+      this.dialogRef.close(updatedUnit);
     }
   }
 

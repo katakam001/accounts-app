@@ -43,7 +43,7 @@ export class UnitService {
   addUnit(unit: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, unit).pipe(
       tap(newUnit => {
-        this.unitCache.push(newUnit);
+        this.unitCache = [...this.unitCache, newUnit];
         this.saveToLocalStorage();
       }),
       catchError(this.handleError<any>('addUnit'))

@@ -43,7 +43,7 @@ export class FieldService {
   addField(field: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, field).pipe(
       tap(newField => {
-        this.fieldCache.push(newField);
+        this.fieldCache = [...this.fieldCache, newField];
         this.saveToLocalStorage();
       }),
       catchError(this.handleError<any>('addField'))

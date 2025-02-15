@@ -72,7 +72,7 @@ export class FieldsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadFields();
+        this.addFieldToList(result);
       }
     });
   }
@@ -85,14 +85,42 @@ export class FieldsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadFields();
+        this.updateField(result);
+      }
+    });
+  }
+
+  addFieldToList(field: any): void {
+    this.fieldService.addField(field).subscribe(response => {
+      console.log(response);
+
+      // Create a *new* array with the added field
+      const newData = [...this.dataSource.data, response];  // Spread operator creates a copy
+      this.dataSource.data = newData; // Assign the new array
+      this.dataSource._updateChangeSubscription(); // Still needed but now works correctly
+    });
+  }
+
+  updateField(field: any): void {
+    this.fieldService.updateField(field.id, field).subscribe(response => {
+      const index = this.dataSource.data.findIndex(f => f.id === response.id);
+      console.log(response);
+      if (index !== -1) {
+        // Create a *new* array with the updated field
+        const newData = [...this.dataSource.data]; // Copy existing data
+        newData[index] = response; // Update the copied array
+        this.dataSource.data = newData; // Assign the new array
+        this.dataSource._updateChangeSubscription();
       }
     });
   }
 
   deleteField(fieldId: number): void {
     this.fieldService.deleteField(fieldId).subscribe(() => {
-      this.loadFields();
+      // Create a *new* array without the deleted field
+      const newData = this.dataSource.data.filter(field => field.id !== fieldId);
+      this.dataSource.data = newData; // Assign the new array
+      this.dataSource._updateChangeSubscription();
     });
   }
 }

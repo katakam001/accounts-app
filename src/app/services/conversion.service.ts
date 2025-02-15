@@ -43,7 +43,7 @@ export class ConversionService {
   addConversion(conversion: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, conversion).pipe(
       tap(newConversion => {
-        this.conversions.push(newConversion);
+        this.conversions = [...this.conversions, newConversion];
         this.saveToLocalStorage();
       }),
       catchError(this.handleError<any>('addConversion'))

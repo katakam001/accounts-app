@@ -1,0 +1,21 @@
+<div class="account-information-container">
+    <mat-card class="account-information-card">
+      <mat-card-header>
+        <mat-card-title>Account Information</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div *ngIf="user" class="user-info">
+          <div class="user-detail">
+            <mat-icon>person</mat-icon>
+            <h4>Username: {{ user.username }}</h4>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="user-detail">
+            <mat-icon>email</mat-icon>
+            <h4>Email: {{ user.email }}</h4>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  

@@ -47,20 +47,14 @@ export class AddEditAreaDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.areaForm.valid) {
-      const area = {
-        ...this.areaForm.value,
+      const formValue = this.areaForm.value;
+      const updatedArea = {
+        id: this.data.area?.id,
+        name: formValue.name,
         user_id: this.userId,
         financial_year: this.financialYear
       };
-      if (this.data.area) {
-        this.areaService.updateArea(this.data.area.id, area).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      } else {
-        this.areaService.addArea(area).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      }
+      this.dialogRef.close(updatedArea);
     }
   }
 

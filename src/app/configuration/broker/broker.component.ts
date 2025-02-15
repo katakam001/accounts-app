@@ -63,7 +63,6 @@ export class BrokerComponent implements OnInit {
       this.dataSource.sort = this.sort;
     });
   }
-
   addBroker(): void {
     const dialogRef = this.dialog.open(AddEditBrokerDialogComponent, {
       width: '400px',
@@ -72,7 +71,7 @@ export class BrokerComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadBrokers();
+        this.addBrokerToList(result);
       }
     });
   }
@@ -85,14 +84,54 @@ export class BrokerComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.loadBrokers();
+        this.updateBroker(result);
       }
     });
   }
 
-  deleteBroker(brokerId: number): void {
-    this.brokerService.deleteBroker(brokerId).subscribe(() => {
-      this.loadBrokers();
-    });
+addBrokerToList(broker: any): void { // Type the broker if possible
+// In your BrokerComponent (or wherever you call addBroker)
+this.brokerService.addBroker(broker).subscribe({
+  next: (newBroker) => {
+      console.log("Broker added (component):", newBroker); // Log the new broker
+      console.log("Data source before update:", this.dataSource.data); // Log data source before
+      const newData = [...this.dataSource.data, newBroker];
+      this.dataSource.data = newData;
+      this.dataSource._updateChangeSubscription();
+      console.log("Data source after update:", this.dataSource.data); // Log data source after
+  },
+  error: (error) => {
+      console.error("Error adding broker:", error);
   }
+});
+}
+
+updateBroker(broker: any): void { // Type the broker if possible
+  this.brokerService.updateBroker(broker.id, broker).subscribe({
+    next: (response: any) => { // Type the response
+      const index = this.dataSource.data.findIndex(b => b.id === response.id);
+      if (index !== -1) {
+        const newData = [...this.dataSource.data];
+        newData[index] = response;
+        this.dataSource.data = newData;
+        this.dataSource._updateChangeSubscription();
+      }
+    },
+    error: (error) => {
+      console.error("Error updating broker:", error);
+    }
+  });
+}
+
+deleteBroker(brokerId: number): void {
+  this.brokerService.deleteBroker(brokerId).subscribe({
+    next: () => {
+      this.dataSource.data = this.dataSource.data.filter(broker => broker.id !== brokerId);
+      this.dataSource._updateChangeSubscription();
+    },
+    error: (error) => {
+      console.error("Error deleting broker:", error);
+    }
+  });
+}
 }

@@ -38,7 +38,7 @@ export class CategoryService {
             if (!this.categoryCache[individualCacheKey]) {
               this.categoryCache[individualCacheKey] = { data: [], timestamp: currentTime };
             }
-            this.categoryCache[individualCacheKey].data.push(category);
+            this.categoryCache[individualCacheKey].data = [...this.categoryCache[individualCacheKey].data, category];
           });
           this.lastCacheTime = currentTime;
           this.saveToLocalStorage();
@@ -73,13 +73,13 @@ export class CategoryService {
   addCategory(category: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, category).pipe(
       tap(newCategory => {
-        const allCacheKey = `all_${category.userId}_${category.financialYear}`;
+        const allCacheKey = `all_${category.user_id}_${category.financial_year}`;
         if (this.categoryCache[allCacheKey]) {
-          this.categoryCache[allCacheKey].data.push(newCategory);
+          this.categoryCache[allCacheKey].data = [...this.categoryCache[allCacheKey].data, newCategory];
         }
-        const typeCacheKey = `type_${category.userId}_${category.financialYear}_${newCategory.type}`;
+        const typeCacheKey = `type_${category.user_id}_${category.financial_year}_${newCategory.type}`;
         if (this.categoryCache[typeCacheKey]) {
-          this.categoryCache[typeCacheKey].data.push(newCategory);
+          this.categoryCache[typeCacheKey].data = [...this.categoryCache[typeCacheKey].data, newCategory];
         }
         this.saveToLocalStorage();
       }),
@@ -90,14 +90,14 @@ export class CategoryService {
   updateCategory(categoryId: number, category: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/${categoryId}`, category).pipe(
       tap(updatedCategory => {
-        const allCacheKey = `all_${category.userId}_${category.financialYear}`;
+        const allCacheKey = `all_${category.user_id}_${category.financial_year}`;
         if (this.categoryCache[allCacheKey]) {
           const index = this.categoryCache[allCacheKey].data.findIndex(c => c.id === categoryId);
           if (index !== -1) {
             this.categoryCache[allCacheKey].data[index] = updatedCategory;
           }
         }
-        const typeCacheKey = `type_${category.userId}_${category.financialYear}_${updatedCategory.type}`;
+        const typeCacheKey = `type_${category.user_id}_${category.financial_year}_${updatedCategory.type}`;
         if (this.categoryCache[typeCacheKey]) {
           const index = this.categoryCache[typeCacheKey].data.findIndex(c => c.id === categoryId);
           if (index !== -1) {

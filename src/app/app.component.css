@@ -92,3 +92,8 @@
   margin: 16px 0;
   padding: 8px 0;
 }
+
+.down-arrow-icon {
+  margin-left: 8px; /* Add margin to the left of the icon */
+  vertical-align: middle; /* Align the icon vertically */
+}

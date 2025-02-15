@@ -15,8 +15,6 @@ import { MatSelectModule } from '@angular/material/select';
 })
 export class AddEditCategoryDialogComponent implements OnInit {
   categoryForm: FormGroup;
-  userId: number;
-  financialYear: string;
 
   constructor(
     private fb: FormBuilder,
@@ -28,8 +26,6 @@ export class AddEditCategoryDialogComponent implements OnInit {
       name: ['', Validators.required],
       type: [null, Validators.required] // Use a number for the type field
     });
-    this.userId = data.userId;
-    this.financialYear = data.financialYear;
   }
 
   ngOnInit(): void {
@@ -40,20 +36,15 @@ export class AddEditCategoryDialogComponent implements OnInit {
 
   onSave(): void {
     if (this.categoryForm.valid) {
-      const category = {
-        ...this.categoryForm.value,
-        userId: this.userId,
-        financialYear: this.financialYear
+      const formValue = this.categoryForm.value;
+      const updatedCategory = {
+        id: this.data.category?.id,
+        name: formValue.name,
+        type: formValue.type,
+        financial_year: this.data.financialYear,
+        user_id: this.data.userId
       };
-      if (this.data.category) {
-        this.categoryService.updateCategory(this.data.category.id, category).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      } else {
-        this.categoryService.addCategory(category).subscribe(() => {
-          this.dialogRef.close(true);
-        });
-      }
+      this.dialogRef.close(updatedCategory);
     }
   }
 
