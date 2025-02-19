@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
+import { environment } from '../../environments/environment.prod';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WebSocketService {
+  private websocketUrl = environment.websocketUrl;
   private socket: WebSocket;
   private insertSubject = new Subject<any>();
   private updateSubject = new Subject<any>();
@@ -17,7 +19,7 @@ export class WebSocketService {
   }
 
   private connect() {
-    this.socket = new WebSocket('ws://localhost:8080'); // Use your WebSocket server URL
+    this.socket = new WebSocket(this.websocketUrl); // Use your WebSocket server URL
 
     this.socket.onopen = () => {
       console.log('WebSocket connection established');

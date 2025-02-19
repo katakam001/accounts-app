@@ -26,7 +26,7 @@ export class AuthService {
     );
   }
 
-  register(firstname: string, middlename: string, lastname: string, username: string, email: string, password: string): Observable<any> {
+  register(firstname: string, middlename: string, lastname: string, username: string, email: string, password: string,role: string, adminId: number | null): Observable<any> {
     return this.http.post<any>(
       AUTH_API + 'signup',
       {
@@ -36,6 +36,8 @@ export class AuthService {
         username,
         email,
         password,
+        role: role, // Pass the selected role
+        adminId: adminId // Pass the admin ID if applicable
       }
     ).pipe(
       catchError(this.handleError)
@@ -67,8 +69,16 @@ export class AuthService {
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
-    // Customize error handling logic as needed
-    console.error('An error occurred:', error);
-    return throwError('Something went wrong; please try again later.');
+    // Extract error message from the response
+    let errorMessage = 'Something went wrong; please try again later.';
+    if (error.error instanceof ErrorEvent) {
+      // Client-side error
+      errorMessage = error.error.message;
+    } else {
+      // Server-side error
+      errorMessage = error.error.message || `Error Code: ${error.status}\nMessage: ${error.message}`;
+    }
+    console.error('An error occurred:', errorMessage);
+    return throwError(errorMessage);
   }
 }

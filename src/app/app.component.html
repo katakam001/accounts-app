@@ -3,7 +3,8 @@
     <mat-icon>menu</mat-icon>
   </button>
   <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/home" routerLinkActive="active">Home</button>
-  <button *ngIf="storageService.isLoggedIn()" mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
+  <button *ngIf="storageService.isLoggedIn() && storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')" mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
+  <button *ngIf="storageService.isLoggedIn() && storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_ADMIN')" mat-button routerLink="/admin-dashboard" routerLinkActive="active">Admin Dashboard</button>
   <span class="spacer"></span>
   <ng-container *ngIf="storageService.isLoggedIn()">
     <button mat-button [matMenuTriggerFor]="userMenu">
@@ -31,7 +32,16 @@
 
 <mat-sidenav-container class="example-sidenav-container" *ngIf="storageService.isLoggedIn()">
   <mat-sidenav #snav mode="side">
-    <mat-nav-list>
+      <mat-nav-list *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_ADMIN')">
+      <h3 class="section-heading">Configuration</h3>
+      <a mat-list-item routerLink="/user-list" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">supervised_user_circle</mat-icon>
+          <span>User List</span>
+        </div>
+      </a>
+    </mat-nav-list>
+    <mat-nav-list *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')">
       <h3 class="section-heading">Configuration</h3>
       <a mat-list-item routerLink="/groupList" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">
@@ -112,7 +122,7 @@
         </div>
       </a>
     </mat-nav-list>
-    <mat-nav-list>
+    <mat-nav-list *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')">
       <h3 class="section-heading">Data Entry</h3>
       <a mat-list-item routerLink="/journalEntries" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">
@@ -169,7 +179,7 @@
         </div>
       </a>
     </mat-nav-list>
-    <mat-nav-list>
+    <mat-nav-list *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')">
       <h3 class="section-heading">Reports</h3>
       <a mat-list-item routerLink="/trailBalance" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">

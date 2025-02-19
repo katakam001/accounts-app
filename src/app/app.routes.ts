@@ -6,6 +6,7 @@ import { RegisterComponent } from './register/register.component';
 import { PasswordResetComponent } from './password-reset/password-reset.component';
 import { AccountInformationComponent } from './account-information/account-information.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
+import { AdminAuthGuard } from './guards/admin-auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -15,6 +16,9 @@ export const routes: Routes = [
   { path: 'changePassword', component: ChangePasswordComponent },
   { path: 'password-reset/confirm', component: PasswordResetComponent },
   { path: 'home', component: HomeComponent, title: 'Home page' },
+  { path: 'user-list', loadChildren: () => import('./admin/user-list/user-list.module').then(m => m.UserListModule), title: 'User List page', canActivate: [AdminAuthGuard] },
+  { path: 'dashboard', loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule), title: 'Dashboard page', canActivate: [AuthGuard] },
+  { path: 'admin-dashboard', loadChildren: () => import('./admin/admin-dashboard/admin-dashboard.module').then(m => m.AdminDashboardModule), title: 'Admin Dashboard page', canActivate: [AdminAuthGuard] },
   { path: 'accountList', loadChildren: () => import('./configuration/account-list/account-list.module').then(m => m.AccountListModule), title: 'Account List page', canActivate: [AuthGuard] },
   { path: 'groupList', loadChildren: () => import('./configuration/group-list/group-list.module').then(m => m.GroupListModule), title: 'Group List page', canActivate: [AuthGuard] },
   { path: 'categories', loadChildren: () => import('./configuration/purchase-categories/purchase-categories.module').then(m => m.PurchaseCategoriesModule), title: 'Purchase Categories page', canActivate: [AuthGuard] },
@@ -37,7 +41,6 @@ export const routes: Routes = [
   { path: 'creditNote', loadChildren: () => import('./dataentry/credit-note/credit-note.module').then(m => m.CreditNoteModule), title: 'Credit Note page', canActivate: [AuthGuard] },
   { path: 'debitNote', loadChildren: () => import('./dataentry/debit-note/debit-note.module').then(m => m.DebitNoteModule), title: 'Debit Note page', canActivate: [AuthGuard] },
   { path: 'productionEntry', loadChildren: () => import('./dataentry/production-entry/production-entry.module').then(m => m.ProductionEntryModule), title: 'Production Entry page', canActivate: [AuthGuard] },
-  { path: 'dashboard', loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule), title: 'Dashboard page', canActivate: [AuthGuard] },
   { path: 'trailBalance', loadChildren: () => import('./reports/trail-balance/trail-balance.module').then(m => m.TrailBalanceModule), title: 'Trail Balance page', canActivate: [AuthGuard] },
   { path: 'stockRegister', loadChildren: () => import('./reports/stock-register/stock-register.module').then(m => m.StockRegisterModule), title: 'Stock Register page', canActivate: [AuthGuard] },
   { path: 'yieldStatement', loadChildren: () => import('./reports/yield-statement/yield-statement.module').then(m => m.YieldStatementModule), title: 'Yield Statment page', canActivate: [AuthGuard] },

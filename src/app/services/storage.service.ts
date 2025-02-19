@@ -11,6 +11,7 @@ import { AreaService } from './area.service';
 import { FinancialYearService } from './financial-year.service';
 
 const USER_KEY = 'auth-user';
+const ADMIN_KEY = 'admin-user';
 
 @Injectable({
   providedIn: 'root'
@@ -60,6 +61,28 @@ export class StorageService {
       }
     }
     return null;
+  }
+
+  public saveAdminDetails(admin: any): void {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(ADMIN_KEY, JSON.stringify(admin));
+    }
+  }
+
+  public getAdminDetails(): any {
+    if (typeof window !== 'undefined') {
+      const admin = window.localStorage.getItem(ADMIN_KEY);
+      if (admin) {
+        return JSON.parse(admin);
+      }
+    }
+    return null;
+  }
+
+  public clearAdminDetails(): void {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(ADMIN_KEY);
+    }
   }
 
   public isLoggedIn(): boolean {

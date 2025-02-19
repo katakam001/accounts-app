@@ -1,0 +1,9 @@
+/* src/app/admin-dashboard/admin-dashboard.component.css */
+.admin-dashboard-container {
+    padding: 20px;
+  }
+  
+  .admin-dashboard-container h2 {
+    margin-bottom: 20px;
+  }
+  

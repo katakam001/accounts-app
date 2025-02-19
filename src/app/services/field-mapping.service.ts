@@ -201,8 +201,8 @@ export class FieldMappingService {
         if (cachedFieldMappings.length + 1 > this.cacheCapacity) {
           lastFieldMapping = cachedFieldMappings.pop(); // Remove the last field mapping
         }
-        cachedFieldMappings.push(newFieldMapping); // Push the new field mapping to the last index
-        this.setCachedFieldMappings(cachedFieldMappings);
+        const updatedFieldMappings = [...cachedFieldMappings, newFieldMapping];
+        this.setCachedFieldMappings(updatedFieldMappings);
   
         // Increment totalFieldMappingsCount by 1
         this.setTotalFieldMappingsCount(this.getTotalFieldMappingsCount() + 1);

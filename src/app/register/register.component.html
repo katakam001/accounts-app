@@ -27,26 +27,41 @@
           <mat-form-field appearance="fill" class="form-field">
             <mat-label>Username</mat-label>
             <mat-icon matPrefix>person</mat-icon>
-            <input matInput formControlName="username" required>
+            <input matInput formControlName="username" required autocomplete="username">
           </mat-form-field>
         </div>
         <div class="form-row">
           <mat-form-field appearance="fill" class="form-field">
             <mat-label>Email</mat-label>
             <mat-icon matPrefix>email</mat-icon>
-            <input matInput type="email" formControlName="email" required>
+            <input matInput type="email" formControlName="email" required autocomplete="email">
           </mat-form-field>
-          <mat-form-field appearance="fill" class="form-field">
-            <mat-label>Password</mat-label>
-            <mat-icon matPrefix>lock</mat-icon>
-            <input matInput type="password" formControlName="password" required>
+          <mat-form-field appearance="fill" class="form-field" *ngIf="isUserCreation">
+            <mat-label>Role</mat-label>
+            <mat-icon matPrefix>assignment_ind</mat-icon>
+            <mat-select formControlName="role">
+              <mat-option value="user">User</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="form-field" *ngIf="!isUserCreation">
+            <mat-label>Role</mat-label>
+            <mat-icon matPrefix>assignment_ind</mat-icon>
+            <mat-select formControlName="role">
+              <mat-option value="user">User</mat-option>
+              <mat-option value="admin">Admin</mat-option>
+            </mat-select>
           </mat-form-field>
         </div>
         <div class="form-row">
           <mat-form-field appearance="fill" class="form-field">
+            <mat-label>Password</mat-label>
+            <mat-icon matPrefix>lock</mat-icon>
+            <input matInput type="password" formControlName="password" required autocomplete="new-password">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="form-field">
             <mat-label>Confirm Password</mat-label>
             <mat-icon matPrefix>lock</mat-icon>
-            <input matInput type="password" formControlName="confirmPassword" required>
+            <input matInput type="password" formControlName="confirmPassword" required autocomplete="new-password">
           </mat-form-field>
         </div>
         <button mat-raised-button color="primary" type="submit" class="signup-button">

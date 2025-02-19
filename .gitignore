@@ -1,8 +1,8 @@
 node_modules
 .angular
-dist
+dist_current_prod
 dist_v2
-dist_uploaded_files
+dist
 deleteFiles.ps1
 filesToDelete.txt
 buildtest
