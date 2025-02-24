@@ -1,7 +1,7 @@
 export interface TrailBalanceReport {
-    groupId: string;
+    groupId: number;
     groupName: string;
-    accountId: string | null;
+    accountId: number | null;
     accountName: string | null;
     totalDebit: string;
     totalCredit: string;

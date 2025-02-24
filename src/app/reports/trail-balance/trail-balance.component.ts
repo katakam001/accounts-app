@@ -60,12 +60,13 @@ export class TrailBalanceComponent implements OnInit {
     });
   }
 
-  navigateToJournalEntry(accountName: string | null, groupName: string): void {
-    const accountNameStr = accountName ?? ''; // Use an empty string if accountName is null
+  navigateToJournalEntry(accountId: number | null, groupId: number,groupName:string): void {
+    console.log(accountId);
+    console.log(groupId);
     if (groupName === 'Sundary Debtors' || groupName === 'Sundary Creditors') {
-      this.router.navigate(['/journalEntries'], { queryParams: { groupName: groupName } });
+      this.router.navigate(['/journalEntries'], { queryParams: { groupId: groupId } });
     } else {
-      this.router.navigate(['/journalEntries'], { queryParams: { accountName: accountNameStr } });
+      this.router.navigate(['/journalEntries'], { queryParams: { accountId: accountId } });
     }
   }
   

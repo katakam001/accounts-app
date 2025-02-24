@@ -10,9 +10,11 @@ import { EditJournalEntryDialogComponent } from '../../dialogbox/edit-journal-en
 import { StorageService } from '../../services/storage.service';
 import { AddJournalEntryDialogComponent } from '../../dialogbox/add-journal-entry-dialog/add-journal-entry-dialog.component';
 import { FinancialYearService } from '../../services/financial-year.service';
+import { AccountService } from '../../services/account.service';
 import { ActivatedRoute } from '@angular/router';
 import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
 import { Subscription } from 'rxjs'; // Import Subscription
+import { GroupService } from '../../services/group.service';
 
 @Component({
   selector: 'app-journal-list',
@@ -28,24 +30,27 @@ export class JournalListComponent implements OnInit, OnDestroy {
   nestedDisplayedColumns: string[] = ['account_name', 'group_name', 'debit_amount', 'credit_amount'];
   expandedElement: JournalEntry | null;
   financialYear: string;
-  accountName: string | null = null;
-  groupName: string | null = null;
+  accountId: number;
+  groupId: number;
+  accountMap: { [key: number]: string } = {};
+  groupMap: { [key: number]: string } = {};
 
   constructor(
     private journalService: JournalService,
     public dialog: MatDialog,
     private storageService: StorageService,
     private financialYearService: FinancialYearService,
+    private accountService: AccountService,
+    private groupService: GroupService,
     private route: ActivatedRoute,
     private webSocketService: WebSocketService // Inject WebSocket service
   ) { }
 
   ngOnInit(): void {
-    this.getFinancialYear();
     this.route.queryParams.subscribe(params => {
-      this.accountName = params['accountName'] || null;
-      this.groupName = params['groupName'] || null;
-      this.fetchJournalEntries();
+      this.accountId = params['accountId'] || null;
+      this.groupId = params['groupId'] || null;
+      this.getFinancialYear();
     });
     this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
@@ -57,23 +62,69 @@ export class JournalListComponent implements OnInit, OnDestroy {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
       this.financialYear = storedFinancialYear;
-      this.fetchJournalEntries();
+      this.fetchAccountAndGroup().then(() => {
+        console.log("test1");
+        this.fetchJournalEntries();
+      });
     }
+  }
+  async fetchAccountAndGroup(): Promise<void> {
+    await Promise.all([this.fetchSuppliers(), this.fetchGroupList()]);
+  }
+
+  fetchSuppliers(): Promise<void> {
+    return new Promise((resolve) => {
+      const userId = this.storageService.getUser().id;
+      this.accountService.getAccountsByUserIdAndFinancialYear(userId, this.financialYear).subscribe((accounts: any[]) => {
+        accounts.forEach(account => {
+          this.accountMap[account.id] = account.name;
+        });
+        resolve();
+      });
+    });
+  }
+  fetchGroupList(): Promise<void> {
+    return new Promise((resolve) => {
+      const userId = this.storageService.getUser().id;
+      this.groupService.getGroupsByUserIdAndFinancialYear(userId, this.financialYear).subscribe((groups: any[]) => {
+        groups.forEach(group => {
+          this.groupMap[group.id] = group.name;
+        });
+        resolve();
+      });
+    });
+  }
+
+  updateJournalEntiresWithgroupAndAccountMap(data: any[]): void {
+    const userId = this.storageService.getUser().id;
+    const username = this.storageService.getUser().username;
+    data.forEach(entry => {
+      entry.user_id = userId;
+      entry.user_name = username;
+      entry.financial_year =  this.financialYear,
+      entry.items.forEach((item:any) => {
+        item.account_name = this.accountMap[item.account_id];
+        item.group_name = this.groupMap[item.group_id];
+        item.debit_amount =  item.type ? 0 : item.amount,
+        item.credit_amount =  item.type ? item.amount : 0
+      });
+    });
+    this.journalEntries.data = data.sort((a, b) => new Date(a.journal_date).getTime() - new Date(b.journal_date).getTime());
   }
 
   fetchJournalEntries(): void {
     const userId = this.storageService.getUser().id;
-    if (this.groupName) {
-      this.journalService.getJournalEntriesByGroup(this.groupName, userId, this.financialYear).subscribe((data: JournalEntry[]) => {
-        this.journalEntries.data = data.sort((a, b) => new Date(a.journal_date).getTime() - new Date(b.journal_date).getTime());
+    if (this.groupId) {
+      this.journalService.getJournalEntriesByGroup(this.groupId, userId, this.financialYear).subscribe((data: any[]) => {
+        this.updateJournalEntiresWithgroupAndAccountMap(data);
       });
-    } else if (this.accountName) {
-      this.journalService.getJournalEntriesByAccount(this.accountName, userId, this.financialYear).subscribe((data: JournalEntry[]) => {
-        this.journalEntries.data = data.sort((a, b) => new Date(a.journal_date).getTime() - new Date(b.journal_date).getTime());
+    } else if (this.accountId) {
+      this.journalService.getJournalEntriesByAccount(this.accountId, userId, this.financialYear).subscribe((data: any[]) => {
+        this.updateJournalEntiresWithgroupAndAccountMap(data);
       });
     } else {
-      this.journalService.getJournalEntriesByUserIdAndFinancialYear(userId, this.financialYear).subscribe((data: JournalEntry[]) => {
-        this.journalEntries.data = data.sort((a, b) => new Date(a.journal_date).getTime() - new Date(b.journal_date).getTime());
+      this.journalService.getJournalEntriesByUserIdAndFinancialYear(userId, this.financialYear).subscribe((data: any[]) => {
+        this.updateJournalEntiresWithgroupAndAccountMap(data);
       });
     }
   }
@@ -109,25 +160,52 @@ export class JournalListComponent implements OnInit, OnDestroy {
 
   subscribeToWebSocketEvents(): void {
     console.log("hello");
+    const username = this.storageService.getUser().username;
     const currentUserId = this.storageService.getUser().id;
     const currentFinancialYear = this.financialYear;
 
     const handleEvent = (data: any, action: 'INSERT' | 'UPDATE' | 'DELETE') => {
       console.log(`Handling event: ${action}`, data);
-      if (data.entryType === 'journal' && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+      if (data.entryType === 'journal' || data.entryType === 'entry' && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
         switch (action) {
           case 'INSERT':
+            const items = data.entryType === 'journal' ? data.data.items : data.data.journalEntry.items;
+            items.forEach((item: any) => {
+              item.account_name = this.accountMap[item.account_id];
+              item.group_name = this.groupMap[item.group_id];
+              item.debit_amount = item.type ? 0 : item.amount;
+              item.credit_amount = item.type ? item.amount : 0;
+            }); 
+            const convertedObjectInsert = {
+              ...(data.entryType === 'journal' ? data.data : data.data.journalEntry),
+              user_id: currentUserId,
+              user_name: username,
+              financial_year: currentFinancialYear,
+            };
             console.log('Processing INSERT event');
-            this.journalEntries.data = [...this.journalEntries.data, data.data];
+            this.journalEntries.data = [...this.journalEntries.data, convertedObjectInsert];
             console.log('Inserted data:', this.journalEntries.data);
             break;
           case 'UPDATE':
             console.log('Processing UPDATE event');
             const updateIndex = this.journalEntries.data.findIndex(entry => entry.id === data.data.id);
             if (updateIndex !== -1) {
+              const items = data.entryType === 'journal' ? data.data.items : data.data.journalEntry.items;
+              items.forEach((item:any) => {
+                item.account_name = this.accountMap[item.account_id];
+                item.group_name = this.groupMap[item.group_id];
+                item.debit_amount =  item.type ? 0 : item.amount,
+                item.credit_amount =  item.type ? item.amount : 0
+            });
+              const convertedObjectUpdate = {
+                ...(data.entryType === 'journal' ? data.data : data.data.journalEntry),
+                user_id: currentUserId,
+                user_name: username,
+                financial_year:currentFinancialYear,
+              };
               this.journalEntries.data[updateIndex] = {
                 ...this.journalEntries.data[updateIndex],
-                ...data.data,
+                ...convertedObjectUpdate,
               };
               this.journalEntries.data = [...this.journalEntries.data];
               console.log('Updated data:', this.journalEntries.data);

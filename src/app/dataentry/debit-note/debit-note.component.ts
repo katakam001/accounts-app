@@ -12,6 +12,11 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { CommonModule } from '@angular/common';
 import { BrokerService } from '../../services/broker.service';
 import { AreaService } from '../../services/area.service';
+import { UnitService } from '../../services/unit.service';
+import { CategoryService } from '../../services/category.service';
+import { AccountService } from '../../services/account.service';
+import { ItemsService } from '../../services/items.service';
+import { FieldService } from '../../services/field.service';
 import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
 import { Subscription } from 'rxjs'; // Import Subscription
 
@@ -35,7 +40,11 @@ export class DebitNoteComponent implements OnInit,OnDestroy {
   expandedRows: { [key: number]: boolean } = {};
   brokerMap: { [key: number]: string } = {};
   areaMap: { [key: number]: string } = {};
-
+  categoryMap: { [key: number]: string } = {};
+  accountMap: { [key: number]: string } = {};
+  itemMap: { [key: number]: string } = {};
+  unitMap: { [key: number]: string } = {};
+  fieldMap: { [key: number]: string } = {};
   constructor(
     private entryService: EntryService,
     public dialog: MatDialog,
@@ -43,6 +52,11 @@ export class DebitNoteComponent implements OnInit,OnDestroy {
     private financialYearService: FinancialYearService,
     private brokerService: BrokerService,
     private areaService: AreaService,
+    private categoryService: CategoryService,
+    private accountService: AccountService,
+    private itemsService: ItemsService, // Inject ItemService
+    private unitService: UnitService,
+    private fieldService: FieldService,
     private webSocketService: WebSocketService // Inject WebSocket service
   ) {
     this.entries = new MatTableDataSource<any>([]);
@@ -67,7 +81,7 @@ export class DebitNoteComponent implements OnInit,OnDestroy {
   }
 
   async fetchBrokersAndAreas(): Promise<void> {
-    await Promise.all([this.fetchBrokers(), this.fetchAreas()]);
+    await Promise.all([this.fetchBrokers(), this.fetchAreas(), this.fetchCategories(2), this.fetchSuppliers(), this.fetchItems(), this.fetchUnits(), this.fetchFields()]);
   }
 
   fetchEntries(): void {
@@ -106,8 +120,74 @@ export class DebitNoteComponent implements OnInit,OnDestroy {
     });
   }
 
+  fetchCategories(type: number): Promise<void> {
+    return new Promise((resolve) => {
+      const userId = this.storageService.getUser().id;
+      this.categoryService.getCategoriesByType(userId, this.financialYear, type).subscribe((data: any[]) => {
+        data.forEach(category => {
+          this.categoryMap[category.id] = category.name;
+        });
+        resolve();
+      });
+    });
+  }
+
+  fetchSuppliers(): Promise<void> {
+    return new Promise((resolve) => {
+      const userId = this.storageService.getUser().id;
+      this.accountService.getAccountsByUserIdAndFinancialYear(userId, this.financialYear, ['Sundary Creditors', 'Sundary Debtors']).subscribe((accounts: any[]) => {
+        accounts.forEach(account => {
+          this.accountMap[account.id] = account.name;
+        });
+        resolve();
+      });
+    });
+  }
+
+  fetchItems(): Promise<void> {
+    return new Promise((resolve) => {
+      const userId = this.storageService.getUser().id;
+      this.itemsService.getItemsByUserIdAndFinancialYear(userId, this.financialYear).subscribe((data: any[]) => {
+        data.forEach(item => {
+          this.itemMap[item.id] = item.name;
+        });
+        resolve();
+      });
+    });
+  }
+
+  fetchUnits(): Promise<void> {
+    return new Promise((resolve) => {
+      const userId = this.storageService.getUser().id;
+      this.unitService.getUnitsByUserIdAndFinancialYear(userId, this.financialYear).subscribe((data: any[]) => {
+        data.forEach(unit => {
+          this.unitMap[unit.id] = unit.name;
+        });
+        resolve();
+      });
+    });
+  }
+  fetchFields(): Promise<void> {
+    return new Promise((resolve) => {
+      const userId = this.storageService.getUser().id;
+      this.fieldService.getAllFieldsByUserIdAndFinancialYear(userId, this.financialYear).subscribe((data: any[]) => {
+        data.forEach(field => {
+          this.fieldMap[field.id] = field.field_name;
+        });
+        resolve();
+      });
+    });
+  }
+
   updateEntriesWithDynamicFields(data: any[]): void {
     data.forEach(entry => {
+      entry.category_name = this.categoryMap[entry.category_id];
+      entry.account_name = this.accountMap[entry.account_id];
+      entry.item_name = this.itemMap[entry.item_id];
+      entry.unit_name = this.unitMap[entry.unit_id];
+      entry.fields.forEach((field:any) => {
+        field.field_name=this.fieldMap[field.field_id]
+      });
       entry.dynamicFields = entry.fields;
     });
     this.entries.data = data;
@@ -149,17 +229,39 @@ export class DebitNoteComponent implements OnInit,OnDestroy {
       if (data.entryType === 'entry' && data.data.entry.type === 6 && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
         switch (action) {
           case 'INSERT':
+            data.data.entry.fields.forEach((field:any) => {
+              field.field_name = this.fieldMap[field.field_id];
+            });
+            const convertedObjectInsert = {
+              ...data.data.entry,
+              category_name: [this.categoryMap[data.data.entry.category_id]],
+              account_name: this.accountMap[data.data.entry.account_id],
+              item_name: this.itemMap[data.data.entry.item_id],
+              unit_name: this.unitMap[data.data.entry.unit_id],
+              dynamicFields: [...data.data.entry.fields]
+            };
             console.log('Processing INSERT event');
-            this.entries.data = [...this.entries.data, data.data.entry];
+            this.entries.data = [...this.entries.data, convertedObjectInsert];
             console.log('Inserted data:', this.entries.data);
             break;
           case 'UPDATE':
             console.log('Processing UPDATE event');
             const updateIndex = this.entries.data.findIndex(entry => entry.id === data.data.entry.id);
             if (updateIndex !== -1) {
+              data.data.entry.fields.forEach((field:any) => {
+                field.field_name = this.fieldMap[field.field_id];
+              });
+              const convertedObjectUpdate = {
+                ...data.data.entry,
+                category_name: [this.categoryMap[data.data.entry.category_id]],
+                account_name: this.accountMap[data.data.entry.account_id],
+                item_name: this.itemMap[data.data.entry.item_id],
+                unit_name: this.unitMap[data.data.entry.unit_id],
+                dynamicFields: [...data.data.entry.fields]
+              };
               this.entries.data[updateIndex] = {
                 ...this.entries.data[updateIndex],
-                ...data.data.entry,
+                ...convertedObjectUpdate,
               };
               this.entries.data = [...this.entries.data];
               console.log('Updated data:', this.entries.data);

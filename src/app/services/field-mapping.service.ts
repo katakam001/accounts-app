@@ -17,7 +17,6 @@ export class FieldMappingService {
   private apiUrl = `${this.baseUrl}/api/fieldsMapping`; // Append the path to the base URL
   private cacheTTL = environment.cacheTTL; // 1 day in milliseconds
   private cacheCapacity = environment.fieldMappingCacheCapacity; // Number of records to keep in memory
-  private fieldMappings: any[] = this.getCachedFieldMappings(); // Load from localStorage during startup
   constructor(private http: HttpClient, private dbService: NgxIndexedDBService) {}
 
   getFieldMappingsByUserIdAndFinancialYear(userId: number, financialYear: string): Observable<any[]> {
@@ -25,7 +24,7 @@ export class FieldMappingService {
     this.clearCacheIfStale(currentTime); // Ensure cache is fresh
 
     // Retrieve cached field mappings from localStorage
-    let cachedFieldMappings = this.fieldMappings;
+    let cachedFieldMappings = this.getCachedFieldMappings();
 
       return this.dbService.getAll('fieldMappings').pipe(
         map((dbFieldMappings: unknown[]) => {
@@ -53,16 +52,20 @@ export class FieldMappingService {
     this.clearCacheIfStale(currentTime); // Ensure cache is fresh
 
     // Retrieve cached field mappings from localStorage
-    let cachedFieldMappings = this.fieldMappings.filter(fm => fm.category_id === categoryId);
+    let cachedFieldMappings = this.getCachedFieldMappings().filter(fm => fm.category_id === categoryId);
+    console.log(cachedFieldMappings);
 
       return this.dbService.getAllByIndex('fieldMappings', 'category_id', IDBKeyRange.only(categoryId)).pipe(
         map((dbFieldMappings: unknown[]) => {
+          console.log('FieldMappings from DB:', dbFieldMappings); // Debug log
           let fieldMappings = dbFieldMappings as any[];
           // Combine the cached field mappings with the remaining field mappings from IndexedDB
           const combinedFieldMappings = [...cachedFieldMappings, ...fieldMappings];
+          console.log('Combined FieldMappings:', combinedFieldMappings); // Debug log
           return combinedFieldMappings;
         }),
         switchMap((combinedFieldMappings: any[]) => {
+          console.log('Combined FieldMappings after SwitchMap:', combinedFieldMappings); // Debug log
           const totalFieldMappingsCountForCategory = combinedFieldMappings.filter(fm => fm.category_id === categoryId).length;
           if (combinedFieldMappings.length < totalFieldMappingsCountForCategory || totalFieldMappingsCountForCategory == 0) {
             return this.fetchFieldMappingsFromServerByCategory(userId, financialYear, categoryId, combinedFieldMappings);
@@ -148,7 +151,7 @@ export class FieldMappingService {
 
   private addToCache(data: any[], currentTime: number): any[] {
     // Retrieve cached field mappings from localStorage
-    const cachedFieldMappings = this.fieldMappings;
+    const cachedFieldMappings = this.getCachedFieldMappings();
     const fieldMappingIds = new Set(cachedFieldMappings.map(fieldMapping => fieldMapping.id));
     const newFieldMappings = data.filter(fieldMapping => !fieldMappingIds.has(fieldMapping.id));
 
@@ -157,16 +160,14 @@ export class FieldMappingService {
       this.setTotalFieldMappingsCount(combinedFieldMappings.length);
     }
     if (combinedFieldMappings.length > this.cacheCapacity) {
-      this.fieldMappings = combinedFieldMappings.slice(-this.cacheCapacity)
-      this.setCachedFieldMappings(this.fieldMappings);
+      this.setCachedFieldMappings(combinedFieldMappings.slice(-this.cacheCapacity));
     } else {
-      this.fieldMappings=combinedFieldMappings;
       this.setCachedFieldMappings(combinedFieldMappings);
     }
 
     this.setLastCacheTime(currentTime);
     if (newFieldMappings.length == this.getTotalFieldMappingsCount()) {
-      const fieldMappingIds = new Set(this.fieldMappings.map(fieldMapping => fieldMapping.id));
+      const fieldMappingIds = new Set(this.getCachedFieldMappings().map(fieldMapping => fieldMapping.id));
       return newFieldMappings.filter(fieldMapping => !fieldMappingIds.has(fieldMapping.id));
     }
     return newFieldMappings;
@@ -183,7 +184,6 @@ export class FieldMappingService {
     this.setCachedFieldMappings([]);
     this.setLastCacheTime(0);
     this.setTotalFieldMappingsCount(0);
-    this.fieldMappings=[];
 
     this.dbService.clear('fieldMappings').subscribe({
       next: () => console.log('IndexedDB fieldMappings store cleared'),
@@ -269,10 +269,9 @@ export class FieldMappingService {
   }
 
   private evictCacheIfNeeded(): void {
-    const cachedFieldMappings = this.fieldMappings;
+    const cachedFieldMappings = this.getCachedFieldMappings();
     if (cachedFieldMappings.length > this.cacheCapacity) {
-      this.fieldMappings=cachedFieldMappings.slice(-this.cacheCapacity);
-      this.setCachedFieldMappings(this.fieldMappings);
+      this.setCachedFieldMappings(cachedFieldMappings.slice(-this.cacheCapacity));
     }
   }
 

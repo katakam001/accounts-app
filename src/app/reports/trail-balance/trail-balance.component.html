@@ -15,7 +15,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let entry of trailBalanceReport" (click)="navigateToJournalEntry(entry.accountName, entry.groupName)">
+      <tr *ngFor="let entry of trailBalanceReport" (click)="navigateToJournalEntry(entry.accountId, entry.groupId,entry.groupName)">
         <td>{{ entry.groupName }}</td>
         <td>{{ entry.accountName }}</td>
         <td>{{ entry.totalDebit }}</td>

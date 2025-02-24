@@ -24,7 +24,7 @@ export class JournalService {
   constructor(private http: HttpClient) { }
 
   getJournalEntriesByUserIdAndFinancialYear(userId: number, financialYear: string) {
-    return this.http.get<JournalEntry[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}`);
+    return this.http.get<any[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}`);
   }
 
   // New method to fetch combined entries for the day book
@@ -46,17 +46,14 @@ export class JournalService {
     return this.http.get<{ entries: any[], nextRowCursor: number | null, hasNextPage: boolean }>(`${this.apiUrl}/daybook`, { params });
   }
 
-  getJournalEntriesByAccount(accountName: string, userId: number, financialYear: string): Observable<any[]> {
-    return this.http.get<JournalEntry[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}&accountName=${accountName}`);
+  getJournalEntriesByAccount(accountId: number, userId: number, financialYear: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}&accountId=${accountId}`);
   }
 
-  getJournalEntriesByGroup(groupName: string, userId: number, financialYear: string): Observable<any[]> {
-    return this.http.get<JournalEntry[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}&groupName=${groupName}`);
+  getJournalEntriesByGroup(groupId: number, userId: number, financialYear: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}&groupId=${groupId}`);
   }
 
-  getJournalEntriesByUserId(userId: number): Observable<JournalEntry[]> {
-    return this.http.get<JournalEntry[]>(`${this.apiUrl}?userId=${userId}`);
-  }
 
   getJournalEntryById(entryId: number): Observable<JournalEntry> {
     return this.http.get<JournalEntry>(`${this.apiUrl}/${entryId}`);
