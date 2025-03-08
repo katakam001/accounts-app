@@ -61,7 +61,7 @@ export class SaleEntryComponent implements OnInit, OnDestroy {
   groupedEntries: any[] = [];
    cache = new Map<number, EntryCachedPage>(); // Cache for pages
    currentPage = 1;
-   pageSize = 100;
+   pageSize = 300;
    totalPages = 0;
    hasMore = true;
    nextStartRow = 1;

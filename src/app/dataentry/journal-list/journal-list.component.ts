@@ -37,7 +37,7 @@ export class JournalListComponent implements OnInit, OnDestroy {
   groupMap: { [key: number]: string } = {};
   cache = new Map<number, CachedPage>(); // Cache for pages
   currentPage = 1;
-  pageSize = 100;
+  pageSize = 400;
   totalPages = 0;
   hasMore = true;
   nextStartRow = 1;
