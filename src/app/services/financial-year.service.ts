@@ -14,6 +14,7 @@ import { CategoryUnitService } from './category-unit.service';
 import { ItemsService } from './items.service';
 import { YieldService } from './yield.service';
 import { ConversionService } from './conversion.service';
+import { GroupMappingService } from './group-mapping.service';
 import { environment } from '../../environments/environment';
 
 const FINANCIAL_YEAR_KEY = 'financial-year';
@@ -39,6 +40,7 @@ export class FinancialYearService {
     private itemsService: ItemsService,
     private yieldService: YieldService,
     private conversionService: ConversionService,
+    private groupMappingService: GroupMappingService
   ) { }
 
   setFinancialYear(year: string, userId: number) {
@@ -64,6 +66,7 @@ export class FinancialYearService {
             this.itemsService.switchUserAndFinancialYear(userId, year).pipe(catchError(error => of(null))),
             this.yieldService.switchUserAndFinancialYear(userId, year).pipe(catchError(error => of(null))),
             this.conversionService.switchUserAndFinancialYear(userId, year).pipe(catchError(error => of(null))),
+            this.groupMappingService.switchUserAndFinancialYear(userId, year).pipe(catchError(error => of(null))),
           ]).subscribe({
             next: () => {
               console.log('All services have been updated.');

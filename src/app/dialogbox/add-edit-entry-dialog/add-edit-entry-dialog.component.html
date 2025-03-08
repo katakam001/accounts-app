@@ -1,108 +1,163 @@
 <h1 mat-dialog-title>
-  {{ data.type === 1 ? (data.entry ? 'Edit Purchase Entry' : 'Add New Purchase Entry') : 
-     data.type === 2 ? (data.entry ? 'Edit Sale Entry' : 'Add New Sale Entry') : 
-     data.type === 3 ? (data.entry ? 'Edit Purchase Return' : 'Add New Purchase Return') : 
-     data.type === 4 ? (data.entry ? 'Edit Sale Return' : 'Add New Sale Return') : 
-     data.type === 5 ? (data.entry ? 'Edit Credit Note' : 'Add New Credit Note') : 
-     data.type === 6 ? (data.entry ? 'Edit Debit Note' : 'Add New Debit Note') : '' }}
+  {{ data.type === 1 ? (data.entry ? 'Edit Purchase Entry' : 'Add New Purchase Entry') :
+  data.type === 2 ? (data.entry ? 'Edit Sale Entry' : 'Add New Sale Entry') :
+  data.type === 3 ? (data.entry ? 'Edit Purchase Return' : 'Add New Purchase Return') :
+  data.type === 4 ? (data.entry ? 'Edit Sale Return' : 'Add New Sale Return') :
+  data.type === 5 ? (data.entry ? 'Edit Credit Note' : 'Add New Credit Note') :
+  data.type === 6 ? (data.entry ? 'Edit Debit Note' : 'Add New Debit Note') : '' }}
 </h1>
-
 <div mat-dialog-content>
-  <form [formGroup]="entryForm" class="add-edit-entry-dialog-form">
+  <form [formGroup]="entryForm">
+    <div class="add-edit-entry-dialog-form">
+    <!-- Group Details -->
     <mat-form-field appearance="fill" class="form-field">
-      <mat-label>Category</mat-label>
-      <mat-select formControlName="category_id" required (selectionChange)="onCategoryChange($event.value)">
-        <mat-option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</mat-option>
-      </mat-select>
-      <mat-error *ngIf="entryForm.get('category_id')?.hasError('required')">Category is required</mat-error>
+      <mat-label>Invoice Number</mat-label>
+      <input matInput formControlName="invoiceNumber" required>
+      <mat-error *ngIf="entryForm.get('invoiceNumber')?.hasError('required')">Invoice Number is required</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">
-      <mat-label>
-        {{ data.type === 2 ? 'Sale Date' : 
-           data.type === 3 || data.type === 4 ? 'Return Date' : 
-           data.type === 5 || data.type === 6 ? 'Date' : 
-           'Purchase Date' }}
-      </mat-label>
+      <mat-label>{{ data.type === 2 ? 'Sale Date' : data.type === 3 || data.type === 4 ? 'Return Date' : data.type === 5
+        || data.type === 6 ? 'Date' : 'Purchase Date' }}</mat-label>
       <input matInput [matDatepicker]="picker" formControlName="entry_date" [matDatepickerFilter]="dateFilter" required>
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
       <mat-error *ngIf="entryForm.get('entry_date')?.hasError('required')">
-        {{ data.type === 2 ? 'Sale date' : 
-           data.type === 3 || data.type === 4 ? 'Return date' : 
-           data.type === 5 || data.type === 6 ? 'Date' : 
-           'Purchase date' }} is required
+        {{ data.type === 2 ? 'Sale date' : data.type === 3 || data.type === 4 ? 'Return date' : data.type === 5 ||
+        data.type === 6 ? 'Date' : 'Purchase date' }} is required
       </mat-error>
-    </mat-form-field>    
-
-    <mat-form-field appearance="fill" class="form-field">
-      <mat-label>{{ data.type === 2 ? 'Customer Name' : data.type === 3 || data.type === 4 ? 'Return Supplier Name' : 'Supplier Name' }}</mat-label>
-      <mat-select formControlName="account_id" required>
-        <mat-option *ngFor="let supplier of suppliers" [value]="supplier.id">{{ supplier.name }}</mat-option>
-      </mat-select>
-      <mat-error *ngIf="entryForm.get('account_id')?.hasError('required')">{{ data.type === 2 ? 'Customer' : data.type === 3 || data.type === 4 ? 'Return Supplier' : 'Supplier' }} is required</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">
-      <mat-label>Item</mat-label>
-      <mat-select formControlName="item_id" required>
-        <mat-option *ngFor="let item of items" [value]="item.id">{{ item.name }}</mat-option>
-      </mat-select>
-      <mat-error *ngIf="entryForm.get('item_id')?.hasError('required')">Item is required</mat-error>
+      <mat-label>{{ data.type === 2 ? 'Customer Name' : data.type === 3 || data.type === 4 ? 'Return Supplier Name' :
+        'Supplier Name' }}</mat-label>
+      <input type="text" matInput formControlName="customerName" [matAutocomplete]="auto" />
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="setAccountId($event)">
+          <mat-option *ngFor="let supplier of suppliers | supplierFilter:entryForm.get('customerName')?.value" [value]="{ id: supplier.id, index: suppliers.indexOf(supplier) }">
+          {{ supplier.name }}
+        </mat-option>
+      </mat-autocomplete>
+      <mat-error *ngIf="entryForm.get('account_id')?.hasError('required')">{{ data.type === 2 ? 'Customer' : data.type
+        === 3 || data.type === 4 ? 'Return Supplier' : 'Supplier' }} is required</mat-error>
+    </mat-form-field>
+
+
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>{{ getGroupValueLabel(data.type) }}</mat-label>
+      <input matInput formControlName="groupEntryValue" readonly>
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">
-      <mat-label>{{ data.type === 3 || data.type === 4 ? 'Return Quantity' : 'Quantity' }}</mat-label>
-      <input matInput formControlName="quantity" type="number" (change)="onQuantityChange()">
+      <mat-label>Group Total Amount</mat-label>
+      <input matInput formControlName="groupTotalAmount" readonly>
     </mat-form-field>
-
-    <mat-form-field appearance="fill" class="form-field">
-      <mat-label>Unit</mat-label>
-      <mat-select formControlName="unit_id" required>
-        <mat-option *ngFor="let unit of units" [value]="unit.unit_id">{{ unit.unit_name }}</mat-option>
-      </mat-select>
-      <mat-error *ngIf="entryForm.get('unit_id')?.hasError('required')">Unit is required</mat-error>
-    </mat-form-field>
-
-    <mat-form-field appearance="fill" class="form-field">
-      <mat-label>Unit Price</mat-label>
-      <input matInput formControlName="unit_price" type="number" (change)="onUnitPriceChange()">
-    </mat-form-field>
-
-    <mat-form-field appearance="fill" class="form-field">
-      <mat-label>{{ data.type === 2 ? 'Sale Value' : data.type === 3 || data.type === 4 ? 'Return Value' : 'Purchase Value' }}</mat-label>
-      <input matInput formControlName="value" type="number" readonly>
-    </mat-form-field>
-
-    <mat-form-field appearance="fill" class="form-field">
-      <mat-label>Total Amount</mat-label>
-      <input matInput formControlName="total_amount" type="number" readonly>
-    </mat-form-field>
-
-    <div *ngFor="let field of dynamicFields">
-      <mat-form-field appearance="fill" class="form-field" *ngIf="field.field_name === 'broker'">
-        <mat-label>{{ field.field_name }}</mat-label>
-        <mat-select [formControlName]="field.field_name" [required]="field.required">
-          <mat-option *ngFor="let broker of brokers" [value]="broker.id">{{ broker.name }}</mat-option>
-        </mat-select>
-        <mat-error *ngIf="entryForm.get(field.field_name)?.hasError('required')">{{ field.field_name }} is required</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="fill" class="form-field" *ngIf="field.field_name === 'Area'">
-        <mat-label>{{ field.field_name }}</mat-label>
-        <mat-select [formControlName]="field.field_name" [required]="field.required">
-          <mat-option *ngFor="let area of areas" [value]="area.id">{{ area.name }}</mat-option>
-        </mat-select>
-        <mat-error *ngIf="entryForm.get(field.field_name)?.hasError('required')">{{ field.field_name }} is required</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="fill" class="form-field" *ngIf="field.field_name !== 'broker' && field.field_name !== 'Area'">
-        <mat-label>{{ field.field_name }}</mat-label>
-        <input matInput [formControlName]="field.field_name" [type]="field.field_type" [required]="field.required">
-        <mat-error *ngIf="entryForm.get(field.field_name)?.hasError('required')">{{ field.field_name }} is required</mat-error>
-      </mat-form-field>
     </div>
+
+    <!-- Entries -->
+    <div formArrayName="entries">
+      <div *ngFor="let entry of entries.controls; let i = index" [formGroupName]="i" class="entry-row">
+        <!-- Form fields for each entry as per your single entry form -->
+        <mat-form-field appearance="fill" class="form-field">
+          <mat-label>Category</mat-label>
+          <mat-select formControlName="category_id" required (selectionChange)="onCategoryChange($event.value)">
+            <mat-option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="entry.get('category_id')?.hasError('required')">Category is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="form-field">
+          <mat-label>Item</mat-label>
+          <mat-select formControlName="item_id" required>
+            <mat-option *ngFor="let item of items" [value]="item.id">{{ item.name }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="entry.get('item_id')?.hasError('required')">Item is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="form-field">
+          <mat-label>{{ data.type === 3 || data.type === 4 ? 'Return Quantity' : 'Quantity' }}</mat-label>
+          <input matInput formControlName="quantity" type="number" (change)="onQuantityChange(i)">
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="form-field">
+          <mat-label>Unit</mat-label>
+          <mat-select formControlName="unit_id" required>
+            <mat-option *ngFor="let unit of unitsMap[entry.get('category_id')?.value] || []" [value]="unit.unit_id">{{ unit.unit_name }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="entry.get('unit_id')?.hasError('required')">Unit is required</mat-error>
+        </mat-form-field>
+        
+
+        <mat-form-field appearance="fill" class="form-field">
+          <mat-label>Unit Price</mat-label>
+          <input matInput formControlName="unit_price" type="number" (change)="onUnitPriceChange(i)">
+        </mat-form-field>
+
+         <!-- Sale Account Dropdown -->
+        <mat-form-field appearance="fill" class="form-field">
+          <mat-label>{{ data.type === 1 ? 'Purchase Account' : data.type === 2 ? 'Sale Account' : data.type === 3  ? 'Purchase Return Account' : data.type === 4 ? 'Sale Return Account' : data.type === 5 ? 'Credit Note Account' : data.type === 6  ? 'Debit Note Account':'default Account' }}</mat-label>
+          <mat-select formControlName="category_account_id" required>
+            <mat-option *ngFor="let account of categoryAccount" [value]="account.id">{{ account.name }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="entryForm.get('category_account_id')?.hasError('required')">{{ data.type === 1 ? 'Purchase Account' : data.type === 2 ? 'Sale Account' : data.type === 3  ? 'Purchase Return Account' : data.type === 4 ? 'Sale Return Account' : data.type === 5 ? 'Credit Note Account' : data.type === 6  ? 'Debit Note Account':'default Account' }} is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="form-field">
+          <mat-label>{{ data.type === 2 ? 'Sale Value' : data.type === 3 || data.type === 4 ? 'Return Value' : 'Purchase Value' }}</mat-label>
+          <input matInput formControlName="value" type="number" readonly>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="form-field">
+          <mat-label>Total Amount</mat-label>
+          <input matInput formControlName="total_amount" type="number" readonly>
+        </mat-form-field>
+        <!-- Remove Entry Button -->
+        <button mat-icon-button color="warn" class="remove-entry-button" (click)="removeEntry(i)">
+          <mat-icon>delete</mat-icon>
+        </button>
+        <!-- Dynamic Fields -->
+        <div class="dynamic-fields-container" formArrayName="dynamicFields">
+            <div *ngFor="let field of getDynamicFieldsControls(entry); let j = index" [formGroupName]="j" class="dynamic-field">
+            <mat-form-field appearance="fill" class="form-field" *ngIf="field.get('field_name')?.value === 'broker'">
+              <mat-label>{{ field.get('field_name')?.value }}</mat-label>
+              <mat-select formControlName="field_value" [required]="field.get('required')?.value">
+                <mat-option *ngFor="let broker of brokers" [value]="broker.id">{{ broker.name }}</mat-option>
+              </mat-select>
+              <mat-error *ngIf="field.get('field_value')?.hasError('required')">{{ field.get('field_name')?.value }} is required</mat-error>
+            </mat-form-field>
+        
+            <mat-form-field appearance="fill" class="form-field" *ngIf="field.get('field_name')?.value === 'Area'">
+              <mat-label>{{ field.get('field_name')?.value }}</mat-label>
+              <mat-select formControlName="field_value" [required]="field.get('required')?.value">
+                <mat-option *ngFor="let area of areas" [value]="area.id">{{ area.name }}</mat-option>
+              </mat-select>
+              <mat-error *ngIf="field.get('field_value')?.hasError('required')">{{ field.get('field_name')?.value }} is required</mat-error>
+            </mat-form-field>
+                <!-- Tax Account Display for Tax Fields -->
+            <mat-form-field appearance="fill" class="form-field" *ngIf="field.get('field_category')?.value === 1  && field.get('field_name')?.value !== 'broker' && field.get('field_name')?.value !== 'Area'">
+                <mat-label>{{ field.get('field_name')?.value }} - Tax Account</mat-label>
+                <input matInput [value]="taxAccountMap.get(field.get('tax_account_id')?.value)" readonly>
+            </mat-form-field>        
+            
+            <mat-form-field appearance="fill" class="form-field" *ngIf="field.get('field_name')?.value !== 'broker' && field.get('field_name')?.value !== 'Area'">
+              <mat-label>{{ field.get('field_name')?.value }}</mat-label>
+              <input matInput formControlName="field_value" [type]="field.get('field_type')?.value" [required]="field.get('required')?.value">
+              <mat-error *ngIf="field.get('field_value')?.hasError('required')">{{ field.get('field_name')?.value }} is required</mat-error>
+            </mat-form-field>
+
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+    <!-- Add Entry Button -->
   </form>
+  <button mat-fab color="primary" class="add-entry-button" (click)="addEntry()">
+    <mat-icon>add</mat-icon>
+  </button>
 </div>
+<!-- Dialog Actions -->
 <div mat-dialog-actions class="button-container">
   <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
-  <button mat-button class="save-button" (click)="onSave()" [disabled]="!entryForm.valid">Save</button>
+  <button mat-button class="save-button" (click)="onSave()" [disabled]="isSaving">{{ isSaving ? 'Saving...' : 'Save' }}</button>
 </div>

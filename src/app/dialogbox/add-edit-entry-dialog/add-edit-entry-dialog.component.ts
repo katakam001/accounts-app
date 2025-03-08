@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormControl, FormArray, AbstractControl, ReactiveFormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { CategoryService } from '../../services/category.service';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -16,11 +16,16 @@ import { BrokerService } from '../../services/broker.service';
 import { AreaService } from '../../services/area.service';
 import { ItemsService } from '../../services/items.service'; // Import ItemService
 import { ActivatedRoute } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { GroupNode } from '../../models/group-node.interface';
+import { GroupMappingService } from '../../services/group-mapping.service';
+import { SupplierFilterPipe } from "../../pipe/supplier-filter.pipe";
 
 @Component({
   selector: 'app-add-edit-entry-dialog',
   standalone: true,
-  imports: [MatInputModule, ReactiveFormsModule, MatSelectModule, CommonModule, MatDialogModule, MatDatepickerModule],
+  imports: [MatInputModule,ReactiveFormsModule, MatSelectModule, CommonModule, MatDialogModule, MatDatepickerModule, MatIconModule,MatAutocompleteModule, SupplierFilterPipe],
   templateUrl: './add-edit-entry-dialog.component.html',
   styleUrls: ['./add-edit-entry-dialog.component.css']
 })
@@ -30,10 +35,15 @@ export class AddEditEntryDialogComponent implements OnInit {
   dynamicFields: any[] = [];
   units: any[] = [];
   suppliers: Account[] = [];
+  categoryAccount: Account[] = [];
   brokers: any[] = [];
   areas: any[] = [];
   items: any[] = []; // Add items array
-
+  groupMapping: any[] = []; // Add fields array
+  unitsMap: { [key: number]: any[] } = {}; // Store units for each categoryId
+  taxAccountMap: Map<number, string> = new Map();
+  isSaving = false;
+  originalInvoiceNumber: string;
   constructor(
     private fb: FormBuilder,
     private entryService: EntryService,
@@ -44,6 +54,7 @@ export class AddEditEntryDialogComponent implements OnInit {
     private brokerService: BrokerService,
     private areaService: AreaService,
     private itemsService: ItemsService, // Inject ItemService
+    private groupMappingService: GroupMappingService, // Inject FieldMappingService
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<AddEditEntryDialogComponent>,
     private route: ActivatedRoute, // Inject ActivatedRoute
@@ -51,59 +62,176 @@ export class AddEditEntryDialogComponent implements OnInit {
     private datePipe: DatePipe
   ) {
     this.entryForm = this.fb.group({
-      category_id: ['', Validators.required],
+      invoiceNumber: ['', Validators.required],
       entry_date: ['', Validators.required],
       account_id: ['', Validators.required],
-      item_id: ['', Validators.required], // Replace item_description with item_id
-      quantity: [null, Validators.min(0)],
-      unit_id: ['', Validators.required],
-      unit_price: [null, Validators.min(0)],
-      value: [{ value: null, disabled: true }],
-      total_amount: [{ value: null, disabled: true }],
-      user_id: [this.data.userId],
-      type: [this.data.type || 1, Validators.required],
-      journal_id: [this.data.journal_id],
-      financial_year: [this.data.financialYear],
+      customerName: ['', Validators.required],
+      entries: this.fb.array([this.createEntry()]), // Use FormArray for multiple entries
+      groupEntryValue: [{ value: '', disabled: true }], // Update the form control name if needed
+      groupTotalAmount: [{ value: '', disabled: true }]
     });
+  }
+  setAccountId(event: any): void {
+    console.log(event);
+    const selectedData = event.option.value;
+    const supplierName = this.suppliers[selectedData.index].name;
+    this.entryForm.patchValue({ account_id: selectedData.id });
+    this.entryForm.patchValue({ customerName: supplierName });
+  }
+
+  get entries() {
+    return this.entryForm.get('entries') as FormArray;
+  }
+
+  getDynamicFieldsControls(entry: AbstractControl): AbstractControl[] {
+    const formArray = entry.get('dynamicFields') as FormArray;
+    return formArray ? formArray.controls : [];
+  }
+
+
+  addEntry() {
+    this.entries.push(this.createEntry());
+    this.updateGroupValues(); // Update group values after adding a new entry
+  }
+
+  removeEntry(index: number) {
+    this.entries.removeAt(index);
+    this.updateGroupValues(); // Update group values after removing an entry
+  }
+
+
+  createEntry(): FormGroup {
+    const entryGroup = this.fb.group({
+      category_id: ['', Validators.required],
+      item_id: ['', Validators.required],
+      quantity: ['', [Validators.required, Validators.min(1)]],
+      unit_id: ['', Validators.required],
+      unit_price: ['', Validators.required],
+      value: [{ value: '', disabled: true }],
+      total_amount: [{ value: '', disabled: true }],
+      category_account_id: ['', Validators.required],
+      journal_id: [''],
+      id: [''],
+      dynamicFields: this.fb.array([]) // Handle dynamic fields within entries
+    });
+    return entryGroup;
   }
 
   ngOnInit(): void {
- 
-      if (this.data.entryId) {
-        // Component is activated via a route with an entryId parameter
-        this.fetchEntry(this.data.entryId);
-      } else {
-        // Component is not activated via a route with an entryId parameter
-        const categoryType = (this.data.type === 1 || this.data.type === 3 || this.data.type === 5) ? 1 : 2;
-        this.fetchInitialData(categoryType).then(() => {
-          if (this.data.entry) {
-            this.entryForm.patchValue(this.data.entry);
-            this.onCategoryChange(this.data.entry.category_id);
-          }
-        });
-      }
-  }
-  
-  fetchEntry(entryId: number): void {
-    // Fetch the entry by ID and initialize the form
-    // Assuming you have a service method to fetch the entry by ID
-    this.entryService.getEntryById(entryId).subscribe((entry: any) => {
-      this.entryForm.patchValue(entry);
-      const convertedObject = {
-        ...entry,
-        dynamicFields: [...entry.fields]
-      };
-      this.data.entry = convertedObject
-      console.log(entry.type);
-      const categoryType = (entry.type === 1 || entry.type === 3 || entry.type === 5) ? 1 : 2;
-      console.log(categoryType);
+    if (this.data.invoiceNumber) {
+      // Component is activated via a route with an entryId parameter
+      console.log("activated route");
+      this.fetchEntry(this.data.invoiceNumber);
+    } else {
+      console.log("edit flow");
+      // Component is not activated via a route with an entryId parameter
+      const categoryType = (this.data.type === 1 || this.data.type === 3 || this.data.type === 5) ? 1 : 2;
       this.fetchInitialData(categoryType).then(() => {
-        console.log(entry.category_id);
-        this.onCategoryChange(entry.category_id);
+        if (this.data.group) {
+          const entriesArray = this.fb.array([]);
+          const categoryIds = new Set<number>();
+
+          this.data.group.entries.forEach((e: any) => {
+            const entryGroup = this.createEntry();
+            entryGroup.patchValue(e);
+
+            const dynamicFieldsArray = this.fb.array([]);
+            e.dynamicFields.forEach((field: any) => {
+              const fieldGroup = this.fb.group({
+                field_id: [field.field_id],
+                field_name: [field.field_name],
+                field_value: [field.field_value],
+                field_category: [field.field_category],
+                exclude_from_total: [''],
+                tax_account_id: [field.tax_account_id]
+              });
+              dynamicFieldsArray.push(fieldGroup as unknown as FormControl);
+            });
+
+            entryGroup.setControl('dynamicFields', dynamicFieldsArray);
+            entriesArray.push(entryGroup as unknown as FormControl);
+
+            // Collect unique categoryIds for fetching dynamic fields and units
+            if (e.category_id) {
+              categoryIds.add(e.category_id);
+            }
+          });
+          this.originalInvoiceNumber = this.data.group.invoiceNumber; // Store the original invoice number
+          console.log(this.originalInvoiceNumber);
+          this.entryForm.setControl('entries', entriesArray);
+          this.entryForm.patchValue(this.data.group);
+
+          categoryIds.forEach(categoryId => {
+            this.onCategoryChange(categoryId);   
+          });
+        }
       });
+    }
+  }
+
+  fetchEntry(entryId: number): void {
+    this.entryService.getEntryById(entryId).subscribe((entry: any) => {
+      this.entryForm.patchValue({
+        invoiceNumber: entry.invoiceNumber,
+        entry_date: entry.entry_date,
+        account_id: entry.account_id
+      });
+
+      const entriesArray = this.fb.array([]);
+      const categoryIds = new Set<number>();
+
+      entry.entries.forEach((e: any) => {
+        const entryGroup = this.createEntry();
+        entryGroup.patchValue(e);
+
+        // Convert and add dynamic fields
+        const dynamicFieldsArray = this.fb.array([]);
+        e.fields.forEach((field: any) => {
+          const fieldGroup = this.fb.group({
+            field_id: [field.field_id],
+            field_name: [field.field_name],
+            field_value: [field.field_value],
+            field_category: [''],
+            exclude_from_total: [''],
+            tax_account_id: ['']
+          });
+          dynamicFieldsArray.push(fieldGroup as unknown as FormControl);
+        });
+
+        entryGroup.setControl('dynamicFields', dynamicFieldsArray);
+        entriesArray.push(entryGroup as unknown as FormControl);
+
+        // Collect unique categoryIds for fetching dynamic fields and units
+        if (e.category_id) {
+          categoryIds.add(e.category_id);
+        }
+      });
+      this.entryForm.setControl('entries', entriesArray);
+
+      const categoryType = (entry.type === 1 || entry.type === 3 || entry.type === 5) ? 1 : 2;
+      this.fetchInitialData(categoryType).then(() => {
+        categoryIds.forEach(categoryId => {
+          this.onCategoryChange(categoryId);   
+        });
+      });
+
+      // Trigger calculation of group values
+      this.updateGroupValues();
     });
   }
-    
+
+  getGroupValueLabel(type: number): string {
+    switch (type) {
+      case 1: return 'Purchase Value';
+      case 2: return 'Sale Value';
+      case 3: return 'Return Value';
+      case 4: return 'Return Value';
+      case 5: return 'Credit Note Value';
+      case 6: return 'Debit Note Value';
+      default: return 'Group Value';
+    }
+  }
+
 
   dateFilter = (date: Date | null): boolean => {
     if (!date || !this.data.financialYear) {
@@ -122,8 +250,10 @@ export class AddEditEntryDialogComponent implements OnInit {
       this.fetchSuppliers(),
       this.fetchBrokers(),
       this.fetchAreas(),
-      this.fetchItems() // Fetch items
-    ]).then(() => {});
+      this.fetchItems(), // Fetch items
+      this.fetchAccountWithGroup(),
+      this.fetchGroupMapping()
+    ]).then(() => { });
   }
 
   fetchCategories(type: number): Promise<void> {
@@ -137,8 +267,29 @@ export class AddEditEntryDialogComponent implements OnInit {
 
   fetchSuppliers(): Promise<void> {
     return new Promise((resolve) => {
-      this.accountService.getAccountsByUserIdAndFinancialYear(this.data.userId, this.data.financialYear, ['Sundary Creditors', 'Sundary Debtors']).subscribe((accounts: Account[]) => {
+      this.accountService.getAccountsByUserIdAndFinancialYear(this.data.userId, this.data.financialYear, ['Sundry Creditors', 'Sundry Debtors']).subscribe((accounts: Account[]) => {
         this.suppliers = accounts;
+        resolve();
+      });
+    });
+  }
+
+  fetchAccountWithGroup(): Promise<void> {
+    const groupAccountMapping: { [key: number]: string } = {
+      1: 'Purchase Account',
+      2: 'Sale Account',
+      3: 'Purchase Return Account',
+      4: 'Sale Return Account',
+      5: 'Credit Note Account',
+      6: 'Debit Note Account'
+    };
+
+    // Get the group name based on this.data.type
+    const groupName = groupAccountMapping[this.data.type];
+
+    return new Promise((resolve) => {
+      this.accountService.getAccountsByUserIdAndFinancialYear(this.data.userId, this.data.financialYear, [groupName]).subscribe((accounts: Account[]) => {
+        this.categoryAccount = accounts;
         resolve();
       });
     });
@@ -171,113 +322,295 @@ export class AddEditEntryDialogComponent implements OnInit {
     });
   }
 
+  fetchGroupMapping(): Promise<void> {
+    return new Promise((resolve) => {
+      this.groupMappingService.getGroupMappingTree(this.data.userId, this.data.financialYear).subscribe(data => {
+        this.groupMapping = data;
+        const accountIds = this.getAccountIdsFromNodeByName('Indirect Expenses');
+        this.fetchAccounts(accountIds);
+        resolve();
+      });
+    });
+  }
+  fetchAccounts(accountIds: number[]): void {
+    this.accountService.getAccountsByUserIdAndFinancialYear(this.data.userId, this.data.financialYear).subscribe((accounts: Account[]) => {
+      const filteredAccounts = accounts.filter(account => accountIds.includes(account.id));
+      this.taxAccountMap = new Map(filteredAccounts.map(account => [account.id, account.name]));
+    });
+  }
+
   onCategoryChange(categoryId: number): void {
     this.fetchDynamicFields(categoryId);
     this.fetchUnits(categoryId);
   }
 
   fetchDynamicFields(categoryId: number): void {
-    console.log(categoryId);
     this.fieldMappingService.getFieldMappingsByCategory(this.data.userId, this.data.financialYear, categoryId).subscribe((data: any[]) => {
       const excludeFields = (field: any) => !(field.field_category === 1 && field.exclude_from_total);
-      this.dynamicFields = data.filter(field => {
-        if (this.data.type === 3 && !this.data.entry) {
-          return excludeFields(field);
-        } else if (this.data.type === 2 || this.data.type === 4 || this.data.type === 5|| this.data.type === 6) {
+      const filteredFields = data.filter(field => {
+        if (this.data.type === 3 && (this.data.isPurchaseReturn === undefined || this.data.isPurchaseReturn === false)) {
+            return excludeFields(field);
+        } else if (this.data.type === 2 || this.data.type === 4 || this.data.type === 5 || this.data.type === 6) {
           return excludeFields(field);
         }
         return true;
       });
 
-      this.dynamicFields.forEach(field => {
-        const entryField = this.data.entry?.fields.find((f: any) => f.field_name === field.field_name);
-        let defaultValue = entryField ? entryField.field_value : (field.field_type === 'number' ? 0 : '');
-        if (['broker', 'Area'].includes(field.field_name)) {
-          defaultValue = parseInt(defaultValue, 10);
+      this.entries.controls.forEach((entry: AbstractControl) => {
+        const entryGroup = entry as FormGroup;
+        if (entryGroup.get('category_id')?.value === categoryId) {
+          const dynamicFieldsArray = entryGroup.get('dynamicFields') as FormArray;
+          // Collect all new FormGroup objects
+          const newFieldGroups: FormGroup[] = [];
+
+          filteredFields.forEach(field => {
+            const entryField = entryGroup.value.dynamicFields?.find((f: any) => f.field_name === field.field_name);
+            let defaultValue = entryField ? entryField.field_value : (field.field_type === 'number' ? 0 : '');
+            if (['broker', 'Area'].includes(field.field_name)) {
+              defaultValue = parseInt(defaultValue, 10);
+            }
+            const validators = field.required ? [Validators.required] : [];
+            const fieldGroup = this.fb.group({
+              field_id: [field.field_id],
+              field_name: [field.field_name],
+              field_value: [defaultValue],
+              field_category: [field.field_category],
+              exclude_from_total: [field.exclude_from_total],
+              tax_account_id: [field.account_id]
+            });
+
+            // Apply validators to the 'field_value' control
+            fieldGroup.get('field_value')?.setValidators(validators);
+            if (this.data.group) {
+              fieldGroup.controls['field_value'].setValue(defaultValue);
+              fieldGroup.controls['exclude_from_total'].setValue(field.exclude_from_total);
+            }
+            newFieldGroups.push(fieldGroup);
+          });
+          // Clear existing dynamic fields
+          dynamicFieldsArray.clear();
+
+          // Add the new FormGroup objects to the dynamicFieldsArray
+          newFieldGroups.forEach(newFieldGroup => {
+            dynamicFieldsArray.push(newFieldGroup);
+          });
         }
-        const validators = field.required ? [Validators.required] : [];
-        this.entryForm.addControl(field.field_name, new FormControl(defaultValue, validators));
       });
     });
-}
+  }
 
   fetchUnits(categoryId: number): void {
     this.categoryUnitService.getUnitsByCategory(this.data.userId, this.data.financialYear, categoryId).subscribe((data: any[]) => {
-      this.units = data;
+      this.unitsMap[categoryId] = data;
     });
   }
 
-  onQuantityChange(): void {
-    this.updateTotalAmount();
+  onQuantityChange(index: number): void {
+    this.updateTotalAmount(this.entries.at(index) as FormGroup); // Update total amount when quantity changes
   }
 
-  onUnitPriceChange(): void {
-    this.updateTotalAmount();
+  onUnitPriceChange(index: number): void {
+    this.updateTotalAmount(this.entries.at(index) as FormGroup); // Update total amount when unit price changes
   }
 
-  updateTotalAmount(): void {
-    const quantity = this.entryForm.get('quantity')?.value || 0;
-    const unit_price = this.entryForm.get('unit_price')?.value || 0;
+
+  updateTotalAmount(entryGroup: FormGroup): void {
+    const quantity = entryGroup.get('quantity')?.value || 0;
+    const unit_price = entryGroup.get('unit_price')?.value || 0;
     const amount = quantity * unit_price;
-    this.entryForm.get('value')?.setValue(amount, { emitEvent: false });
+    entryGroup.get('value')?.setValue(amount, { emitEvent: false });
 
+    // Assuming GST and other calculations remain the same for each entry
     let gstAmount = 0;
     const gstValues: { [key: string]: number } = {};
 
-    this.dynamicFields.forEach(field => {
-      if (field.field_category === 1) {
-        const gstRateMatch = field.field_name.match(/(\d+(\.\d+)?)/);
+    const gstFields = (entryGroup.get('dynamicFields') as FormArray).controls;
+    gstFields.forEach((control: AbstractControl) => {
+      const fieldGroup = control as FormGroup;
+      const field_name = fieldGroup.get('field_name')?.value;
+      const field_value = fieldGroup.get('field_value')?.value;
+      const field_category = fieldGroup.get('field_category')?.value;
+      const exclude_from_total = fieldGroup.get('exclude_from_total')?.value;
+
+      if (field_category === 1) {
+        const gstRateMatch = field_name.match(/(\d+(\.\d+)?)/);
         const gstRate = gstRateMatch ? parseFloat(gstRateMatch[1]) : 0;
         const gstValue = (amount * gstRate) / 100;
-        gstValues[field.field_name] = gstValue;
+        gstValues[field_name] = gstValue;
 
-        if (!field.exclude_from_total) {
+        if (!exclude_from_total) {
           gstAmount += gstValue;
         }
+        fieldGroup.get('field_value')?.setValue(gstValue, { emitEvent: false });
       }
     });
 
     const totalAmount = amount + gstAmount;
-    this.entryForm.get('total_amount')?.setValue(totalAmount, { emitEvent: false });
+    entryGroup.get('total_amount')?.setValue(totalAmount, { emitEvent: false });
 
-    this.entryForm.patchValue(gstValues, { emitEvent: false });
+    entryGroup.patchValue(gstValues, { emitEvent: false });
+
+    this.updateGroupValues(); // Call to update group totals whenever an entry total is updated
   }
+
+  updateGroupValues(): void {
+    const entries = this.entries.controls.map(entry => {
+      // Temporarily enable the disabled fields
+      entry.get('value')?.enable({ emitEvent: false });
+      entry.get('total_amount')?.enable({ emitEvent: false });
+  
+      // Retrieve the entry values
+      const entryValue = entry.get('value')?.value || 0;
+      const totalAmount = entry.get('total_amount')?.value || 0;
+  
+      // Disable the fields again
+      entry.get('value')?.disable({ emitEvent: false });
+      entry.get('total_amount')?.disable({ emitEvent: false });
+  
+      return { value: entryValue, total_amount: totalAmount };
+    });
+  
+    let groupEntryValue = 0;
+    let groupTotalAmount = 0;
+  
+    entries.forEach(entry => {
+      groupEntryValue += parseFloat(entry.value);
+      groupTotalAmount += parseFloat(entry.total_amount);
+    });
+  
+    this.entryForm.patchValue({
+      groupEntryValue: groupEntryValue,
+      groupTotalAmount: groupTotalAmount
+    }, { emitEvent: false });
+  }
+  
+
+  // Function to find a node by its name
+  findNodeByName(node: GroupNode, name: string): GroupNode | null {
+    if (node.name === name) {
+      return node;
+    }
+
+    if (node.children && node.children.length) {
+      for (const child of node.children) {
+        const result = this.findNodeByName(child, name);
+        if (result) {
+          return result;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  // Function to extract account IDs from a node and return a set of unique IDs
+  extractAccountIds(node: GroupNode, result = new Set<number>()): number[] {
+    if (!node.children || node.children.length === 0) {
+      // This is an account node
+      result.add(Number(node.id));
+    } else {
+      // This is a group node, traverse its children
+      node.children.forEach(child => this.extractAccountIds(child, result));
+    }
+    // Convert the set to an array for the final output
+    return Array.from(result);
+  }
+
+  getNodeByName(nodeName: string): GroupNode | null {
+    for (const node of this.groupMapping) {
+      const result = this.findNodeByName(node, nodeName);
+      if (result) {
+        return result;
+      }
+    }
+    return null;
+  }
+
+  // Function to get account IDs from a specific node by its name
+  getAccountIdsFromNodeByName(nodeName: string): number[] {
+    const node = this.getNodeByName(nodeName);
+    if (node) {
+      return this.extractAccountIds(node);
+    } else {
+      console.error('Node not found');
+      return [];
+    }
+  }
+
+  identifyInvalidFields(form: FormGroup): void {
+    Object.keys(form.controls).forEach(field => {
+      const control = form.get(field);
+      if (control instanceof FormControl) {
+        if (control.invalid) {
+          console.log(`Invalid Field: ${field}, Error: ${JSON.stringify(control.errors)}`);
+        }
+      } else if (control instanceof FormGroup || control instanceof FormArray) {
+        this.identifyInvalidFields(control as FormGroup);
+      }
+    });
+  }
+  
 
   onSave(): void {
     if (this.entryForm.valid) {
-      const entry = this.entryForm.getRawValue();
-      entry.entry_date = this.datePipe.transform(entry.entry_date, 'yyyy-MM-dd', 'en-IN');
-      const dynamicFieldValues = this.dynamicFields.map(field => ({
-        field_id: field.field_id,
-        field_name: field.field_name,
-        field_value: entry[field.field_name],
-        field_category: field.field_category,
-        exclude_from_total: field.exclude_from_total
-      }));
-  
-      if (this.data.entry && (this.data.isPurchaseReturn || this.data.isSaleReturn)) {
-        // Add new entry for Purchase Return (type 3) and Sale Return (type 4)
-        this.entryService.addEntry(entry, dynamicFieldValues).subscribe(() => {
+      this.isSaving = true;
+      const formValues = this.entryForm.getRawValue();
+      formValues.entry_date = this.datePipe.transform(formValues.entry_date, 'yyyy-MM-dd', 'en-IN');
+
+      // Prepare entries data with their own dynamic fields
+      const entriesData = formValues.entries.map((e: any, index: number) => {
+        const dynamicFields = (this.entries.at(index).get('dynamicFields') as FormArray).controls.map((control: AbstractControl) => {
+          const fieldGroup = control as FormGroup;
+          return {
+            field_id: fieldGroup.get('field_id')?.value,
+            field_name: fieldGroup.get('field_name')?.value,
+            field_value: fieldGroup.get('field_value')?.value,
+            field_category: fieldGroup.get('field_category')?.value,
+            exclude_from_total: fieldGroup.get('exclude_from_total')?.value,
+            tax_account_id: fieldGroup.get('tax_account_id')?.value
+          };
+        });
+
+        return {
+          ...e,
+          entry_date: formValues.entry_date,
+          user_id: this.data.userId,
+          type: this.data.type,
+          financial_year: this.data.financialYear,
+          originalInvoiceNumber:this.originalInvoiceNumber,
+          invoiceNumber: formValues.invoiceNumber, // Include invoiceNumber
+          account_id: formValues.account_id,       // Include account_id
+          dynamicFields: dynamicFields // Include dynamic fields for each entry
+        };
+      });
+
+      // Logic to handle adding/updating multiple entries
+      if (this.data.group && (this.data.isPurchaseReturn || this.data.isSaleReturn)) {
+        // Add new entries for Purchase Return (type 3) and Sale Return (type 4)
+        this.entryService.addEntries(entriesData).subscribe(() => {
+          this.isSaving = false;
           this.dialogRef.close(true);
         });
-      } else if (this.data.entry) {
-        // Update existing entry for Purchase Entry (type 1), Sale Entry (type 2),Purchase Return (type 3), Sale Return (type 4), Credit Note (type 5), and Debit Note (type 6)
-        this.entryService.updateEntry(this.data.entry.id, entry, dynamicFieldValues).subscribe(() => {
+      } else if (this.data.group) {
+        // Update existing entries for Purchase Entry (type 1), Sale Entry (type 2), Purchase Return (type 3), Sale Return (type 4), Credit Note (type 5), and Debit Note (type 6)
+        this.entryService.updateEntries(entriesData).subscribe(() => {
+          this.isSaving = false;
           this.dialogRef.close(true);
         });
       } else {
-        // Add new entry for Purchase Entry (type 1), Sale Entry (type 2),Purchase Return (type 3), Sale Return (type 4), Credit Note (type 5), and Debit Note (type 6)
-        this.entryService.addEntry(entry, dynamicFieldValues).subscribe(() => {
+        // Add new entries for Purchase Entry (type 1), Sale Entry (type 2), Purchase Return (type 3), Sale Return (type 4), Credit Note (type 5), and Debit Note (type 6)
+        this.entryService.addEntries(entriesData).subscribe(() => {
+          this.isSaving = false;
           this.dialogRef.close(true);
         });
       }
     } else {
+      this.identifyInvalidFields(this.entryForm);
       this.snackBar.open('Please fill all required fields.', 'Close', {
         duration: 3000,
       });
     }
   }
-    
 
   onCancel(): void {
     this.dialogRef.close();

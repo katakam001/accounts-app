@@ -29,12 +29,20 @@
 
     <mat-form-field appearance="fill" class="form-field">
       <mat-label>Field Category</mat-label>
-      <mat-select formControlName="field_category" required>
+      <mat-select formControlName="field_category" required (selectionChange)="onFieldCategoryChange($event)">
         <mat-option [value]="0">Normal</mat-option>
         <mat-option [value]="1">Tax</mat-option>
         <!-- Add more field categories as needed -->
       </mat-select>
       <mat-error *ngIf="fieldForm.get('field_category')?.hasError('required')">Field category is required</mat-error>
+    </mat-form-field>
+
+    <mat-form-field *ngIf="showAccountField" appearance="fill" class="form-field">
+      <mat-label>Account</mat-label>
+      <mat-select formControlName="account_id" required>
+        <mat-option *ngFor="let account of accounts" [value]="account.id">{{ account.name }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="fieldForm.get('account_id')?.hasError('required')">Account is required</mat-error>
     </mat-form-field>
 
     <div class="checkbox-container">
@@ -45,5 +53,5 @@
 </div>
 <div mat-dialog-actions>
   <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
-  <button mat-button class="save-button" (click)="onSave()" [disabled]="!fieldForm.valid">Save</button>
+  <button mat-button class="save-button" (click)="onSave()">Save</button>
 </div>

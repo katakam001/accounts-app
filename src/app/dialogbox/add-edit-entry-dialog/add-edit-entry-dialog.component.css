@@ -1,85 +1,103 @@
 .add-edit-entry-dialog-form {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* Ensure 4 columns per row */
-    gap: 10px; /* Add space between fields */
-  }
-  
-  .form-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
-  }
-  
-  .form-field {
-    flex: 1;
-    margin-right: 10px;
-  }
-  
-  .form-field:last-child {
-    margin-right: 0;
-  }
-  
-  .full-width {
-    width: 100%;
-  }
-  
-  .fixed-width {
-    width: 150px; /* Set a fixed width for specific fields if needed */
-  }
-  
-  .dynamic-fields-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* Ensure 4 columns per row */
-    gap: 10px; /* Add space between fields */
-  }
-  
-  .dynamic-field {
-    display: flex;
-    flex-direction: column; /* Stack label and value vertically */
-    white-space: nowrap; /* Prevent text wrapping */
-  }
-  
-  .dynamic-field .label {
-    font-weight: bold;
-  }
-  
-  .dynamic-field .value {
-    margin-top: 5px;
-  }
-  
-  .button-container {
-    display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
-    margin-top: 20px; /* Add space above the buttons */
-  }
-  
-  .cancel-button {
-    background-color: #f44336;
-    color: white;
-    font-size: 16px;
-    padding: 12px 24px;
-    border-radius: 25px;
-    margin-right: 10px;
-    transition: background-color 0.3s, box-shadow 0.3s;
-  }
-  
-  .cancel-button:hover {
-    background-color: #d32f2f;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-  
-  .save-button {
-    background-color: #4caf50;
-    color: white;
-    font-size: 16px;
-    padding: 12px 24px;
-    border-radius: 25px;
-    margin-left: 10px;
-    transition: background-color 0.3s, box-shadow 0.3s;
-  }
-  
-  .save-button:hover {
-    background-color: #388e3c;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-  
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* Ensure 5 columns per row */
+  gap: 10px; /* Add space between fields */
+  width: 100%; /* Ensure it uses the full width */
+  border: 2px solid #3f51b5; /* Add pink border */
+  padding: 10px; /* Add padding for better visual appeal */
+  border-radius: 8px; /* Add rounded corners */
+}
+
+.entries-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* Ensure 5 columns per row */
+  gap: 10px; /* Add space between fields */
+  width: 100%; /* Ensure it uses the full width */
+}
+
+.entry-row {
+  display: grid; /* Use grid layout */
+  grid-template-columns: repeat(5, 1fr); /* Ensure 6 columns per row, including the remove button */
+  gap: 10px; /* Add space between fields */
+  border: 2px solid #ff9800; /* Add pink border to each entry */
+  padding: 10px; /* Add padding for better visual appeal */
+  border-radius: 8px; /* Add rounded corners */
+  align-items: center; /* Ensure alignment with the Sale Value row */
+}
+.form-field {
+  width: 100%; /* Ensure form-field uses the full width */
+}
+
+.dynamic-fields-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* Ensure 5 columns per row */
+  gap: 10px; /* Add space between fields */
+  width: 100%; /* Ensure it uses the full width */
+  grid-column: span 5; /* Span across 5 columns to ensure it appears below the Sale Value row */
+}
+
+.dynamic-field {
+  display: contents; /* Use contents to let children of grid be grid items */
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end; /* Align buttons to the right */
+  margin-top: 20px; /* Add space above the buttons */
+}
+
+.cancel-button, .save-button {
+  background-color: #f44336; /* Default background color */
+  color: white;
+  font-size: 14px; /* Reduce font size */
+  padding: 10px 20px; /* Adjust padding for better appearance */
+  border-radius: 25px;
+  margin-right: 10px;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.cancel-button:hover, .save-button:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.save-button {
+  background-color: #4caf50; /* Green background for save button */
+  margin-left: 10px; /* Margin on the left for spacing */
+}
+
+.save-button:hover {
+  background-color: #388e3c; /* Darker green on hover */
+}
+
+.add-entry-button {
+  margin-top: 20px;
+  background-color: #2196f3; /* Blue background for add button */
+  color: white;
+  transition: background-color 0.3s, transform 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  height: 36px; /* Ensure same size as remove button */
+  width: 36px; /* Ensure same size as remove button */
+  padding: 0; /* Remove padding */
+}
+
+.add-entry-button:hover {
+  background-color: #1976d2; /* Darker blue on hover */
+  transform: scale(1.1); /* Slightly enlarge on hover */
+}
+
+.remove-entry-button {
+  background-color: #f44336; /* Red background for remove button */
+  color: white;
+  transition: background-color 0.3s, transform 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  height: 36px; /* Ensure same size as add button */
+  width: 36px; /* Ensure same size as add button */
+  padding: 0; /* Remove padding */
+  margin-left: auto; /* Move the button to the end of the row */
+}
+
+.remove-entry-button:hover {
+  background-color: #d32f2f; /* Darker red on hover */
+  transform: scale(1.1); /* Slightly enlarge on hover */
+}

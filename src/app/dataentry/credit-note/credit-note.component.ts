@@ -1,6 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { MatTableDataSource } from '@angular/material/table';
 import { AddEditEntryDialogComponent } from '../../dialogbox/add-edit-entry-dialog/add-edit-entry-dialog.component';
 import { EntryService } from '../../services/entry.service';
 import { FinancialYearService } from '../../services/financial-year.service';
@@ -19,7 +18,12 @@ import { ItemsService } from '../../services/items.service';
 import { FieldService } from '../../services/field.service';
 import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
 import { Subscription } from 'rxjs'; // Import Subscription
-
+import { Account } from '../../models/account.interface';
+import { GroupMappingService } from '../../services/group-mapping.service';
+import { GroupNode } from '../../models/group-node.interface';
+import { FieldMappingService } from '../../services/field-mapping.service';
+import { ConfirmationDialogComponent } from '../../dialogbox/confirmation-dialog/confirmation-dialog.component';
+import { EntryCachedPage } from '../../models/entry-cache-key.interface';
 @Component({
   selector: 'app-credit-note',
   standalone: true,
@@ -35,7 +39,6 @@ import { Subscription } from 'rxjs'; // Import Subscription
 })
 export class CreditNoteComponent implements OnInit,OnDestroy {
   private subscription: Subscription = new Subscription(); // Initialize the subscription
-  entries: MatTableDataSource<any>;
   financialYear: string;
   expandedRows: { [key: number]: boolean } = {};
   brokerMap: { [key: number]: string } = {};
@@ -45,6 +48,16 @@ export class CreditNoteComponent implements OnInit,OnDestroy {
   itemMap: { [key: number]: string } = {};
   unitMap: { [key: number]: string } = {};
   fieldMap: { [key: number]: string } = {};
+  fieldMapping: { [key: string]: any } = {};
+  taxAccountMap: Map<number, string> = new Map();
+  groupMapping: any[] = []; // Add fields array
+  groupedEntries: any[] = [];
+   cache = new Map<number, EntryCachedPage>(); // Cache for pages
+   currentPage = 1;
+   pageSize = 100;
+   totalPages = 0;
+   hasMore = true;
+   nextStartRow = 1;
   constructor(
     private entryService: EntryService,
     public dialog: MatDialog,
@@ -57,9 +70,10 @@ export class CreditNoteComponent implements OnInit,OnDestroy {
     private itemsService: ItemsService, // Inject ItemService
     private unitService: UnitService,
     private fieldService: FieldService,
+    private groupMappingService: GroupMappingService, // Inject FieldMappingService
+    private fieldMappingService: FieldMappingService,
     private webSocketService: WebSocketService // Inject WebSocket service
   ) {
-    this.entries = new MatTableDataSource<any>([]);
   }
 
   ngOnInit(): void {
@@ -81,17 +95,95 @@ export class CreditNoteComponent implements OnInit,OnDestroy {
   }
 
   async fetchBrokersAndAreas(): Promise<void> {
-    await Promise.all([this.fetchBrokers(), this.fetchAreas(), this.fetchCategories(1), this.fetchSuppliers(), this.fetchItems(), this.fetchUnits(), this.fetchFields()]);
+    await Promise.all([this.fetchBrokers(), this.fetchAreas(), this.fetchCategories(1), this.fetchSuppliers(), this.fetchItems(), this.fetchUnits(), this.fetchFields(),this.fetchGroupMapping(),this.fetchCreditNoteAccounts(),this.fetchDynamicFields()]);
   }
 
   fetchEntries(): void {
     const userId = this.storageService.getUser().id;
-    this.entryService.getEntriesByUserIdAndFinancialYearAndType(userId, this.financialYear, 5).subscribe((data: any[]) => {
-      this.entries.data = data;
-      if (data.length > 0) {
-        this.updateEntriesWithDynamicFields(data);
-      }
+    console.log(this.taxAccountMap);
+    this.entryService.getEntriesByUserIdAndFinancialYearAndType(userId, this.financialYear, 5, this.nextStartRow, this.pageSize).subscribe(data => {
+        const entries = this.updateEntriesWithDynamicFields(data.entries);
+        this.groupedEntries = this.groupEntriesByInvoiceNumber(entries);
+        console.log(this.groupedEntries);
+      this.hasMore = data.hasMore;
+      this.nextStartRow = data.nextStartRow;
+      this.cache.set(this.currentPage, {
+        dataRange: this.getDataRange(this.groupedEntries), // Calculate data range based on entries
+        data: this.groupedEntries
+      });
     });
+  }
+    getDataRange(group: any[]): { start: number, end: number } {
+      if (group.length === 0) {
+        return { start: 0, end: 0 };
+      }
+  
+      const start = new Date(group[0].entry_date).getTime();
+      const end = new Date(group[group.length - 1].entry_date).getTime();
+      return { start, end };
+    }
+
+  groupEntriesByInvoiceNumber(entries: any[]): any[] {
+    const groupedEntries: { [key: string]: any } = {};
+    
+    // Group entries by invoice number
+    entries.forEach(entry => {
+      const invoiceNumber = entry.invoiceNumber;
+      if (!groupedEntries[invoiceNumber]) {
+        groupedEntries[invoiceNumber] = {
+          invoiceNumber: invoiceNumber,
+          entry_date: entry.entry_date,
+          account_id: entry.account_id,
+          customerName: entry.account_name,
+          groupEntryValue: 0,
+          groupTotalAmount: 0,
+          entries: []
+        };
+      }
+      groupedEntries[invoiceNumber].groupEntryValue += Number(entry.value);
+      groupedEntries[invoiceNumber].groupTotalAmount += Number(entry.total_amount);
+      groupedEntries[invoiceNumber].entries.push(entry);
+    });
+  
+    // Convert groupedEntries to an array and sort by saleDate in ascending order
+    return Object.values(groupedEntries).sort((a, b) => new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime());
+  }
+
+    onNextPage() {
+    const userId = this.storageService.getUser().id;
+    if (this.cache.has(this.currentPage + 1) || this.hasMore) {
+      this.currentPage += 1;
+      this.fetchEntriesWithPagination(userId);
+    }
+  }
+
+  onPreviousPage() {
+    const userId = this.storageService.getUser().id;
+    if (this.currentPage > 1) {
+      this.currentPage -= 1;
+      this.fetchEntriesWithPagination(userId);
+    }
+  }
+
+  fetchEntriesWithPagination(userId: number): void {
+    if (this.cache.has(this.currentPage)) {
+      // Use cached data if available
+      this.groupedEntries = this.cache.get(this.currentPage)?.data || []; // Provide default empty array if data is not present
+    } else {
+      // Fetch from the backend if not in cache
+      this.entryService.getEntriesByUserIdAndFinancialYearAndType(userId, this.financialYear, 5, this.nextStartRow, this.pageSize).subscribe(data => {
+        const entries = this.updateEntriesWithDynamicFields(data.entries);
+        this.groupedEntries = this.groupEntriesByInvoiceNumber(entries);
+        console.log(this.groupedEntries);
+        this.hasMore = data.hasMore;
+        this.nextStartRow = data.nextStartRow;
+        this.cache.set(this.currentPage, {
+          dataRange: this.getDataRange(this.groupedEntries), // Calculate data range based on entries
+          data: this.groupedEntries
+        }); // Cache the fetched data
+        console.log(this.cache);
+      });
+    }
   }
 
   fetchBrokers(): Promise<void> {
@@ -135,10 +227,22 @@ export class CreditNoteComponent implements OnInit,OnDestroy {
   fetchSuppliers(): Promise<void> {
     return new Promise((resolve) => {
       const userId = this.storageService.getUser().id;
-      this.accountService.getAccountsByUserIdAndFinancialYear(userId, this.financialYear, ['Sundary Creditors', 'Sundary Debtors']).subscribe((accounts: any[]) => {
+      this.accountService.getAccountsByUserIdAndFinancialYear(userId, this.financialYear, ['Sundry Creditors', 'Sundry Debtors']).subscribe((accounts: any[]) => {
         accounts.forEach(account => {
           this.accountMap[account.id] = account.name;
         });
+        resolve();
+      });
+    });
+  }
+
+  fetchCreditNoteAccounts(): Promise<void> {
+    return new Promise((resolve) => {
+      const userId = this.storageService.getUser().id;
+      this.accountService.getAccountsByUserIdAndFinancialYear(userId, this.financialYear, ['Credit Note Account']).subscribe((accounts: any[]) => {
+          accounts.forEach(account => {
+            this.taxAccountMap.set(account.id, account.name);
+          });
         resolve();
       });
     });
@@ -179,40 +283,166 @@ export class CreditNoteComponent implements OnInit,OnDestroy {
     });
   }
 
-  updateEntriesWithDynamicFields(data: any[]): void {
+    fetchDynamicFields(): Promise<void> {
+      return new Promise((resolve) => {
+      const userId = this.storageService.getUser().id;
+      this.fieldMappingService.getFieldMappingsByUserIdAndFinancialYear(userId, this.financialYear).subscribe((data: any[]) => {
+        data.forEach(field => {
+          this.fieldMapping[this.createCompositeKey(field.category_id,field.field_id)] = field;
+        });
+        resolve();
+      });
+    });
+  }
+   createCompositeKey(key1: number, key2: number): string {
+    return `${key1}-${key2}`;
+  }
+  updateEntriesWithDynamicFields(data: any[]): any[] {
     data.forEach(entry => {
       entry.category_name = this.categoryMap[entry.category_id];
       entry.account_name = this.accountMap[entry.account_id];
       entry.item_name = this.itemMap[entry.item_id];
       entry.unit_name = this.unitMap[entry.unit_id];
+      entry.category_account_name= this.taxAccountMap.get(entry.category_account_id) || '';
       entry.fields.forEach((field:any) => {
         field.field_name=this.fieldMap[field.field_id]
+        const fieldMapping = this.fieldMapping[this.createCompositeKey(entry.category_id,field.field_id)]
+        field.field_category=fieldMapping.field_category
+        field.tax_account_id=fieldMapping.account_id
       });
       entry.dynamicFields = entry.fields;
     });
-    this.entries.data = data;
+    return data;
   }
+
+    // Function to find a node by its name
+    findNodeByName(node: GroupNode, name: string): GroupNode | null {
+      if (node.name === name) {
+        return node;
+      }
+  
+      if (node.children && node.children.length) {
+        for (const child of node.children) {
+          const result = this.findNodeByName(child, name);
+          if (result) {
+            return result;
+          }
+        }
+      }
+  
+      return null;
+    }
+  
+    // Function to extract account IDs from a node and return a set of unique IDs
+    extractAccountIds(node: GroupNode, result = new Set<number>()): number[] {
+      if (!node.children || node.children.length === 0) {
+        // This is an account node
+        result.add(Number(node.id));
+      } else {
+        // This is a group node, traverse its children
+        node.children.forEach(child => this.extractAccountIds(child, result));
+      }
+      // Convert the set to an array for the final output
+      return Array.from(result);
+    }
+  
+    getNodeByName(nodeName: string): GroupNode | null {
+      for (const node of this.groupMapping) {
+        const result = this.findNodeByName(node, nodeName);
+        if (result) {
+          return result;
+        }
+      }
+      return null;
+    }
+  
+    // Function to get account IDs from a specific node by its name
+    getAccountIdsFromNodeByName(nodeName: string): number[] {
+      const node = this.getNodeByName(nodeName);
+      console.log(node);
+      if (node) {
+        return this.extractAccountIds(node);
+      } else {
+        console.error('Node not found');
+        return [];
+      }
+    }
+
+    fetchGroupMapping(): Promise<void> {
+      return new Promise((resolve) => {
+        this.groupMappingService.getGroupMappingTree(this.storageService.getUser().id, this.financialYear).subscribe(data => {
+          this.groupMapping = data;
+          const accountIds = this.getAccountIdsFromNodeByName('Indirect Expenses');
+          this.fetchAccounts(accountIds);
+          console.log('Accounts:', accountIds);
+          resolve();
+        });
+      });
+    }
+    fetchAccounts(accountIds: number[]): void {
+      this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id, this.financialYear).subscribe((accounts: Account[]) => {
+        const filteredAccounts = accounts.filter(account => accountIds.includes(account.id));
+        this.taxAccountMap = new Map(filteredAccounts.map(account => [account.id, account.name]));
+      });
+    }
+
+    openConfirmationDialog(action: string, data: any): void {
+      const dialogRef = this.dialog.open(ConfirmationDialogComponent, {
+        data: { action }
+      });
+  
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.performAction(action, data);
+        }
+      });
+    }
+    performAction(action: string, data: any): void {
+      if (action === 'add') {
+       this.openAddEntryDialog();
+        console.log('Adding:', data);
+      } else if (action === 'edit') {
+       this.openEditGroupDialog(data);
+        console.log('Editing:', data);
+      } else if (action === 'delete') {
+        this.deleteGroup(data);
+        console.log('Deleting:', data);
+      }
+    }
 
   openAddEntryDialog(): void {
     const dialogRef = this.dialog.open(AddEditEntryDialogComponent, {
-      width: '1000px',
+      width: '1250x',
       data: { userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 5 }
     });
 
     dialogRef.afterClosed().subscribe();
   }
 
-  openEditEntryDialog(entry: any): void {
+  openEditGroupDialog(group: any): void {
     const dialogRef = this.dialog.open(AddEditEntryDialogComponent, {
-      width: '1000px',
-      data: { entry, userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 5 }
+      width: '1250px',
+      data: { group, userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 5 }
     });
 
     dialogRef.afterClosed().subscribe();
   }
 
-  deleteEntry(entryId: number): void {
-    this.entryService.deleteEntry(entryId).subscribe();
+  deleteGroup(invoiceNumber: number): void {
+    this.entryService.deleteEntries(invoiceNumber).subscribe();
+  }
+
+   // Methods to call the dialog with different actions
+   addEntry(): void {
+    this.openConfirmationDialog('add', null);
+  }
+
+  editEntry(data: any): void {
+    this.openConfirmationDialog('edit', data);
+  }
+
+  deleteEntry(data: any): void {
+    this.openConfirmationDialog('delete', data);
   }
 
   expand(entry: any): void {
@@ -226,64 +456,204 @@ export class CreditNoteComponent implements OnInit,OnDestroy {
 
     const handleEvent = (data: any, action: 'INSERT' | 'UPDATE' | 'DELETE') => {
       console.log(`Handling event: ${action}`, data);
-      if (data.entryType === 'entry' && data.data.entry.type === 5 && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+      if (data.entryType === 'entry' && data.data.group.type === 5 && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
         switch (action) {
           case 'INSERT':
-            data.data.entry.fields.forEach((field:any) => {
-              field.field_name = this.fieldMap[field.field_id];
-            });
-            const convertedObjectInsert = {
-              ...data.data.entry,
-              category_name: [this.categoryMap[data.data.entry.category_id]],
-              account_name: this.accountMap[data.data.entry.account_id],
-              item_name: this.itemMap[data.data.entry.item_id],
-              unit_name: this.unitMap[data.data.entry.unit_id],
-              dynamicFields: [...data.data.entry.fields]
-            };
-            console.log('Processing INSERT event');
-            this.entries.data = [...this.entries.data, convertedObjectInsert];
-            console.log('Inserted data:', this.entries.data);
+            handleInsert(data);
             break;
           case 'UPDATE':
-            console.log('Processing UPDATE event');
-            const updateIndex = this.entries.data.findIndex(entry => entry.id === data.data.entry.id);
-            if (updateIndex !== -1) {
-              data.data.entry.fields.forEach((field:any) => {
-                field.field_name = this.fieldMap[field.field_id];
-              });
-              const convertedObjectUpdate = {
-                ...data.data.entry,
-                category_name: [this.categoryMap[data.data.entry.category_id]],
-                account_name: this.accountMap[data.data.entry.account_id],
-                item_name: this.itemMap[data.data.entry.item_id],
-                unit_name: this.unitMap[data.data.entry.unit_id],
-                dynamicFields: [...data.data.entry.fields]
-              };
-              this.entries.data[updateIndex] = {
-                ...this.entries.data[updateIndex],
-                ...convertedObjectUpdate,
-              };
-              this.entries.data = [...this.entries.data];
-              console.log('Updated data:', this.entries.data);
-            }
+            handleUpdate(data);
             break;
           case 'DELETE':
-            console.log('Processing DELETE event');
-            console.log(data.data.entry.id);
-            const deleteIndex = this.entries.data.findIndex(entry => entry.id === data.data.entry.id);
-            console.log(deleteIndex);
-            if (deleteIndex !== -1) {
-              this.entries.data.splice(deleteIndex, 1);
-              this.entries.data = [...this.entries.data];
-            }
+            handleDelete(data);
             break;
         }
-        this.updateEntriesWithDynamicFields(this.entries.data);
       }
     };
 
     this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
     this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
     this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
+
+
+    const updateCache = (page: EntryCachedPage, action: 'INSERT' | 'UPDATE' | 'DELETE', group: any) => {
+      switch (action) {
+        case 'INSERT':
+          page.data.push(group);
+          page.data.sort((a, b) => new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime());
+          if (this.hasMore) {
+            this.nextStartRow += group.entries?.length || 0;
+          }
+          break;
+        case 'UPDATE':
+          const updateIndex = page.data.findIndex(e => e.invoiceNumber === group.originalInvoiceNumber);
+          console.log(updateIndex);
+          console.log(page.data[updateIndex]);
+          console.log(group);
+          if (updateIndex !== -1) {
+            if (this.hasMore) {
+              this.nextStartRow -= page.data[updateIndex].entries?.length || 0;
+              this.nextStartRow += group.entries?.length || 0;
+            }
+            page.data[updateIndex] = { ...page.data[updateIndex], ...group };
+          }
+          break;
+        case 'DELETE':
+          const deleteIndex = page.data.findIndex(e => e.invoiceNumber === group.invoiceNumber);
+          if (deleteIndex !== -1) {
+            page.data.splice(deleteIndex, 1);
+            if (this.hasMore) {
+              this.nextStartRow -= group.entries?.length || 0;
+            }
+          }
+          break;
+      }
+    };
+
+    const handleInsert = (data: any) => {
+      // Extract items based on the entry 
+      let group: any;
+
+      
+      data.data.entries.forEach((entry: any) => {
+
+        const convertedObjectInsert = {
+          ...entry,
+          category_name: [this.categoryMap[entry.category_id]],
+          item_name: this.itemMap[entry.item_id],
+          unit_name: this.unitMap[entry.unit_id],
+          category_account_name: this.taxAccountMap.get(entry.category_account_id) || ''
+        };
+
+        // Check if the invoice number already exists
+        if (!group) {
+          group = {
+            invoiceNumber: entry.invoiceNumber,
+            entry_date: entry.entry_date,
+            customerName: this.accountMap[entry.account_id],
+            account_id: entry.account_id,
+            groupEntryValue: 0,
+            groupTotalAmount: 0,
+            entries: []
+          };
+        }
+        group.groupEntryValue += Number(entry.value);
+        group.groupTotalAmount += Number(entry.total_amount);
+        group.entries.push(convertedObjectInsert);
+      });  
+   
+       console.log(this.cache.entries())
+      // Update cache if the date range fits within existing pages
+      for (const [pageNumber, page] of this.cache.entries()) {
+        console.log(pageNumber);
+        console.log(page);
+        if (
+          (new Date(group.entry_date).getTime() >= page.dataRange.start &&
+          new Date(group.entry_date).getTime() <= page.dataRange.end) || (page.data.length < this.pageSize && !this.cache.has(pageNumber+1))
+        ) {
+          updateCache(page, 'INSERT', group);
+          if (Number(pageNumber) === this.currentPage) {  // Convert pageNumber to a number before comparison
+            this.groupedEntries = page.data;
+          }
+          return;
+        }
+      }
+
+      // Handle new page creation for future-dated records
+      if (!this.hasMore) {
+        const keys = Array.from(this.cache.keys());
+        const lastPage = keys.length ? Math.max(...keys) : 0; // Default to 1 if empty
+      
+        const lastPageEntry = this.cache.get(lastPage);
+        if (lastPage === 0  || (lastPageEntry && new Date(group.entry_date).getTime() > lastPageEntry.dataRange.end)) {
+          this.cache.set(lastPage + 1, {
+            data: [group],
+            dataRange: {
+              start: new Date(group.entry_date).getTime(),
+              end: new Date(group.entry_date).getTime()
+            }
+          });
+          if(lastPage === 0)
+            this.groupedEntries.push(group);
+        }
+      }
+
+      // If the entry doesn't fit in any existing pages, handle new page creation logic here
+      console.log('Inserted data:', this.groupedEntries);
+    };
+
+    const handleUpdate = (data: any) => {
+      console.log('Processing UPDATE event');
+      // Filter items based on accountId or groupId
+
+      let group:any;
+      
+      data.data.entries.forEach((entry: any) => {
+
+        const convertedObjectUpdate = {
+          ...entry,
+          category_name: [this.categoryMap[entry.category_id]],
+          item_name: this.itemMap[entry.item_id],
+          unit_name: this.unitMap[entry.unit_id],
+          category_account_name: this.taxAccountMap.get(entry.category_account_id) || ''
+        };
+
+        // Check if the invoice number already exists
+        if (!group) {
+          group = {
+            invoiceNumber: entry.invoiceNumber,
+            originalInvoiceNumber:data.data.originalInvoiceNumber,
+            entry_date: entry.entry_date,
+            customerName: this.accountMap[entry.account_id],
+            account_id: entry.account_id,
+            groupEntryValue: 0,
+            groupTotalAmount: 0,
+            entries: []
+          };
+        }
+        group.groupEntryValue += Number(entry.value);
+        group.groupTotalAmount += Number(entry.total_amount);
+        group.entries.push(convertedObjectUpdate);
+      });
+        console.log('Updated data:', group);
+
+      for (const [pageNumber, page] of this.cache.entries()) {
+        if ((new Date(group.entry_date).getTime() >= page.dataRange.start
+        && new Date(group.entry_date).getTime() <= page.dataRange.end && page.data.some((entry: any) => entry.invoiceNumber === group.originalInvoiceNumber)) || (page.data.length < this.pageSize && page.data.some((entry: any) => entry.invoiceNumber === group.originalInvoiceNumber))) {
+          updateCache(page, 'UPDATE', group);
+          if (Number(pageNumber) === this.currentPage) {  // Convert pageNumber to a number before comparison
+            this.groupedEntries = page.data;
+          }
+          return;
+        }
+      }
+
+      // If the entry doesn't fit in any existing pages, handle new page creation logic here
+      console.log('Updated data:', this.groupedEntries);
+    };
+
+    const handleDelete = (data: any) => {
+      console.log('Processing DELETE event');
+      const invoiceNumber =  data.data.group.invoiceNumber;
+      const entry_date =  data.data.group.journal_date;
+      console.log(invoiceNumber);
+      console.log(entry_date);
+
+      for (const [pageNumber, page] of this.cache.entries()) {
+        if (new Date(entry_date).getTime() >= page.dataRange.start
+          && new Date(entry_date).getTime() <= page.dataRange.end && page.data.some((entry: any) => entry.invoiceNumber === invoiceNumber)) {
+            console.log(pageNumber);
+            console.log(page);
+          updateCache(page, 'DELETE', { invoiceNumber: invoiceNumber });
+          if (Number(pageNumber) === this.currentPage) {  // Convert pageNumber to a number before comparison
+            this.groupedEntries = page.data;
+          }
+          return;
+        }
+      }
+
+      // If the entry doesn't fit in any existing pages, handle new page creation logic here
+      console.log('Deleted data:', this.groupedEntries);
+    };
   }
 }

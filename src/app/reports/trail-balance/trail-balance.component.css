@@ -7,13 +7,31 @@
 }
 
 .filter-container {
-  margin-bottom: 20px;
   display: flex;
   align-items: center;
+  margin-bottom: 20px;
 }
 
-mat-form-field {
+.custom-date-picker {
   margin-right: 20px;
+  background-color: #f0f4f8;
+  border-radius: 5px;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-flex {
+  background-color: #ffffff;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-underline {
+  background-color: #009879;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-label {
+  color: #009879;
+}
+
+.generate-report-button {
+  margin-left: auto; /* Push the button to the end of the line */
 }
 
 table {
@@ -68,6 +86,7 @@ tbody tr.active-row {
   font-weight: bold;
   color: #333;
 }
+
 .report-title {
   font-size: 2.5em; /* Larger font size */
   font-weight: bold; /* Bold text */

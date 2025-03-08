@@ -1,9 +1,28 @@
-<!-- trail-balance.component.html -->
 <div class="trail-balance-container">
   <h2 class="report-title">Trail Balance Report</h2>
-  <div *ngIf="financialYear" class="financial-year-container">
-    <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
+
+  <div class="filter-container">
+      <mat-form-field appearance="fill" class="custom-date-picker">
+      <mat-label>From Date</mat-label>
+      <input matInput [matDatepicker]="fromDatePicker" [formControl]="fromDate">
+      <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #fromDatePicker></mat-datepicker>
+    </mat-form-field>
+
+
+      <mat-form-field appearance="fill" class="custom-date-picker">
+      <mat-label>To Date</mat-label>
+      <input matInput [matDatepicker]="toDatePicker" [formControl]="toDate">
+      <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+      <mat-datepicker #toDatePicker></mat-datepicker>
+    </mat-form-field>
+    <button mat-raised-button color="primary" class="generate-report-button" (click)="getTrailBalanceReport()">Generate Report</button>
   </div>
+
+  <!-- <div *ngIf="financialYear" class="financial-year-container">
+    <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
+  </div> -->
+
   <table class="styled-table">
     <thead>
       <tr>
@@ -15,7 +34,8 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let entry of trailBalanceReport" (click)="navigateToJournalEntry(entry.accountId, entry.groupId,entry.groupName)">
+      <tr *ngFor="let entry of trailBalanceReport"
+        (click)="navigateToJournalEntry(entry.accountId, entry.groupId, entry.groupName)">
         <td>{{ entry.groupName }}</td>
         <td>{{ entry.accountName }}</td>
         <td>{{ entry.totalDebit }}</td>

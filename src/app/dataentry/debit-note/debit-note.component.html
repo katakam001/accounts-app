@@ -1,85 +1,132 @@
 <div class="debit-note-container">
-    <mat-toolbar color="primary" class="toolbar">
-      <span class="title">Debit Note</span>
-      <span class="spacer"></span>
-      <button mat-raised-button class="add-debit-note-button" (click)="openAddEntryDialog()">
-        Add New Debit Note
-      </button>
-    </mat-toolbar>
-  
-    <mat-card class="debit-note-card">
-      <mat-card-content>
-        <mat-accordion>
-          <mat-expansion-panel *ngFor="let entry of entries.data; let i = index" [expanded]="expandedRows[entry.id]">
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <div class="expansion-panel-header-content">
-                  <div class="field">
-                    <div class="label">Category</div>
-                    <div class="value" title="{{ entry.category_name }}">{{ entry.category_name }}</div>
-                  </div>
-                  <div class="field">
-                    <div class="label">Debit Date</div>
-                    <div class="value">{{ entry.entry_date | date }}</div>
-                  </div>
-                  <div class="field">
-                    <div class="label">Supplier</div>
-                    <div class="value" title="{{ entry.account_name }}">{{ entry.account_name }}</div>
-                  </div>
-                  <div class="field">
-                    <div class="label">Item Name</div>
-                    <div class="value" title="{{ entry.item_name }}">{{ entry.item_name || 'N/A' }}</div>
-                  </div>
-                  <div class="field">
-                    <div class="label">Quantity</div>
-                    <div class="value">{{ entry.quantity }}</div>
-                  </div>
-                  <div class="field">
-                    <div class="label">Unit</div>
-                    <div class="value">{{ entry.unit_name }}</div>
-                  </div>
-                  <div class="field">
-                    <div class="label">Unit Price</div>
-                    <div class="value">{{ entry.unit_price  | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
-                  </div>
-                  <div class="field">
-                    <div class="label">Debit Value</div>
-                    <div class="value">{{ entry.value | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
-                  </div>
-                  <div class="field">
-                    <div class="label">Total Amount</div>
-                    <div class="value">{{ entry.total_amount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
-                  </div>
-                  <div class="actions">
-                    <button mat-icon-button class="edit-button" (click)="openEditEntryDialog(entry)">
-                      <mat-icon>edit</mat-icon>
-                    </button>
-                    <button mat-icon-button class="delete-button" (click)="deleteEntry(entry.id)">
-                      <mat-icon>delete</mat-icon>
-                    </button>
-                  </div>
+  <mat-toolbar color="primary" class="toolbar">
+    <span class="title">Debit Note</span>
+    <span class="spacer"></span>
+    <button mat-raised-button class="add-debit-note-button" (click)="addEntry()">Add New Debit Note</button>
+  </mat-toolbar>
+  <mat-card class="debit-note-card">
+    <mat-card-content>
+      <mat-accordion>
+        <mat-expansion-panel *ngFor="let group of groupedEntries; let i = index"
+          [expanded]="expandedRows[group.invoiceNumber]" class="invoice-panel">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <div class="expansion-panel-header-content">
+                <div class="main-field">
+                  <div class="label">Invoice Number</div>
+                  <div class="value">{{ group.invoiceNumber }}</div>
                 </div>
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-            <div class="expansion-panel-content">
-              <div class="dynamic-field" *ngFor="let field of entry.dynamicFields">
-                <div class="label">{{ field.field_name }}</div>
-                <div class="value">
-                  <ng-container *ngIf="field.field_name === 'broker'">
-                    {{ brokerMap[field.field_value] || 'N/A' }}
-                  </ng-container>
-                  <ng-container *ngIf="field.field_name === 'Area'">
-                    {{ areaMap[field.field_value] || 'N/A' }}
-                  </ng-container>
-                  <ng-container *ngIf="field.field_name !== 'broker' && field.field_name !== 'Area'">
-                    {{ field.field_value }}
-                  </ng-container>
+                <div class="main-field">
+                  <div class="label">Debit Note Date</div>
+                  <div class="value">{{ group.entry_date | date:'dd-MM-yyyy' }}</div>
+                </div>
+                <div class="main-field">
+                  <div class="label">Customer</div>
+                  <div class="value" [title]="group.customerName">{{ group.customerName | slice:0:25 }}<ng-container
+                      *ngIf="group.customerName.length > 25">...</ng-container></div>
+                </div>
+                <div class="main-field">
+                  <div class="label">Group Debit Note Value</div>
+                  <div class="value">{{ group.groupEntryValue | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+                </div>
+                <div class="main-field">
+                  <div class="label">Group Total Amount</div>
+                  <div class="value">{{ group.groupTotalAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+                </div>
+                <div class="actions">
+                  <button mat-icon-button class="edit-button" (click)="editEntry(group)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button class="delete-button" (click)="deleteEntry(group.invoiceNumber)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
                 </div>
               </div>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <div class="expansion-panel-content">
+            <div *ngFor="let entry of group.entries" class="debit-note">
+              <mat-expansion-panel class="main-panel">
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    <div class="field">
+                      <div class="label">Category</div>
+                      <div class="value" [title]="entry.category_name">{{ entry.category_name | slice:0:25
+                        }}<ng-container *ngIf="entry.category_name.length > 25">...</ng-container></div>
+                    </div>
+                    <div class="field">
+                      <div class="label">Item Name</div>
+                      <div class="value" [title]="entry.item_name">{{ entry.item_name | slice:0:25 }}<ng-container
+                          *ngIf="entry.item_name.length > 25">...</ng-container></div>
+                    </div>
+                    <div class="field">
+                      <div class="label">Quantity</div>
+                      <div class="value">{{ entry.quantity }}</div>
+                    </div>
+                    <div class="field">
+                      <div class="label">Unit</div>
+                      <div class="value" [title]="entry.unit_name">{{ entry.unit_name | slice:0:25 }}<ng-container
+                          *ngIf="entry.unit_name.length > 25">...</ng-container></div>
+                    </div>
+                    <div class="field">
+                      <div class="label">Unit Price</div>
+                      <div class="value">{{ entry.unit_price | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+                    </div>
+                    <div class="field">
+                      <div class="label">Debit Note Account</div>
+                      <div class="value" [title]="entry.category_account_name">{{ entry.category_account_name |
+                        slice:0:20 }}<ng-container *ngIf="entry.category_account_name.length > 20">...</ng-container>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <div class="label">Debit Note Value</div>
+                      <div class="value">{{ entry.value | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+                    </div>
+                    <div class="field">
+                      <div class="label">Total Amount</div>
+                      <div class="value">{{ entry.total_amount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+                    </div>
+                  </mat-panel-title>
+                </mat-expansion-panel-header>
+                <div class="dynamic-field-container">
+                  <div *ngFor="let field of entry.dynamicFields" class="dynamic-field">
+                    <div
+                      *ngIf="field.field_category === 1  && field.field_name !== 'broker' && field.field_name !== 'Area'">
+                      <div class="label">{{ field.field_name }} - Tax Account</div>
+                      <div class="value">
+                        <ng-container>
+                          {{ taxAccountMap.get(field.tax_account_id) }}
+                        </ng-container>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="label">{{ field.field_name }}</div>
+                      <div class="value">
+                        <ng-container *ngIf="field.field_name === 'broker'">
+                          {{ brokerMap[field.field_value] || 'N/A' }}
+                        </ng-container>
+                        <ng-container *ngIf="field.field_name === 'Area'">
+                          {{ areaMap[field.field_value] || 'N/A' }}
+                        </ng-container>
+                        <ng-container *ngIf="field.field_name !== 'broker' && field.field_name !== 'Area'">
+                          {{ field.field_value }}
+                        </ng-container>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </mat-expansion-panel>
             </div>
-          </mat-expansion-panel>
-        </mat-accordion>
-      </mat-card-content>
-    </mat-card>
-  </div>
-  
+          </div>
+        </mat-expansion-panel>
+      </mat-accordion>
+      <!-- Pagination Buttons -->
+      <div class="pagination-buttons">
+        <button mat-raised-button color="primary" (click)="onPreviousPage()"
+          [disabled]="currentPage === 1">Previous</button>
+        <button mat-raised-button color="primary" (click)="onNextPage()"
+          [disabled]="!cache.has(currentPage+1) && !hasMore">Next</button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

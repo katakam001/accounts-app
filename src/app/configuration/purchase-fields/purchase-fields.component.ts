@@ -14,6 +14,10 @@ import { FieldMappingService } from '../../services/field-mapping.service';
 import { AddEditFieldMappingDialogComponent } from '../../dialogbox/add-edit-field-mapping-dialog/add-edit-field-mapping-dialog.component';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
+import { GroupNode } from '../../models/group-node.interface';
+import { Account } from '../../models/account.interface';
+import { GroupMappingService } from '../../services/group-mapping.service';
+import { AccountService } from '../../services/account.service';
 
 @Component({
   selector: 'app-purchase-fields',
@@ -35,7 +39,7 @@ import { StorageService } from '../../services/storage.service';
 })
 export class PurchaseFieldsComponent implements OnInit {
   fields: MatTableDataSource<any>;
-  displayedColumns: string[] = ['category_name', 'field_name', 'field_type', 'field_category', 'exclude_from_total', 'required', 'actions'];
+  displayedColumns: string[] = ['category_name', 'field_name', 'field_type', 'field_category', 'exclude_from_total','account_name', 'required', 'actions'];
   categories: string[] = [];
   fieldTypes: string[] = [];
   fieldCategories: string[] = ['Tax', 'Normal'];
@@ -47,12 +51,17 @@ export class PurchaseFieldsComponent implements OnInit {
   originalData: any[] = [];
   userId: number;
   financialYear: string;
+    groupMapping: any[] = []; // Add fields array
+    accounts: Account[] = [];
 
   @ViewChild(MatSort) sort: MatSort;
+  accountMap: Map<number, string> = new Map();
 
   constructor(
     private fieldMappingService: FieldMappingService,
     private financialYearService: FinancialYearService,
+    private groupMappingService: GroupMappingService, // Inject FieldMappingService
+    private accountService: AccountService,
     private storageService: StorageService,
     public dialog: MatDialog
   ) {
@@ -68,17 +77,39 @@ export class PurchaseFieldsComponent implements OnInit {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
       this.financialYear = storedFinancialYear;
-      this.fetchFields();
+      this.fetchGroupMapping();
     }
   }
 
 
   fetchFields(): void {
     this.fieldMappingService.getFieldMappingsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
-      this.originalData = data;
-      this.fields.data = data;
+      this.originalData =this.updateFieldsWithAccountName(data);
+      this.fields.data = this.originalData;
       this.fields.sort = this.sort; // Set the sort after fetching the data
-      this.extractFilterOptions(data);
+      this.extractFilterOptions(this.originalData);
+    });
+  }
+  updateFieldsWithAccountName(data: any[]): any[] {
+    data.forEach(field => {
+      field.account_name = this.accountMap.get(field.account_id) || '';
+    });
+    console.log(data);
+    return data;
+  }
+  fetchGroupMapping(): void {
+    this.groupMappingService.getGroupMappingTree(this.userId, this.financialYear).subscribe(data => {
+      this.groupMapping = data;
+      const accountIds = this.getAccountIdsFromNodeByName('Indirect Expenses');
+      this.fetchAccounts(accountIds);
+      console.log('Accounts:', accountIds);
+    });
+  }
+  fetchAccounts(accountIds: number[]): void {
+    this.accountService.getAccountsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((accounts: Account[]) => {
+      const filteredAccounts = accounts.filter(account => accountIds.includes(account.id));
+      this.accountMap = new Map(filteredAccounts.map(account => [account.id, account.name]));
+      this.fetchFields();
     });
   }
 
@@ -131,6 +162,7 @@ export class PurchaseFieldsComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
               // Add the new field to the original data
+              result.account_name = this.accountMap.get(result.account_id) || '';
       this.originalData = [...this.originalData, result];
       this.applyFilter(); // Reapply filters to update the displayed data
       }
@@ -146,6 +178,7 @@ export class PurchaseFieldsComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         console.log(this.originalData);
+        result.account_name = this.accountMap.get(result.account_id) || '';
               // Update the existing field in the original data
       this.originalData = this.originalData.map(f => f.id === result.id ? result : f);
       console.log(this.originalData);
@@ -161,4 +194,56 @@ export class PurchaseFieldsComponent implements OnInit {
     this.applyFilter(); // Reapply filters to update the displayed data
     });
   }
+    // Function to find a node by its name
+    findNodeByName(node: GroupNode, name: string): GroupNode | null {
+      if (node.name === name) {
+        return node;
+      }
+  
+      if (node.children && node.children.length) {
+        for (const child of node.children) {
+          const result = this.findNodeByName(child, name);
+          if (result) {
+            return result;
+          }
+        }
+      }
+  
+      return null;
+    }
+  
+    // Function to extract account IDs from a node and return a set of unique IDs
+    extractAccountIds(node: GroupNode, result = new Set<number>()): number[] {
+      if (!node.children || node.children.length === 0) {
+        // This is an account node
+        result.add(Number(node.id));
+      } else {
+        // This is a group node, traverse its children
+        node.children.forEach(child => this.extractAccountIds(child, result));
+      }
+      // Convert the set to an array for the final output
+      return Array.from(result);
+    }
+  
+    getNodeByName(nodeName: string): GroupNode | null {
+      for (const node of this.groupMapping) {
+        const result = this.findNodeByName(node, nodeName);
+        if (result) {
+          return result;
+        }
+      }
+      return null;
+    }
+  
+    // Function to get account IDs from a specific node by its name
+    getAccountIdsFromNodeByName(nodeName: string): number[] {
+      const node = this.getNodeByName(nodeName);
+      console.log(node);
+      if (node) {
+        return this.extractAccountIds(node);
+      } else {
+        console.error('Node not found');
+        return [];
+      }
+    }
 }

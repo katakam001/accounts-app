@@ -10,6 +10,8 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { GroupNode } from '../../models/group-node.interface';
 import { NodeDialogData } from '../../models/node-dialog-data.interface';
 import { NodeDialogComponent } from '../../dialogbox/node-dialog/node-dialog.component';
+import { FinancialYearService } from '../../services/financial-year.service';
+import { StorageService } from '../../services/storage.service';
 
 @Component({
   selector: 'app-group-mapping-tree',
@@ -30,11 +32,15 @@ export class GroupMappingTreeComponent implements OnInit {
   dataSource: GroupNode[] = [];
   addNodeForm: FormGroup;
   selectedParentId: number | null = null;
+  financialYear: string;
+  userId: number;
 
   constructor(
     private groupMappingService: GroupMappingService,
     private fb: FormBuilder,
     public dialog: MatDialog,
+    private storageService: StorageService,
+    private financialYearService: FinancialYearService,
     private snackBar: MatSnackBar // Inject MatSnackBar
   ) {
     this.addNodeForm = this.fb.group({
@@ -44,11 +50,20 @@ export class GroupMappingTreeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadData();
+    this.userId = this.storageService.getUser().id;
+    this.getFinancialYear();
   }
 
-  loadData(): void {
-    this.groupMappingService.getGroupMappingTree().subscribe(data => {
+  getFinancialYear() {
+    const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
+    if (storedFinancialYear) {
+      this.financialYear = storedFinancialYear;
+      this.loadData(this.userId, this.financialYear);
+    }
+  }
+
+  loadData(userId: number, financialYear: string): void {
+    this.groupMappingService.getGroupMappingTree(userId,financialYear).subscribe(data => {
       this.dataSource = data;
     });
   }
@@ -88,10 +103,10 @@ export class GroupMappingTreeComponent implements OnInit {
       children: []
     };
 
-    this.groupMappingService.addGroupMapping({ parent_id: null, group_name: data.name }).subscribe(
+    this.groupMappingService.addGroupMapping({ parent_id: null, group_name: data.name,user_id:this.userId, financial_year:this.financialYear }).subscribe(
       addedNode => {
         this.dataSource.push(addedNode);
-        this.loadData();
+        this.loadData(this.userId, this.financialYear);
       },
       error => {
         if (error.status === 404) {
@@ -116,14 +131,14 @@ export class GroupMappingTreeComponent implements OnInit {
       children: []
     };
 
-    this.groupMappingService.addGroupMapping({ parent_id: this.selectedParentId, group_name: data.name }).subscribe(
+    this.groupMappingService.addGroupMapping({ parent_id: this.selectedParentId, group_name: data.name,user_id:this.userId, financial_year:this.financialYear }).subscribe(
       addedNode => {
         if (addedNode.parent_id === null) {
           this.dataSource.push(addedNode);
         } else {
           this.addChildNode(this.dataSource, addedNode);
         }
-        this.loadData();
+        this.loadData(this.userId, this.financialYear);
       },
       error => {
         if (error.status === 404) {
@@ -165,7 +180,7 @@ export class GroupMappingTreeComponent implements OnInit {
   deleteNode(node: GroupNode): void {
     this.groupMappingService.deleteGroupMapping(node.id!).subscribe(() => {
       this.removeNode(this.dataSource, node.id!);
-      this.loadData();
+      this.loadData(this.userId, this.financialYear);
     });
   }
 

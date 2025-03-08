@@ -78,6 +78,11 @@
         </tr>
         <tr mat-row *matRowDef="let row; columns: ['expandedDetail']"></tr>
       </table>
+      <!-- Pagination Buttons -->
+      <div class="pagination-buttons">
+        <button mat-raised-button color="primary" (click)="onPreviousPage()" [disabled]="currentPage === 1">Previous</button>
+        <button mat-raised-button color="primary" (click)="onNextPage()" [disabled]="!cache.has(currentPage+1) && !hasMore">Next</button>
+      </div>
     </mat-card-content>
   </mat-card>
 </div>

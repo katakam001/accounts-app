@@ -23,8 +23,13 @@ export class JournalService {
 
   constructor(private http: HttpClient) { }
 
-  getJournalEntriesByUserIdAndFinancialYear(userId: number, financialYear: string) {
-    return this.http.get<any[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}`);
+  getJournalEntriesByUserIdAndFinancialYear(userId: number, financialYear: string,nextStartRow:number, pageSize:number): Observable<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }> {
+    let params = new HttpParams()
+    .set('userId', userId.toString())
+    .set('financialYear', financialYear)
+    .set('pageSize', pageSize.toString())
+    .set('nextStartRow', nextStartRow.toString());
+    return this.http.get<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }>(`${this.apiUrl}`, { params });
   }
 
   // New method to fetch combined entries for the day book
@@ -46,12 +51,24 @@ export class JournalService {
     return this.http.get<{ entries: any[], nextRowCursor: number | null, hasNextPage: boolean }>(`${this.apiUrl}/daybook`, { params });
   }
 
-  getJournalEntriesByAccount(accountId: number, userId: number, financialYear: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}&accountId=${accountId}`);
+  getJournalEntriesByAccount(accountId: number, userId: number, financialYear: string,nextStartRow:number, pageSize:number): Observable<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }> {
+    let params = new HttpParams()
+    .set('userId', userId.toString())
+    .set('financialYear', financialYear)
+    .set('accountId',accountId.toString())
+    .set('pageSize', pageSize.toString())
+    .set('nextStartRow', nextStartRow.toString());
+    return this.http.get<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }>(`${this.apiUrl}`, { params });
   }
 
-  getJournalEntriesByGroup(groupId: number, userId: number, financialYear: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}&groupId=${groupId}`);
+  getJournalEntriesByGroup(groupId: number, userId: number, financialYear: string,nextStartRow:number, pageSize:number): Observable<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }> {
+    let params = new HttpParams()
+    .set('userId', userId.toString())
+    .set('financialYear', financialYear)
+    .set('groupId',groupId.toString())
+    .set('pageSize', pageSize.toString())
+    .set('nextStartRow', nextStartRow.toString());
+    return this.http.get<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }>(`${this.apiUrl}`, { params });
   }
 
 
