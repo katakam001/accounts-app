@@ -3,17 +3,23 @@
   <form [formGroup]="fieldForm" class="add-edit-field-dialog-form">
     <mat-form-field appearance="fill" class="form-field">
       <mat-label>Category</mat-label>
-      <mat-select formControlName="category_id" required>
-        <mat-option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</mat-option>
-      </mat-select>
+      <input type="text" matInput formControlName="category_name" [matAutocomplete]="categoryAuto" />
+      <mat-autocomplete #categoryAuto="matAutocomplete" (optionSelected)="onCategorySelectionChange($event.option.value)">
+          <mat-option *ngFor="let category of categories | categoryFilter: fieldForm.get('category_name')?.value" [value]="{ id: category.id, name: category.name}">
+          {{ category.name }}
+        </mat-option>
+      </mat-autocomplete>
       <mat-error *ngIf="fieldForm.get('category_id')?.hasError('required')">Category is required</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">
       <mat-label>Field Name</mat-label>
-      <mat-select formControlName="field_id" required> <!-- Updated to field_id -->
-        <mat-option *ngFor="let field of fields" [value]="field.id">{{ field.field_name }}</mat-option> <!-- Updated value to field.id -->
-      </mat-select>
+      <input type="text" matInput formControlName="field_name" [matAutocomplete]="fieldAuto" />
+      <mat-autocomplete #fieldAuto="matAutocomplete" (optionSelected)="onFieldSelectionChange($event.option.value)">
+          <mat-option *ngFor="let field of fields | fieldFilter: fieldForm.get('field_name')?.value" [value]="{ id: field.id, name: field.field_name}">
+          {{ field.field_name }}
+        </mat-option>
+      </mat-autocomplete>
       <mat-error *ngIf="fieldForm.get('field_id')?.hasError('required')">Field name is required</mat-error> <!-- Updated to field_id -->
     </mat-form-field>
 
@@ -39,9 +45,12 @@
 
     <mat-form-field *ngIf="showAccountField" appearance="fill" class="form-field">
       <mat-label>Account</mat-label>
-      <mat-select formControlName="account_id" required>
-        <mat-option *ngFor="let account of accounts" [value]="account.id">{{ account.name }}</mat-option>
-      </mat-select>
+      <input type="text" matInput formControlName="account_name" [matAutocomplete]="taxAuto" />
+      <mat-autocomplete #taxAuto="matAutocomplete" (optionSelected)="onAccountSelectionChange($event.option.value)">
+          <mat-option *ngFor="let account of accounts | supplierFilter: fieldForm.get('account_name')?.value" [value]="{ id: account.id, name: account.name}">
+          {{ account.name }}
+        </mat-option>
+      </mat-autocomplete>
       <mat-error *ngIf="fieldForm.get('account_id')?.hasError('required')">Account is required</mat-error>
     </mat-form-field>
 

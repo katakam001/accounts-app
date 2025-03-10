@@ -17,16 +17,22 @@
       <div *ngFor="let item of items.controls; let i=index" [formGroupName]="i" class="item-group">
         <mat-form-field appearance="fill">
           <mat-label>Account Name</mat-label>
-          <mat-select formControlName="account_name" (selectionChange)="onAccountSelectionChange($event, i)">
-            <mat-option *ngFor="let account of accountList" [value]="account.account_name">{{account.account_name}}</mat-option>
-          </mat-select>
+          <input type="text" matInput formControlName="account_name" [matAutocomplete]="accountAuto" />
+          <mat-autocomplete #accountAuto="matAutocomplete" (optionSelected)="onAccountSelectionChange($event.option.value ,i)">
+              <mat-option *ngFor="let account of accountList | supplierFilter: item.get('account_name')?.value" [value]="{ id: account.id, name: account.name}">
+              {{ account.name }}
+            </mat-option>
+          </mat-autocomplete>
         </mat-form-field>
 
         <mat-form-field appearance="fill">
           <mat-label>Group Name</mat-label>
-          <mat-select formControlName="group_name" (selectionChange)="onGroupSelectionChange($event, i)">
-            <mat-option *ngFor="let group of groupList" [value]="group.group_name">{{group.group_name}}</mat-option>
-          </mat-select>
+          <input type="text" matInput formControlName="group_name" [matAutocomplete]="groupAuto" />
+          <mat-autocomplete #groupAuto="matAutocomplete" (optionSelected)="onGroupSelectionChange($event.option.value ,i)">
+              <mat-option *ngFor="let group of groupList | groupFilter: item.get('group_name')?.value" [value]="{ id: group.id, name: group.name}">
+              {{ group.name }}
+            </mat-option>
+          </mat-autocomplete>
         </mat-form-field>
 
         <mat-form-field appearance="fill">

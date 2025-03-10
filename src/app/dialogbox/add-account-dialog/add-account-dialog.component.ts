@@ -9,11 +9,13 @@ import { GroupService } from '../../services/group.service';
 import { Group } from '../../models/group.interface';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { GroupFilterPipe } from '../../pipe/group-filter.pipe';
 
 @Component({
   selector: 'app-add-account-dialog',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, MatSelectModule, MatCheckboxModule, MatInputModule],
+  imports: [ReactiveFormsModule, CommonModule, MatSelectModule, MatCheckboxModule, MatInputModule,MatAutocompleteModule,GroupFilterPipe],
   templateUrl: './add-account-dialog.component.html',
   styleUrls: ['./add-account-dialog.component.css']
 })
@@ -30,10 +32,11 @@ export class AddAccountDialogComponent implements OnInit {
   ) {
     this.addAccountForm = this.fb.group({
       name: ['', Validators.required],
-      description: [''],
+      gst_no: [''],
       debit_balance: [0, [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
       credit_balance: [0, [Validators.required, Validators.pattern(/^\d+(\.\d{1,2})?$/)]],
       group: [null, Validators.required], // Updated form control for group
+      group_name: [null, Validators.required],
       isDealer: [false], // New form control for isDealer
       address: this.fb.group({ // New form group for address
         street: [''],
@@ -49,6 +52,13 @@ export class AddAccountDialogComponent implements OnInit {
     this.fetchGroups();
   }
 
+  onGroupSelectionChange(event: any): void {
+    this.addAccountForm.patchValue({
+      group: event.id,
+      group_name:event.name
+    });
+}
+
   fetchGroups(): void {
     this.groupService.getGroupsByUserIdAndFinancialYear(this.storageService.getUser().id, this.data.financialYear).subscribe((data: Group[]) => {
       this.groups = data;
@@ -61,7 +71,7 @@ export class AddAccountDialogComponent implements OnInit {
       const newAccount: Account = {
         id: 0, // This will be set by the server
         name: formValue.name,
-        description: formValue.description,
+        gst_no: formValue.gst_no,
         user_id: this.storageService.getUser().id,
         credit_balance: parseFloat(formValue.credit_balance),
         debit_balance: parseFloat(formValue.debit_balance),

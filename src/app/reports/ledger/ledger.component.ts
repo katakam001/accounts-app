@@ -4,24 +4,20 @@ import { interval, Subscription } from 'rxjs';
 import { LedgerService } from '../../services/ledger.service';
 import { WebSocketService } from '../../services/websocket.service';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
-import { MatSelectModule } from '@angular/material/select';
 import { StorageService } from '../../services/storage.service';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { saveAs } from 'file-saver';
 import { MatIconModule } from '@angular/material/icon';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { SupplierFilterPipe } from '../../pipe/supplier-filter.pipe';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-ledger',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ScrollingModule,
-    MatSelectModule,
-    MatIconModule
-  ],
+  imports: [MatInputModule,ReactiveFormsModule,ScrollingModule, CommonModule, MatIconModule,MatAutocompleteModule, SupplierFilterPipe],
   templateUrl: './ledger.component.html',
   styleUrls: ['./ledger.component.css']
 })
@@ -39,7 +35,7 @@ export class LedgerComponent implements OnInit, OnDestroy, AfterViewInit  {
   financialYear: string;
   accountList: any[] = [];
   userId: number;
-
+  searchName: FormControl = new FormControl(''); // FormControl for input field
   constructor(
     private ledgerService: LedgerService,
     private webSocketService: WebSocketService,
@@ -81,7 +77,7 @@ export class LedgerComponent implements OnInit, OnDestroy, AfterViewInit  {
     this.accountService.getAccountsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((accounts: any[]) => {
       this.accountList = accounts.map(account => ({
         id: account.id,
-        account_name: account.name
+        name: account.name
       }));
     });
   }
@@ -89,7 +85,8 @@ export class LedgerComponent implements OnInit, OnDestroy, AfterViewInit  {
   onAccountSelectionChange(event: any): void {
     console.log('onAccountSelectionChange called');
     this.hasMoreRecords = true;
-    this.selectedAccountId = event.value;
+    this.selectedAccountId = event.id;
+    this.searchName.patchValue(event.name);
     this.refreshLedger();
   }
 

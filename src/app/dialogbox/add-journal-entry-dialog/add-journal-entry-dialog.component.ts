@@ -11,18 +11,21 @@ import { GroupService } from '../../services/group.service';
 import { Account } from '../../models/account.interface';
 import { Group } from '../../models/group.interface';
 import { StorageService } from '../../services/storage.service';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { SupplierFilterPipe } from '../../pipe/supplier-filter.pipe';
+import { GroupFilterPipe } from '../../pipe/group-filter.pipe';
 
 @Component({
   selector: 'app-add-journal-entry-dialog',
   standalone: true,
-  imports: [ MatInputModule, ReactiveFormsModule,MatIconModule,CommonModule,MatSelectModule,MatDialogModule,MatDatepickerModule],
+  imports: [ MatInputModule, ReactiveFormsModule,MatIconModule,CommonModule,MatSelectModule,MatDialogModule,MatDatepickerModule,MatAutocompleteModule, SupplierFilterPipe,GroupFilterPipe],
   templateUrl: './add-journal-entry-dialog.component.html',
   styleUrls: ['./add-journal-entry-dialog.component.css']
 })
 export class AddJournalEntryDialogComponent implements OnInit {
   addJournalEntryForm: FormGroup;
-  accountList: { id: number, account_name: string }[] = [];
-  groupList: { id: number, group_name: string }[] = [];
+  accountList: { id: number, name: string }[] = [];
+  groupList: { id: number, name: string }[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -85,40 +88,36 @@ export class AddJournalEntryDialogComponent implements OnInit {
     this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id,this.data).subscribe((accounts: Account[]) => {
       this.accountList = accounts.map(account => ({
         id: account.id,
-        account_name: account.name
+        name: account.name
       }));
     });
   }
 
   fetchGroupList(): void {
     this.groupService.getGroupsByUserIdAndFinancialYear(this.storageService.getUser().id,this.data).subscribe((groups: Group[]) => {
+      console.log(groups);
       this.groupList = groups.map(group => ({
         id: group.id,
-        group_name: group.name
+        name: group.name
       }));
+      console.log(this.groupList);
     });
   }
 
   onAccountSelectionChange(event: any, index: number): void {
-    const selectedAccount = event.value;
     const itemGroup = this.items.at(index) as FormGroup;
-    const selectedAccountId = this.accountList.find(account => account.account_name === selectedAccount);
-    if (selectedAccountId) {
       itemGroup.patchValue({
-        account_id: selectedAccountId.id,
+        account_id: event.id,
+        account_name: event.name,
       });
-    }
   }
 
   onGroupSelectionChange(event: any, index: number): void {
-    const selectedGroup = event.value;
     const itemGroup = this.items.at(index) as FormGroup;
-    const selectedGroupId = this.groupList.find(group => group.group_name === selectedGroup);
-    if (selectedGroupId) {
       itemGroup.patchValue({
-        group_id: selectedGroupId.id,
+        group_id: event.id,
+        group_name:event.name
       });
-    }
   }
 
   onCancel(): void {

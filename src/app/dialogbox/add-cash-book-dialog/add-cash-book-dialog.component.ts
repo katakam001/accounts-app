@@ -8,17 +8,19 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { SupplierFilterPipe } from '../../pipe/supplier-filter.pipe';
 
 @Component({
   selector: 'app-cash-book-dialog',
   standalone: true,
-  imports: [  ReactiveFormsModule,CommonModule,MatSelectModule,MatInputModule,MatDatepickerModule],
+  imports: [  ReactiveFormsModule,CommonModule,MatSelectModule,MatInputModule,MatDatepickerModule,MatAutocompleteModule, SupplierFilterPipe],
   templateUrl: './add-cash-book-dialog.component.html',
   styleUrls: ['./add-cash-book-dialog.component.css']
 })
 export class AddCashBookDialogComponent implements OnInit {
   cashBookForm: FormGroup;
-  accountList: { id: number, account_name: string }[] = [];
+  accountList: { id: number, name: string }[] = [];
   narrations = ['CASH-PAID', 'CASH DEPOSIT', 'CASH RECEIVED', 'TRANSFER', 'CUSTOM'];
   isCustomNarration = false;
   runningBalance: number;
@@ -51,7 +53,7 @@ export class AddCashBookDialogComponent implements OnInit {
     this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id,this.data.financialYear).subscribe((accounts: Account[]) => {
       this.accountList = accounts.map(account => ({
         id: account.id,
-        account_name: account.name
+        name: account.name
       }));
     });
   }
@@ -68,14 +70,10 @@ export class AddCashBookDialogComponent implements OnInit {
   };
 
   onAccountSelectionChange(event: any): void {
-    console.log(event.value);
-    const selectedAccount = event.value;
-    const selectedAccountId = this.accountList.find(account => account.account_name === selectedAccount);
-    if (selectedAccountId) {
       this.cashBookForm.patchValue({
-        account_id: selectedAccountId.id,
+        account_id: event.id,
+        account_name:event.name
       });
-    }
   }
 
   onNarrationChange(value: string): void {

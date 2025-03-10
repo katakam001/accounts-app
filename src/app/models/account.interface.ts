@@ -4,7 +4,7 @@ import { Group } from "./group.interface";
 export interface Account {
   id: number;
   name: string;
-  description?: string;
+  gst_no?: string;
   user_id?: number;
   credit_balance: number;
   debit_balance: number;

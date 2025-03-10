@@ -3,9 +3,12 @@
   <div class="header-container">
     <mat-form-field appearance="fill">
       <mat-label>Account Name</mat-label>
-      <mat-select [(value)]="selectedAccountId" (selectionChange)="onAccountSelectionChange($event)">
-        <mat-option *ngFor="let account of accountList" [value]="account.id">{{account.account_name}}</mat-option>
-      </mat-select>
+      <input type="text" matInput     [formControl]="searchName"  [matAutocomplete]="auto" />
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onAccountSelectionChange($event.option.value)">
+          <mat-option *ngFor="let account of accountList | supplierFilter: searchName.value" [value]="account">
+          {{ account.name }}
+        </mat-option>
+      </mat-autocomplete>
     </mat-form-field>
     <div class="export-buttons">
       <button class="pdf-button" (click)="exportToPDF()">

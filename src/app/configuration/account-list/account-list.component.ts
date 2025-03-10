@@ -24,7 +24,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 })
 export class AccountListComponent implements OnInit {
   accounts = new MatTableDataSource<Account>();
-  displayedColumns: string[] = ['name', 'description', 'debit_balance', 'credit_balance', 'group', 'address', 'isDealer', 'actions'];
+  displayedColumns: string[] = ['name', 'gst_no', 'debit_balance', 'credit_balance', 'group', 'address', 'isDealer', 'actions'];
   financialYear: string;
   totalDebits: number = 0;
   totalCredits: number = 0;
@@ -117,7 +117,7 @@ export class AccountListComponent implements OnInit {
         const newAccount: Account = {
           id: result.id,
           name: result.name,
-          description: result.description,
+          gst_no: result.gst_no,
           user_id: this.storageService.getUser().id,
           credit_balance: result.credit_balance,
           debit_balance: result.debit_balance,

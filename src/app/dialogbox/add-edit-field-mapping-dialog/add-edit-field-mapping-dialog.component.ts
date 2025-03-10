@@ -13,6 +13,10 @@ import { GroupMappingService } from '../../services/group-mapping.service';
 import { GroupNode } from '../../models/group-node.interface';
 import { AccountService } from '../../services/account.service';
 import { Account } from '../../models/account.interface';
+import { FieldFilterPipe } from '../../pipe/field-filter.pipe';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { CategoryFilterPipe } from '../../pipe/category-filter.pipe';
+import { SupplierFilterPipe } from '../../pipe/supplier-filter.pipe';
 
 @Component({
   selector: 'app-add-edit-field-mapping-dialog',
@@ -23,7 +27,11 @@ import { Account } from '../../models/account.interface';
     CommonModule,
     MatSelectModule,
     MatDialogModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    FieldFilterPipe,
+    MatAutocompleteModule,
+    CategoryFilterPipe,
+    SupplierFilterPipe
   ],
   templateUrl: './add-edit-field-mapping-dialog.component.html',
   styleUrls: ['./add-edit-field-mapping-dialog.component.css']
@@ -51,10 +59,13 @@ export class AddEditFieldMappingDialogComponent implements OnInit {
   ) {
     this.fieldForm = this.fb.group({
       category_id: ['', Validators.required],
+      category_name: ['', Validators.required],
       field_id: ['', Validators.required], // Updated to field_id
+      field_name: ['', Validators.required], // Updated to field_name
       field_type: ['', Validators.required],
       field_category: [0, Validators.required], // Default to Normal
       account_id: [null],
+      account_name: ['', Validators.required], // Updated to account_name
       exclude_from_total: [false],
       required: [false],
       type: [1]
@@ -69,6 +80,7 @@ export class AddEditFieldMappingDialogComponent implements OnInit {
     this.fetchGroupMapping();
     if (this.data.field) {
       this.fieldForm.patchValue(this.data.field);
+      this.showAccountField = this.data.field.field_category === 1; // Show account field only if field_category is 'Tax'
       this.setFieldCategoryDisplayValue();
     }
   }
@@ -102,6 +114,24 @@ export class AddEditFieldMappingDialogComponent implements OnInit {
   onFieldCategoryChange(event: any): void {
     this.showAccountField = event.value === 1; // Show account field only if field_category is 'Tax'
   }
+  onFieldSelectionChange(event: any): void {
+      this.fieldForm.patchValue({
+        field_id: event.id,
+        field_name:event.name
+      });
+  }
+  onCategorySelectionChange(event: any): void {
+    this.fieldForm.patchValue({
+      category_id: event.id,
+      category_name:event.name
+    });
+}
+onAccountSelectionChange(event: any): void {
+  this.fieldForm.patchValue({
+    account_id: event.id,
+    account_name:event.name
+  });
+}
 
   setFieldCategoryDisplayValue(): void {
     const fieldCategory = this.fieldForm.get('field_category')?.value;

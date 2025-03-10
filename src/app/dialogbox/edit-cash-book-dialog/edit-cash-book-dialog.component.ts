@@ -10,17 +10,19 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CashEntry } from '../../models/cash-entry.interface';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { SupplierFilterPipe } from '../../pipe/supplier-filter.pipe';
 
 @Component({
   selector: 'app-edit-cash-book-dialog',
   standalone: true,
-  imports: [MatInputModule, ReactiveFormsModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule],
+  imports: [MatInputModule, ReactiveFormsModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule,MatAutocompleteModule, SupplierFilterPipe],
   templateUrl: './edit-cash-book-dialog.component.html',
   styleUrls: ['./edit-cash-book-dialog.component.css']
 })
 export class EditCashBookDialogComponent implements OnInit {
   cashBookForm: FormGroup;
-  accountList: { id: number, account_name: string }[] = [];
+  accountList: { id: number, name: string }[] = [];
   narrations = ['CASH-PAID', 'CASH DEPOSIT', 'CASH RECEIVED', 'TRANSFER', 'CUSTOM'];
   isCustomNarration = false;
   runningBalance: number;
@@ -98,19 +100,16 @@ export class EditCashBookDialogComponent implements OnInit {
     this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id, this.data.financialYear).subscribe((accounts: Account[]) => {
       this.accountList = accounts.map(account => ({
         id: account.id,
-        account_name: account.name
+        name: account.name
       }));
     });
   }
 
   onAccountSelectionChange(event: any): void {
-    const selectedAccount = event.value;
-    const selectedAccountId = this.accountList.find(account => account.account_name === selectedAccount);
-    if (selectedAccountId) {
       this.cashBookForm.patchValue({
-        account_id: selectedAccountId.id,
+        account_id: event.id,
+        account_name: event.name,
       });
-    }
   }
 
   onNarrationChange(value: string): void {
