@@ -65,7 +65,7 @@ export class AddEditFieldMappingDialogComponent implements OnInit {
       field_type: ['', Validators.required],
       field_category: [0, Validators.required], // Default to Normal
       account_id: [null],
-      account_name: ['', Validators.required], // Updated to account_name
+      account_name: [''], // Updated to account_name
       exclude_from_total: [false],
       required: [false],
       type: [1]
