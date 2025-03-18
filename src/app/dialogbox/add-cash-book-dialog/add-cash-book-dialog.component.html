@@ -14,7 +14,7 @@
         <mat-label>Account Name</mat-label>
         <input type="text" matInput formControlName="account_name" [matAutocomplete]="auto" />
         <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onAccountSelectionChange($event.option.value)">
-            <mat-option *ngFor="let account of accountList | supplierFilter: cashBookForm.get('account_name')?.value" [value]="{ id: account.id, name: account.name}">
+            <mat-option *ngFor="let account of accountList | supplierFilter: cashBookForm.get('account_name')?.value" [value]="{ id: account.id, name: account.name,group_id:account.group_id}">
             {{ account.name }}
           </mat-option>
         </mat-autocomplete>

@@ -27,8 +27,8 @@ import { CachedPage } from '../../models/cache-key.interface';
 export class JournalListComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription(); // Initialize the subscription
   journalEntries = new MatTableDataSource<JournalEntry>();
-  displayedColumns: string[] = ['journal_date', 'journal_description', 'user_name', 'actions'];
-  nestedDisplayedColumns: string[] = ['account_name', 'group_name', 'debit_amount', 'credit_amount'];
+  displayedColumns: string[] = ['journal_date', 'user_name', 'actions'];
+  nestedDisplayedColumns: string[] = ['account_name', 'group_name', 'debit_amount', 'credit_amount','narration'];
   expandedElement: JournalEntry | null;
   financialYear: string;
   accountId: number;
@@ -112,7 +112,8 @@ export class JournalListComponent implements OnInit, OnDestroy {
           item.account_name = this.accountMap[item.account_id];
           item.group_name = this.groupMap[item.group_id];
           item.debit_amount = item.type ? 0 : item.amount,
-            item.credit_amount = item.type ? item.amount : 0
+          item.credit_amount = item.type ? item.amount : 0
+          item.showFullNarration = false // Initialize showFullNarration to false
         });
     });
     this.journalEntries.data = data.sort((a, b) => new Date(a.journal_date).getTime() - new Date(b.journal_date).getTime());
@@ -221,7 +222,7 @@ export class JournalListComponent implements OnInit, OnDestroy {
 
   addJournalEntry(): void {
     const dialogRef = this.dialog.open(AddJournalEntryDialogComponent, {
-      width: '800px',
+      width: '100p0x',
       data: this.financialYear
     });
 
@@ -234,7 +235,7 @@ export class JournalListComponent implements OnInit, OnDestroy {
 
   editJournalEntry(entry: JournalEntry): void {
     const dialogRef = this.dialog.open(EditJournalEntryDialogComponent, {
-      width: '800px',
+      width: '1000px',
       data: entry
     });
 

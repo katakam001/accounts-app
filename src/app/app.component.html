@@ -212,6 +212,15 @@
         </div>
       </a>
     </mat-nav-list>
+    <mat-nav-list *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')">
+      <h3 class="section-heading">Uploads</h3>
+      <a mat-list-item routerLink="/bankStatement" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">receipt</mat-icon>
+          <span>Bank Statement</span>
+        </div>
+      </a>
+    </mat-nav-list>  
   </mat-sidenav>
 
   <mat-sidenav-content>

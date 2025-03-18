@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, tap, map, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { NgxIndexedDBService } from 'ngx-indexed-db';
@@ -281,7 +281,16 @@ export class AccountService {
       }
 
       }),
-      catchError(this.handleError<Account>('addAccount'))
+    // Improved error handling
+    catchError((error: any) => {
+      if (error.error && error.error.message && error.error.message.includes('already exists')) {
+        // Handle duplicate error specifically
+        return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+      } else {
+        // Handle other errors
+        return throwError(() => new Error('Failed to add account. Please try again later.'));
+      }
+    })
     );
   }
 
@@ -320,7 +329,15 @@ export class AccountService {
           });
         }
       }),
-      catchError(this.handleError<Account>('updateAccount'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already exists')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to update account. Please try again later.'));
+        }
+      })    
     );
   }
 

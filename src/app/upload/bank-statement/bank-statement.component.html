@@ -1,0 +1,64 @@
+<div class="upload-container mat-elevation-z4">
+  <h2><mat-icon>description</mat-icon> Upload Your Statement</h2>
+
+  <!-- First Dropdown: Statement Type -->
+  <mat-form-field class="full-width" appearance="fill">
+    <mat-label>Select Statement Type</mat-label>
+    <mat-select [(value)]="selectedStatementType" (selectionChange)="onStatementTypeChange()">
+      <mat-option value="bank">
+        <mat-icon>account_balance</mat-icon> Bank Statement
+      </mat-option>
+      <mat-option value="creditCard">
+        <mat-icon>credit_card</mat-icon> Credit Card Statement
+      </mat-option>
+      <mat-option value="trialBalance">
+        <mat-icon>bar_chart</mat-icon> Trial Balance
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <!-- Second Dropdown: Bank/Credit Card Names -->
+  <mat-form-field class="full-width" appearance="fill" *ngIf="selectedStatementType !== 'trialBalance'">
+    <mat-label>Select Bank/Credit Card Name</mat-label>
+    <mat-select [(value)]="selectedBankName">
+      <mat-option *ngFor="let name of bankNames" [value]="name">
+        <mat-icon>business</mat-icon> {{ name }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <!-- Third Dropdown: Account Type -->
+  <mat-form-field class="full-width" appearance="fill" *ngIf="selectedStatementType !== 'trialBalance'">
+    <mat-label>Select Account Name</mat-label>
+    <mat-select [(value)]="selectedAccountName">
+      <mat-option *ngFor="let account of accountNames" [value]="account.id">
+        <mat-icon>account_circle</mat-icon> {{ account.name }}
+      </mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <!-- File Upload Section -->
+  <div class="file-upload-section">
+    <mat-icon>upload_file</mat-icon>
+    <input type="file" id="fileUpload" (change)="onFileSelected($event)" class="file-input" />
+    <label for="fileUpload" class="file-label">Choose a PDF File</label>
+  </div>
+  <!-- Display Selected Filename -->
+
+  <p *ngIf="selectedFile">
+    Selected File: {{ selectedFile.name }}
+  </p>
+
+  <!-- Upload Button -->
+  <button mat-raised-button color="primary" class="upload-button" [disabled]="!selectedFile || isUploading"
+    (click)="uploadFile()">
+    <mat-icon>cloud_upload</mat-icon> {{ isUploading ? 'Uploading...' : 'Upload' }}
+  </button>
+
+  <!-- Upload Status Message -->
+  <div class="status-message">
+    <p *ngIf="uploadMessage" [class.success]="uploadSuccess" [class.error]="!uploadSuccess">
+      {{ uploadMessage }}
+    </p>
+  </div>
+</div>

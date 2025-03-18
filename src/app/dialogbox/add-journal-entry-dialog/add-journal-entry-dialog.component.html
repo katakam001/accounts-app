@@ -1,60 +1,73 @@
 <h2 mat-dialog-title>Add New Journal Entry</h2>
 <mat-dialog-content>
-  <form [formGroup]="addJournalEntryForm">
-    <mat-form-field appearance="fill">
+  <form [formGroup]="addJournalEntryForm" class="journal-entry-form">
+    <!-- Journal Date Field -->
+    <mat-form-field appearance="fill" style="width: 100%;">
       <mat-label>Journal Date</mat-label>
       <input matInput [matDatepicker]="picker" formControlName="journal_date" [matDatepickerFilter]="dateFilter">
       <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker #picker></mat-datepicker>
     </mat-form-field>
 
-    <mat-form-field appearance="fill">
-      <mat-label>Description</mat-label>
-      <input matInput formControlName="description">
-    </mat-form-field>
+    <!-- Items Section -->
+    <div formArrayName="items" class="items-section">
+      <div *ngFor="let item of items.controls; let i = index" [formGroupName]="i" class="item-group">
+        <div fxLayout="row" fxLayoutGap="16px" fxFlex="100%">
+          <!-- Account Name Field -->
+          <mat-form-field fxFlex="25%" appearance="fill">
+            <mat-label>Account Name</mat-label>
+            <input type="text" matInput formControlName="account_name" [matAutocomplete]="accountAuto" />
+            <mat-autocomplete #accountAuto="matAutocomplete" (optionSelected)="onAccountSelectionChange($event.option.value, i)">
+              <mat-option *ngFor="let account of accountList | supplierFilter: item.get('account_name')?.value" [value]="{ id: account.id, name: account.name }">
+                {{ account.name }}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
 
-    <div formArrayName="items">
-      <div *ngFor="let item of items.controls; let i=index" [formGroupName]="i" class="item-group">
-        <mat-form-field appearance="fill">
-          <mat-label>Account Name</mat-label>
-          <input type="text" matInput formControlName="account_name" [matAutocomplete]="accountAuto" />
-          <mat-autocomplete #accountAuto="matAutocomplete" (optionSelected)="onAccountSelectionChange($event.option.value ,i)">
-              <mat-option *ngFor="let account of accountList | supplierFilter: item.get('account_name')?.value" [value]="{ id: account.id, name: account.name}">
-              {{ account.name }}
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
+          <!-- Group Name Field -->
+          <mat-form-field fxFlex="25%" appearance="fill">
+            <mat-label>Group Name</mat-label>
+            <input type="text" matInput formControlName="group_name" [matAutocomplete]="groupAuto" />
+            <mat-autocomplete #groupAuto="matAutocomplete" (optionSelected)="onGroupSelectionChange($event.option.value, i)">
+              <mat-option *ngFor="let group of groupList | groupFilter: item.get('group_name')?.value" [value]="{ id: group.id, name: group.name }">
+                {{ group.name }}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
 
-        <mat-form-field appearance="fill">
-          <mat-label>Group Name</mat-label>
-          <input type="text" matInput formControlName="group_name" [matAutocomplete]="groupAuto" />
-          <mat-autocomplete #groupAuto="matAutocomplete" (optionSelected)="onGroupSelectionChange($event.option.value ,i)">
-              <mat-option *ngFor="let group of groupList | groupFilter: item.get('group_name')?.value" [value]="{ id: group.id, name: group.name}">
-              {{ group.name }}
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
+          <!-- Debit Amount Field -->
+          <mat-form-field fxFlex="25%" appearance="fill">
+            <mat-label>Debit Amount</mat-label>
+            <input matInput formControlName="debit_amount">
+          </mat-form-field>
 
-        <mat-form-field appearance="fill">
-          <mat-label>Debit Amount</mat-label>
-          <input matInput formControlName="debit_amount">
-        </mat-form-field>
+          <!-- Credit Amount Field -->
+          <mat-form-field fxFlex="25%" appearance="fill">
+            <mat-label>Credit Amount</mat-label>
+            <input matInput formControlName="credit_amount">
+          </mat-form-field>
+        </div>
 
-        <mat-form-field appearance="fill">
-          <mat-label>Credit Amount</mat-label>
-          <input matInput formControlName="credit_amount">
-        </mat-form-field>
-
-        <button mat-icon-button color="warn" (click)="removeItem(i)" class="remove-button">
-          <mat-icon>delete</mat-icon>
-        </button>
+        <div fxLayout="row" fxLayoutAlign="space-between center" fxFlex="100%">
+          <mat-form-field appearance="fill" style="width: 95%;">
+            <mat-label>Narration</mat-label>
+            <textarea matInput formControlName="narration" rows="1"></textarea>
+          </mat-form-field>
+          <button mat-icon-button color="warn" (click)="removeItem(i)" class="remove-button">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
       </div>
     </div>
 
+    <!-- Add Item Button -->
+    <div fxLayoutAlign="start center" style="margin-top: 16px;">
     <button mat-button (click)="addItem()" class="add-item-button">Add Item</button>
+    </div>
   </form>
 </mat-dialog-content>
-<mat-dialog-actions>
+
+<mat-dialog-actions fxLayout="row" fxLayoutAlign="space-between center" class="dialog-actions">
   <button mat-button (click)="onCancel()" class="cancel-button">Cancel</button>
   <button mat-button (click)="onSave()" class="save-button">Save</button>
 </mat-dialog-actions>

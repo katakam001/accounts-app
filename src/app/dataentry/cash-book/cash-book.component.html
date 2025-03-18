@@ -12,11 +12,11 @@
         <strong>Opening Balance: {{ openingBalance | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong>
       </div>
       <div *ngFor="let dateGroup of groupedTransactions">
-        <h3>{{ dateGroup.date | date:'dd-MM-yyyy' }}</h3>
+        <h3>{{ dateGroup.date | date: 'dd-MM-yyyy':'Asia/Kolkata' }}</h3>
         <table mat-table [dataSource]="dateGroup.transactions" class="mat-elevation-z8">
           <ng-container matColumnDef="cash_entry_date">
             <th mat-header-cell *matHeaderCellDef> Date </th>
-            <td mat-cell *matCellDef="let transaction"> {{ transaction.cash_entry_date | date:'dd-MM-yyyy' }} </td>
+            <td mat-cell *matCellDef="let transaction"> {{ transaction.cash_entry_date | date: 'dd-MM-yyyy':'Asia/Kolkata' }} </td>
           </ng-container>
 
           <ng-container matColumnDef="account_name">

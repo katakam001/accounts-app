@@ -14,11 +14,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { Group } from '../../models/group.interface';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-account-list',
   standalone: true,
-  imports: [MatCardModule, MatToolbarModule, MatTooltipModule, MatIconModule, MatTableModule, CommonModule, MatSortModule],
+  imports: [MatCardModule, MatToolbarModule, MatTooltipModule, MatIconModule, MatTableModule, CommonModule, MatSortModule,MatSnackBarModule],
   templateUrl: './account-list.component.html',
   styleUrls: ['./account-list.component.css']
 })
@@ -35,7 +36,8 @@ export class AccountListComponent implements OnInit {
     private accountService: AccountService,
     public dialog: MatDialog,
     private storageService: StorageService,
-    private financialYearService: FinancialYearService
+    private financialYearService: FinancialYearService,
+    private snackBar: MatSnackBar // Inject MatSnackBar
   ) { }
 
   ngOnInit(): void {
@@ -91,15 +93,18 @@ export class AccountListComponent implements OnInit {
   
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        console.log("save the add account:" + result);
+        console.log('Saving account:', result);
         this.accountService.addAccount(result).subscribe({
           next: (response) => {
-            this.accounts.data = [...this.accounts.data, response]; // Create a new array with the added account
-            this.accounts._updateChangeSubscription(); // Refresh the table
-            this.calculateTotals(); // Recalculate totals after update
+            this.accounts.data = [...this.accounts.data, response];
+            this.accounts._updateChangeSubscription();
+            this.calculateTotals();
+            // Show success message
+            this.snackBar.open(`Account "${response.name}" added successfully.`,'Close',{ duration: 3000 });
           },
           error: (error) => {
-            console.error('Error adding account:', error);
+            // Display the error directly from the service response
+            this.snackBar.open(error.message, 'Close', { duration: 5000 });
           }
         });
       }
@@ -126,7 +131,7 @@ export class AccountListComponent implements OnInit {
           address: result.address,
           isDealer: result.isDealer
         };
-        console.log('Updated account:', newAccount);
+        console.log('Updating account:', newAccount);
         this.updateAccount(newAccount);
       }
     });
@@ -157,10 +162,11 @@ updateAccount(updatedAccount: Account): void {
         this.accounts.data = newData;
         this.accounts._updateChangeSubscription(); // Refresh the table
         this.calculateTotals(); // Recalculate totals after update
+        this.snackBar.open(`Account "${response.name}" updation is successfully.`,'Close',{ duration: 3000 });
       }
     },
     error: (error) => {
-      console.error('Error updating account:', error);
+      this.snackBar.open(error.message, 'Close', { duration: 5000 });
     }
   });
 }

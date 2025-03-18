@@ -35,6 +35,7 @@ export class LedgerComponent implements OnInit, OnDestroy, AfterViewInit  {
   financialYear: string;
   accountList: any[] = [];
   userId: number;
+  previousBalance: number=0;
   searchName: FormControl = new FormControl(''); // FormControl for input field
   constructor(
     private ledgerService: LedgerService,
@@ -99,12 +100,13 @@ export class LedgerComponent implements OnInit, OnDestroy, AfterViewInit  {
     if (this.loading || !this.selectedAccountId || !this.hasMoreRecords) return;
     this.loading = true;
 
-    this.ledgerService.getLedger(this.selectedAccountId, this.rowCursor, this.limit, this.userId, this.financialYear).subscribe(
+    this.ledgerService.getLedger(this.selectedAccountId, this.rowCursor, this.limit, this.userId, this.financialYear,this.previousBalance).subscribe(
       (data) => {
         console.log('fetchLedger response received');
         this.ledger = [...this.ledger, ...data.ledger];
         this.rowCursor = data.nextRowCursor;
         this.loading = false;
+        this.previousBalance=data.lastBalance;
         this.updateLastUpdatedTimestamp();
 
         // Update hasMoreRecords property

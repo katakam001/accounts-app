@@ -12,14 +12,15 @@ export class LedgerService {
 
   constructor(private http: HttpClient) { }
 
-  getLedger(accountId: number, rowCursor: number, limit: number, userId: number, financialYear: string): Observable<{ ledger: any[], nextRowCursor: number, hasMoreRecords: boolean }> {
+  getLedger(accountId: number, rowCursor: number, limit: number, userId: number, financialYear: string, previousBalance: number): Observable<{ ledger: any[], nextRowCursor: number, hasMoreRecords: boolean,lastBalance: number }> {
     const params = new HttpParams()
       .set('rowCursor', rowCursor.toString())
       .set('limit', limit.toString())
       .set('userId', userId.toString())
-      .set('financialYear', financialYear);
+      .set('financialYear', financialYear)
+      .set('previousBalance', previousBalance.toString());
 
-    return this.http.get<{ ledger: any[], nextRowCursor: number, hasMoreRecords: boolean }>(`${this.apiUrl}/${accountId}`, { params });
+    return this.http.get<{ ledger: any[], nextRowCursor: number, hasMoreRecords: boolean,lastBalance: number }>(`${this.apiUrl}/${accountId}`, { params });
   }
 
 

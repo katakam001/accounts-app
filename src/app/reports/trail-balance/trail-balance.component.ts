@@ -58,7 +58,7 @@ export class TrailBalanceComponent implements OnInit {
   getTrailBalanceReport(): void {
     const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string;
     const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string;
-    this.trailBalanceService.getTrailBalanceReport(this.userId, fromDateStr, toDateStr).subscribe((data: TrailBalanceReport[]) => {
+    this.trailBalanceService.getTrailBalanceReport(this.userId, fromDateStr, toDateStr,this.financialYear).subscribe((data: TrailBalanceReport[]) => {
       this.trailBalanceReport = data.map(entry => ({
         ...entry,
         totalDebit: this.formatNumber(Number(entry.totalDebit)),

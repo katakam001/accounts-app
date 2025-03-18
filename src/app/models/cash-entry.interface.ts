@@ -11,4 +11,5 @@ export interface CashEntry {
   balance: number;
   user_id: number;
   financial_year: string;
+  group_id:number;
 }

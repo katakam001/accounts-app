@@ -164,6 +164,7 @@ export class AddEditEntryDialogComponent implements OnInit {
           categoryIds.forEach(categoryId => {
             this.onCategoryChange(categoryId);   
           });
+          this.updateGroupValues();
         }
       });
     }
@@ -415,9 +416,20 @@ export class AddEditEntryDialogComponent implements OnInit {
 
 
   updateTotalAmount(entryGroup: FormGroup): void {
-    const quantity = entryGroup.get('quantity')?.value || 0;
-    const unit_price = entryGroup.get('unit_price')?.value || 0;
-    const amount = quantity * unit_price;
+    let quantity = entryGroup.get('quantity')?.value || 0;
+    let unit_price = entryGroup.get('unit_price')?.value || 0;
+
+    // Ensure quantity has 4 decimals and unit_price has 2 decimals
+    quantity = parseFloat((quantity).toFixed(4));
+    unit_price = parseFloat((unit_price).toFixed(2));
+
+    // Update the FormGroup with rounded values
+    entryGroup.get('quantity')?.setValue(quantity, { emitEvent: false });
+    entryGroup.get('unit_price')?.setValue(unit_price, { emitEvent: false });
+
+    let amount = quantity * unit_price;
+    amount = parseFloat((amount).toFixed(2));
+
     entryGroup.get('value')?.setValue(amount, { emitEvent: false });
 
     // Assuming GST and other calculations remain the same for each entry
@@ -435,7 +447,8 @@ export class AddEditEntryDialogComponent implements OnInit {
       if (field_category === 1) {
         const gstRateMatch = field_name.match(/(\d+(\.\d+)?)/);
         const gstRate = gstRateMatch ? parseFloat(gstRateMatch[1]) : 0;
-        const gstValue = (amount * gstRate) / 100;
+        let gstValue = (amount * gstRate) / 100;
+        gstValue = parseFloat((gstValue).toFixed(2));
         gstValues[field_name] = gstValue;
 
         if (!exclude_from_total) {
@@ -445,7 +458,8 @@ export class AddEditEntryDialogComponent implements OnInit {
       }
     });
 
-    const totalAmount = amount + gstAmount;
+    let totalAmount = amount + gstAmount;
+    totalAmount = parseFloat((totalAmount).toFixed(2));
     entryGroup.get('total_amount')?.setValue(totalAmount, { emitEvent: false });
 
     entryGroup.patchValue(gstValues, { emitEvent: false });
@@ -454,6 +468,7 @@ export class AddEditEntryDialogComponent implements OnInit {
   }
 
   updateGroupValues(): void {
+    console.log("update group total amount");
     const entries = this.entries.controls.map(entry => {
       // Temporarily enable the disabled fields
       entry.get('value')?.enable({ emitEvent: false });
@@ -479,8 +494,8 @@ export class AddEditEntryDialogComponent implements OnInit {
     });
   
     this.entryForm.patchValue({
-      groupEntryValue: groupEntryValue,
-      groupTotalAmount: groupTotalAmount
+      groupEntryValue: parseFloat(groupEntryValue.toFixed(2)),
+      groupTotalAmount: parseFloat(groupTotalAmount.toFixed(2))
     }, { emitEvent: false });
   }
   
@@ -575,6 +590,7 @@ export class AddEditEntryDialogComponent implements OnInit {
           ...e,
           entry_date: formValues.entry_date,
           user_id: this.data.userId,
+          customerName:formValues.customerName,
           type: this.data.type,
           financial_year: this.data.financialYear,
           originalInvoiceNumber:this.originalInvoiceNumber,

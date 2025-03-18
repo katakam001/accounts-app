@@ -57,7 +57,6 @@ export class EditJournalEntryDialogComponent implements OnInit {
     this.editJournalEntryForm = this.fb.group({
       id: [null, Validators.required],
       journal_date: [null, Validators.required],
-      description: [null, Validators.required],
       user_id: [this.storageService.getUser().id],
       user_name: [this.storageService.getUser().username],
       financial_year: [null, Validators.required],
@@ -69,7 +68,6 @@ export class EditJournalEntryDialogComponent implements OnInit {
     this.editJournalEntryForm.patchValue({
       id: entry.id,
       journal_date: new Date(entry.journal_date),
-      description: entry.description,
       user_id: entry.user_id,
       user_name: entry.user_name,
       financial_year: entry.financial_year
@@ -111,6 +109,7 @@ export class EditJournalEntryDialogComponent implements OnInit {
       group_id: [item.group_id],
       amount: [item.amount],
       type: [item.type],
+      narration:[item.narration],
       account_name: [item.account_name],
       group_name: [item.group_name],
       debit_amount: [item.debit_amount],
@@ -125,6 +124,7 @@ export class EditJournalEntryDialogComponent implements OnInit {
       debit_amount: 0,
       credit_amount: 0,
       journal_id: this.editJournalEntryForm.value.id,
+      narration:'',
       account_id: 0,
       group_id: 0,
       amount: 0,

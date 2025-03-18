@@ -40,7 +40,6 @@ export class AddJournalEntryDialogComponent implements OnInit {
   ngOnInit(): void {
     this.addJournalEntryForm = this.fb.group({
       journal_date: ['', Validators.required],
-      description: ['', Validators.required],
       user_id: [this.storageService.getUser().id],
       user_name: [this.storageService.getUser().username],
       financial_year:[this.data],
@@ -57,7 +56,8 @@ export class AddJournalEntryDialogComponent implements OnInit {
       account_id: [0],
       group_id: [0],
       debit_amount: [0, Validators.required],
-      credit_amount: [0, Validators.required]
+      credit_amount: [0, Validators.required],
+      narration:['', Validators.required]
     });
   }
 

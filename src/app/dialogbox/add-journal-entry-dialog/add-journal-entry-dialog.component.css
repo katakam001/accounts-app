@@ -1,11 +1,25 @@
-mat-form-field {
+.journal-entry-form {
   width: 100%;
 }
 
+.items-section {
+  margin-top: 16px;
+}
+
 .item-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.dialog-actions {
+  margin-top: 16px;
+}
+
+.mat-form-field {
+  display: block;
 }
 
 mat-dialog-actions {

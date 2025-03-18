@@ -14,8 +14,8 @@ export class TrailBalanceService {
 
   constructor(private http: HttpClient) {}
 
-  getTrailBalanceReport(userId: number, fromDate: string, toDate: string): Observable<any> {
-    const params = { userId, fromDate, toDate };
+  getTrailBalanceReport(userId: number, fromDate: string, toDate: string, financialYear: string): Observable<any> {
+    const params = { userId, fromDate, toDate,financialYear };
     console.log(params);
     return this.http.post<any>(this.apiUrl, params);
   }

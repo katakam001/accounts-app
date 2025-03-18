@@ -8,5 +8,6 @@ export interface JournalItem {
     group_name?: string; // Optional field for group name
     debit_amount?: number; // Optional field for debit amount
     credit_amount?: number; // Optional field for credit amount
+    narration?: string;
   }
   

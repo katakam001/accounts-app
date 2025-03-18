@@ -19,9 +19,9 @@
     <button mat-raised-button color="primary" class="generate-report-button" (click)="getTrailBalanceReport()">Generate Report</button>
   </div>
 
-  <!-- <div *ngIf="financialYear" class="financial-year-container">
+  <div *ngIf="financialYear" class="financial-year-container">
     <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
-  </div> -->
+  </div>
 
   <table class="styled-table">
     <thead>
@@ -38,9 +38,9 @@
         (click)="navigateToJournalEntry(entry.accountId, entry.groupId, entry.groupName)">
         <td>{{ entry.groupName }}</td>
         <td>{{ entry.accountName }}</td>
-        <td>{{ entry.totalDebit }}</td>
-        <td>{{ entry.totalCredit }}</td>
-        <td>{{ entry.balance }}</td>
+        <td class="right-align">{{ entry.totalDebit }}</td>
+        <td class="right-align">{{ entry.totalCredit }}</td>
+        <td class="right-align">{{ entry.balance }}</td>  
       </tr>
     </tbody>
   </table>

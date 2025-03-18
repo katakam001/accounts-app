@@ -45,6 +45,7 @@ export class AddCashBookDialogComponent implements OnInit {
       cash_credit: [0, Validators.required],
       amount: [0, Validators.required],
       account_id: [0, Validators.required],
+      group_id: [0, Validators.required],
       type: [false, Validators.required]
     });
     this.fetchAccountList();
@@ -53,7 +54,8 @@ export class AddCashBookDialogComponent implements OnInit {
     this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id,this.data.financialYear).subscribe((accounts: Account[]) => {
       this.accountList = accounts.map(account => ({
         id: account.id,
-        name: account.name
+        name: account.name,
+        group_id:account.group.id
       }));
     });
   }
@@ -72,6 +74,7 @@ export class AddCashBookDialogComponent implements OnInit {
   onAccountSelectionChange(event: any): void {
       this.cashBookForm.patchValue({
         account_id: event.id,
+        group_id:event.group_id,
         account_name:event.name
       });
   }

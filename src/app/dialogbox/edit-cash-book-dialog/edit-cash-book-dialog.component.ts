@@ -54,6 +54,7 @@ export class EditCashBookDialogComponent implements OnInit {
       id: [null, Validators.required],
       cash_entry_date: [null, Validators.required],
       account_id: [null, Validators.required],
+      group_id: [null, Validators.required],
       account_name: [null, Validators.required],
       narration: [null, Validators.required],
       narration_description: [{ value: null, disabled: !this.isCustomNarration }, Validators.required],
@@ -69,6 +70,7 @@ export class EditCashBookDialogComponent implements OnInit {
       id: entry.id,
       cash_entry_date: new Date(entry.cash_entry_date),
       account_id: entry.account_id,
+      group_id:entry.group_id,
       account_name: entry.account_name,
       narration: this.calculateNarration(entry.narration_description),
       narration_description: entry.narration_description,
@@ -100,7 +102,8 @@ export class EditCashBookDialogComponent implements OnInit {
     this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id, this.data.financialYear).subscribe((accounts: Account[]) => {
       this.accountList = accounts.map(account => ({
         id: account.id,
-        name: account.name
+        name: account.name,
+        group_id:account.group.id
       }));
     });
   }
@@ -109,6 +112,7 @@ export class EditCashBookDialogComponent implements OnInit {
       this.cashBookForm.patchValue({
         account_id: event.id,
         account_name: event.name,
+        group_id:event.group_id
       });
   }
 
