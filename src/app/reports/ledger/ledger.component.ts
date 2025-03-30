@@ -88,6 +88,7 @@ export class LedgerComponent implements OnInit, OnDestroy, AfterViewInit  {
     this.hasMoreRecords = true;
     this.selectedAccountId = event.id;
     this.searchName.patchValue(event.name);
+    this.previousBalance=0;
     this.refreshLedger();
   }
 

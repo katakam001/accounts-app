@@ -13,14 +13,49 @@ export class EntryService {
 
   constructor(private http: HttpClient) { }
 
-  getEntriesByUserIdAndFinancialYearAndType(userId: number, financialYear: string, type: number,nextStartRow:number, pageSize:number):  Observable<{ entries: any[], nextStartRow: number, hasMore: boolean }> {
-        let params = new HttpParams()
-        .set('userId', userId.toString())
-        .set('financialYear', financialYear)
-        .set('type',type.toString())
-        .set('pageSize', pageSize.toString())
-        .set('nextStartRow', nextStartRow.toString());
+  getEntriesByUserIdAndFinancialYearAndType(userId: number, financialYear: string, type: number, nextStartRow: number, pageSize: number, fromDate?: string, toDate?: string): Observable<{ entries: any[], nextStartRow: number, hasMore: boolean }> {
+    let params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('financialYear', financialYear)
+      .set('type', type.toString())
+      .set('pageSize', pageSize.toString())
+      .set('nextStartRow', nextStartRow.toString());
+    // Add fromDate and toDate to the params if they are provided
+    if (fromDate) {
+      params = params.set('fromDate', fromDate); // Use ISO string format
+    }
+    if (toDate) {
+      params = params.set('toDate', toDate); // Use ISO string format
+    }
     return this.http.get<{ entries: any[], nextStartRow: number, hasMore: boolean }>(`${this.apiUrl}`, { params });
+  }
+  // Method to call getTaxSummary
+  getTaxSummary(userId: number, financialYear: string, type: number,fromDate?: string, toDate?: string ): Observable<any> {
+    let params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('financialYear', financialYear)
+      .set('type', type.toString());
+    // Add fromDate and toDate to the params if they are provided
+    if (fromDate) {
+      params = params.set('fromDate', fromDate); // Use ISO string format
+    }
+    if (toDate) {
+      params = params.set('toDate', toDate); // Use ISO string format
+    }
+    return this.http.get(`${this.apiUrl}/getTaxSummary`, { params });
+  }
+  getEntryTypeSummary (userId: number, financialYear: string, fromDate?: string, toDate?: string ): Observable<any> {
+    let params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('financialYear', financialYear)
+    // Add fromDate and toDate to the params if they are provided
+    if (fromDate) {
+      params = params.set('fromDate', fromDate); // Use ISO string format
+    }
+    if (toDate) {
+      params = params.set('toDate', toDate); // Use ISO string format
+    }
+    return this.http.get(`${this.apiUrl}/getEntryTypeSummary`, { params });
   }
 
   addEntry(entry: any, dynamicFields: any[]): Observable<any> {
@@ -36,8 +71,8 @@ export class EntryService {
   }
 
   // New method to fetch an entry by ID
-  getEntryById(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${id}`);
+  getEntriesByInvoiceSeqId(invoice_seq_id: number, type: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${invoice_seq_id}/${type}`);
   }
   // New method to add multiple entries
   addEntries(entries: any[]): Observable<any> {
@@ -49,7 +84,7 @@ export class EntryService {
     return this.http.put<any>(`${this.apiUrl}/bulk`, { entries });
   }
 
-  deleteEntries(invoiceNumber: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/${invoiceNumber}`);
-  }
+  deleteEntries(invoice_seq_id: number, type: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${invoice_seq_id}/${type}`);
+  }  
 }

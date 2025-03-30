@@ -1,29 +1,52 @@
 <div class="debit-note-container">
   <mat-toolbar color="primary" class="toolbar">
     <span class="title">Debit Note</span>
+        <!-- Date Filter Section -->
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>From Date</mat-label>
+          <input matInput [matDatepicker]="picker1" [(ngModel)]="fromDate" [matDatepickerFilter]="dateFilter" placeholder="Select From Date" />
+          <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+          <mat-datepicker #picker1></mat-datepicker>
+        </mat-form-field>
+      
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>To Date</mat-label>
+          <input matInput [matDatepicker]="picker2" [(ngModel)]="toDate" [matDatepickerFilter]="dateFilter" placeholder="Select To Date" />
+          <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+          <mat-datepicker #picker2></mat-datepicker>
+        </mat-form-field>
+        <div class="apply-filter-container">
+          <mat-icon class="apply-filter-icon" (click)="applyDateFilter()" aria-label="Apply Filter">filter_alt</mat-icon>
+          <span class="apply-filter-label">Date Filter</span>
+        </div>
     <span class="spacer"></span>
+    <button mat-raised-button class="summary-button" (click)="openSummaryDialog()">Summary</button>
     <button mat-raised-button class="add-debit-note-button" (click)="addEntry()">Add New Debit Note</button>
   </mat-toolbar>
   <mat-card class="debit-note-card">
     <mat-card-content>
       <mat-accordion>
         <mat-expansion-panel *ngFor="let group of groupedEntries; let i = index"
-          [expanded]="expandedRows[group.invoiceNumber]" class="invoice-panel">
+          [expanded]="expandedRows[group.invoice_seq_id]" class="invoice-panel">
           <mat-expansion-panel-header>
             <mat-panel-title>
               <div class="expansion-panel-header-content">
-                <div class="main-field">
-                  <div class="label">Invoice Number</div>
-                  <div class="value">{{ group.invoiceNumber }}</div>
-                </div>
                 <div class="main-field">
                   <div class="label">Debit Note Date</div>
                   <div class="value">{{ group.entry_date | date:'dd-MM-yyyy' }}</div>
                 </div>
                 <div class="main-field">
+                  <div class="label">Invoice Number</div>
+                  <div class="value">{{ group.invoiceNumber }}</div>
+                </div>
+                <div class="main-field">
                   <div class="label">Customer</div>
-                  <div class="value" [title]="group.customerName">{{ group.customerName | slice:0:25 }}<ng-container
-                      *ngIf="group.customerName.length > 25">...</ng-container></div>
+                  <div class="value" [title]="group.customerName">{{ group.customerName | slice:0:20 }}<ng-container
+                      *ngIf="group.customerName.length > 20">...</ng-container></div>
+                </div>
+                <div class="main-field">
+                  <div class="label">GST Number</div>
+                  <div class="value">{{ group.gstNo }}</div>
                 </div>
                 <div class="main-field">
                   <div class="label">Group Debit Note Value</div>
@@ -37,7 +60,7 @@
                   <button mat-icon-button class="edit-button" (click)="editEntry(group)">
                     <mat-icon>edit</mat-icon>
                   </button>
-                  <button mat-icon-button class="delete-button" (click)="deleteEntry(group.invoiceNumber)">
+                  <button mat-icon-button class="delete-button" (click)="deleteEntry(group.invoice_seq_id)">
                     <mat-icon>delete</mat-icon>
                   </button>
                 </div>

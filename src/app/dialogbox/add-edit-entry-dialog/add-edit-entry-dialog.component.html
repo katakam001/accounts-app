@@ -10,11 +10,6 @@
   <form [formGroup]="entryForm">
     <div class="add-edit-entry-dialog-form">
     <!-- Group Details -->
-    <mat-form-field appearance="fill" class="form-field">
-      <mat-label>Invoice Number</mat-label>
-      <input matInput formControlName="invoiceNumber" required>
-      <mat-error *ngIf="entryForm.get('invoiceNumber')?.hasError('required')">Invoice Number is required</mat-error>
-    </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">
       <mat-label>{{ data.type === 2 ? 'Sale Date' : data.type === 3 || data.type === 4 ? 'Return Date' : data.type === 5
@@ -26,6 +21,12 @@
         {{ data.type === 2 ? 'Sale date' : data.type === 3 || data.type === 4 ? 'Return date' : data.type === 5 ||
         data.type === 6 ? 'Date' : 'Purchase date' }} is required
       </mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>Invoice Number</mat-label>
+      <input matInput formControlName="invoiceNumber" required>
+      <mat-error *ngIf="entryForm.get('invoiceNumber')?.hasError('required')">Invoice Number is required</mat-error>
     </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">
@@ -41,6 +42,10 @@
         === 3 || data.type === 4 ? 'Return Supplier' : 'Supplier' }} is required</mat-error>
     </mat-form-field>
 
+    <mat-form-field appearance="fill" class="form-field">
+      <mat-label>GST Number</mat-label>
+      <input matInput formControlName="gstNo" readonly>
+    </mat-form-field>
 
     <mat-form-field appearance="fill" class="form-field">
       <mat-label>{{ getGroupValueLabel(data.type) }}</mat-label>

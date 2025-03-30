@@ -3,15 +3,14 @@
 <div *ngIf="financialYear" class="financial-year-container">
   <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
 </div>
-<section>
-  <form>
-    <input type="text" placeholder="Filter by city" #filter />
-    <button class="primary" type="button" (click)="filterResults(filter.value)">Search</button>
-  </form>
-</section>
-<section class="results">
-  <app-housing-location
-    *ngFor="let housingLocation of filteredLocationList"
-    [housingLocation]="housingLocation"
-  ></app-housing-location>
-</section>
+<div class="dashboard-container">
+  <div class="dashboard-section">
+    <h3>Entry Type Summary</h3>
+    <canvas
+      baseChart
+      [data]="barChartData"
+      [options]="barChartOptions"
+      [type]="barChartType"
+    ></canvas>
+  </div>
+</div>

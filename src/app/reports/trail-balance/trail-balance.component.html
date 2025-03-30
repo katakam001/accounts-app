@@ -4,7 +4,7 @@
   <div class="filter-container">
       <mat-form-field appearance="fill" class="custom-date-picker">
       <mat-label>From Date</mat-label>
-      <input matInput [matDatepicker]="fromDatePicker" [formControl]="fromDate">
+      <input matInput [matDatepicker]="fromDatePicker" [matDatepickerFilter]="dateFilter" [formControl]="fromDate">
       <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
       <mat-datepicker #fromDatePicker></mat-datepicker>
     </mat-form-field>
@@ -12,7 +12,7 @@
 
       <mat-form-field appearance="fill" class="custom-date-picker">
       <mat-label>To Date</mat-label>
-      <input matInput [matDatepicker]="toDatePicker" [formControl]="toDate">
+      <input matInput [matDatepicker]="toDatePicker" [matDatepickerFilter]="dateFilter" [formControl]="toDate">
       <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
       <mat-datepicker #toDatePicker></mat-datepicker>
     </mat-form-field>

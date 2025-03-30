@@ -26,6 +26,7 @@ export class EditCashBookDialogComponent implements OnInit {
   narrations = ['CASH-PAID', 'CASH DEPOSIT', 'CASH RECEIVED', 'TRANSFER', 'CUSTOM'];
   isCustomNarration = false;
   runningBalance: number;
+  orgRunningBalance: number;
 
   constructor(
     private fb: FormBuilder,
@@ -42,7 +43,6 @@ export class EditCashBookDialogComponent implements OnInit {
   ngOnInit(): void {
     if (this.data.entryId) {
       this.fetchCashEntry(this.data.entryId);
-      this.runningBalance = this.data.currentBalance;
     } else {
       this.patchFormValues(this.data.entry);
     }
@@ -52,6 +52,7 @@ export class EditCashBookDialogComponent implements OnInit {
   initializeForm(): void {
     this.cashBookForm = this.fb.group({
       id: [null, Validators.required],
+      unique_entry_id: [null, Validators.required],
       cash_entry_date: [null, Validators.required],
       account_id: [null, Validators.required],
       group_id: [null, Validators.required],
@@ -68,6 +69,7 @@ export class EditCashBookDialogComponent implements OnInit {
   patchFormValues(entry: CashEntry): void {
     this.cashBookForm.patchValue({
       id: entry.id,
+      unique_entry_id:entry.unique_entry_id,
       cash_entry_date: new Date(entry.cash_entry_date),
       account_id: entry.account_id,
       group_id:entry.group_id,
@@ -79,9 +81,13 @@ export class EditCashBookDialogComponent implements OnInit {
       amount: entry.amount,
       type: entry.type
     });
+    const previous_cash_debit=parseFloat(this.cashBookForm.value.cash_debit);
+    const previous_cash_credit=parseFloat(this.cashBookForm.value.cash_credit);
+    this.runningBalance = parseFloat(this.data.currentBalance);
+    this.orgRunningBalance = parseFloat((this.runningBalance + previous_cash_debit - previous_cash_credit).toFixed(2));
   }
 
-  fetchCashEntry(entryId: number): void {
+  fetchCashEntry(entryId: string): void {
     this.cashEntriesService.getCashEntry(entryId).subscribe((entry: CashEntry) => {
       this.patchFormValues(entry);
     });
@@ -133,16 +139,27 @@ export class EditCashBookDialogComponent implements OnInit {
   }
 
   updateRunningBalance(): void {
-    const cashDebit = parseFloat(this.cashBookForm.value.cash_debit) || 0;
-    const cashCredit = parseFloat(this.cashBookForm.value.cash_credit) || 0;
-    this.runningBalance = this.data.currentBalance - cashDebit + cashCredit;
-  }
+    console.log("balance update");
+    const cashDebit = parseFloat(this.cashBookForm.value.cash_debit) || 0; // Safely parse cash_debit
+    const cashCredit = parseFloat(this.cashBookForm.value.cash_credit) || 0; // Safely parse cash_credit
+    const cashDifference = cashDebit - cashCredit;
+    console.log(this.orgRunningBalance);
+    console.log(cashDifference);
+    // Explicitly convert runningBalance to a number
+    this.orgRunningBalance = parseFloat(this.orgRunningBalance.toString()) || 0; // Convert string to a number or default to 0
+    this.runningBalance = parseFloat((this.orgRunningBalance - cashDifference).toFixed(2));
+    // Perform the calculation and ensure precision
+    console.log(this.runningBalance);
+  } 
 
   onSave(): void {
     this.cashBookForm.controls['narration_description'].enable();
     if (this.cashBookForm.valid) {
       const cashEntry = {
         ...this.cashBookForm.value,
+        amount: this.cashBookForm.get('cash_debit')?.value > 0 ? this.cashBookForm.get('cash_debit')?.value  : this.cashBookForm.get('cash_credit')?.value,
+        user_id: this.storageService.getUser().id,
+        financial_year: this.data.financialYear,
         cash_entry_date: this.datePipe.transform(this.cashBookForm.get('cash_entry_date')?.value, 'yyyy-MM-dd', 'en-IN') // Transform the date
       };
       this.dialogRef.close(cashEntry);

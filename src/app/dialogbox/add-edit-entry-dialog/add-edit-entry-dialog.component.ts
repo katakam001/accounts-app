@@ -42,8 +42,8 @@ export class AddEditEntryDialogComponent implements OnInit {
   groupMapping: any[] = []; // Add fields array
   unitsMap: { [key: number]: any[] } = {}; // Store units for each categoryId
   taxAccountMap: Map<number, string> = new Map();
+  gstNoMap: Map<number, string> = new Map();
   isSaving = false;
-  originalInvoiceNumber: string;
   constructor(
     private fb: FormBuilder,
     private entryService: EntryService,
@@ -63,6 +63,8 @@ export class AddEditEntryDialogComponent implements OnInit {
   ) {
     this.entryForm = this.fb.group({
       invoiceNumber: ['', Validators.required],
+      invoice_seq_id: [''],
+      gstNo: [''],
       entry_date: ['', Validators.required],
       account_id: ['', Validators.required],
       customerName: ['', Validators.required],
@@ -75,8 +77,10 @@ export class AddEditEntryDialogComponent implements OnInit {
     console.log(event);
     const selectedData = event.option.value;
     const supplierName = this.suppliers[selectedData.index].name;
+    const gstNo = this.suppliers[selectedData.index].gst_no || '';
     this.entryForm.patchValue({ account_id: selectedData.id });
     this.entryForm.patchValue({ customerName: supplierName });
+    this.entryForm.patchValue({ gstNo: gstNo });
   }
 
   get entries() {
@@ -118,10 +122,10 @@ export class AddEditEntryDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.data.invoiceNumber) {
+    if (this.data.invoice_seq_id) {
       // Component is activated via a route with an entryId parameter
       console.log("activated route");
-      this.fetchEntry(this.data.invoiceNumber);
+      this.fetchEntry(this.data.invoice_seq_id,this.data.type);
     } else {
       console.log("edit flow");
       // Component is not activated via a route with an entryId parameter
@@ -156,8 +160,6 @@ export class AddEditEntryDialogComponent implements OnInit {
               categoryIds.add(e.category_id);
             }
           });
-          this.originalInvoiceNumber = this.data.group.invoiceNumber; // Store the original invoice number
-          console.log(this.originalInvoiceNumber);
           this.entryForm.setControl('entries', entriesArray);
           this.entryForm.patchValue(this.data.group);
 
@@ -170,12 +172,16 @@ export class AddEditEntryDialogComponent implements OnInit {
     }
   }
 
-  fetchEntry(entryId: number): void {
-    this.entryService.getEntryById(entryId).subscribe((entry: any) => {
+  fetchEntry(invoice_seq_id: number,type:number): void {
+    this.entryService.getEntriesByInvoiceSeqId(invoice_seq_id,type).subscribe((entry: any) => {
+      console.log(entry);
+      this.data.group=entry;
       this.entryForm.patchValue({
+        invoice_seq_id: entry.invoice_seq_id,
         invoiceNumber: entry.invoiceNumber,
         entry_date: entry.entry_date,
-        account_id: entry.account_id
+        customerName: entry.customerName,
+        account_id: entry.account_id,
       });
 
       const entriesArray = this.fb.array([]);
@@ -213,6 +219,10 @@ export class AddEditEntryDialogComponent implements OnInit {
       this.fetchInitialData(categoryType).then(() => {
         categoryIds.forEach(categoryId => {
           this.onCategoryChange(categoryId);   
+        });
+        console.log(this.gstNoMap);
+        this.entryForm.patchValue({
+          gstNo: this.gstNoMap.get(entry.account_id)
         });
       });
 
@@ -270,6 +280,7 @@ export class AddEditEntryDialogComponent implements OnInit {
     return new Promise((resolve) => {
       this.accountService.getAccountsByUserIdAndFinancialYear(this.data.userId, this.data.financialYear, ['Sundry Creditors', 'Sundry Debtors']).subscribe((accounts: Account[]) => {
         this.suppliers = accounts;
+        this.gstNoMap = new Map(accounts.map(account => [account.id, account.gst_no || '']));
         resolve();
       });
     });
@@ -420,8 +431,8 @@ export class AddEditEntryDialogComponent implements OnInit {
     let unit_price = entryGroup.get('unit_price')?.value || 0;
 
     // Ensure quantity has 4 decimals and unit_price has 2 decimals
-    quantity = parseFloat((quantity).toFixed(4));
-    unit_price = parseFloat((unit_price).toFixed(2));
+    quantity = parseFloat(quantity).toFixed(4);
+    unit_price = parseFloat(unit_price).toFixed(2);
 
     // Update the FormGroup with rounded values
     entryGroup.get('quantity')?.setValue(quantity, { emitEvent: false });
@@ -593,7 +604,7 @@ export class AddEditEntryDialogComponent implements OnInit {
           customerName:formValues.customerName,
           type: this.data.type,
           financial_year: this.data.financialYear,
-          originalInvoiceNumber:this.originalInvoiceNumber,
+          invoice_seq_id:formValues.invoice_seq_id,
           invoiceNumber: formValues.invoiceNumber, // Include invoiceNumber
           account_id: formValues.account_id,       // Include account_id
           dynamicFields: dynamicFields // Include dynamic fields for each entry

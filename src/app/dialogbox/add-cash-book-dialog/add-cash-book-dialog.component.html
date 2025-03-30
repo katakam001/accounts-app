@@ -38,20 +38,20 @@
       </mat-form-field>
     </div>
 
-    <div class="form-row">
-      <mat-form-field appearance="fill" class="form-field fixed-width">
+    <div class="form-row responsive-row">
+      <mat-form-field appearance="fill" class="form-field responsive-field">
         <mat-label>Cash Debit</mat-label>
         <input matInput formControlName="cash_debit" (input)="updateRunningBalance()" required>
         <mat-error *ngIf="cashBookForm.get('cash_debit')?.hasError('required')">Cash debit is required</mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="form-field fixed-width">
+      <mat-form-field appearance="fill" class="form-field responsive-field">
         <mat-label>Cash Credit</mat-label>
         <input matInput formControlName="cash_credit" (input)="updateRunningBalance()" required>
         <mat-error *ngIf="cashBookForm.get('cash_credit')?.hasError('required')">Cash credit is required</mat-error>
       </mat-form-field>
 
-      <div class="running-balance fixed-width">
+      <div class="running-balance responsive-field">
         <p>Running Balance: {{ runningBalance | currency:'INR':'symbol':'1.2-2':'en-IN' }}</p>
       </div>
     </div>

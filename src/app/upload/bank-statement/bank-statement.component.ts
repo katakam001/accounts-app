@@ -39,7 +39,7 @@ export class BankStatementComponent {
   bankNames: string[] = [];
   accountNames: Account[] = [];
 
-  banks: string[] = ['UNION BANK OF INDIA', 'Bank B', 'Bank C'];
+  banks: string[] = ['UNION BANK OF INDIA', 'CANARA BANK', 'ICICI BANK','INDIAN BANK', 'SBI','CITY UNION BANK'];
   creditCards: string[] = ['Credit Card X', 'Credit Card Y', 'Credit Card Z'];
   // bankAccounts: string[] = ['Bank Account 1', 'Bank Account 2', 'Bank Account 3'];
   creditCardAccounts: Account[] = [];

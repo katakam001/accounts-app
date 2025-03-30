@@ -27,7 +27,8 @@ export class TrailBalanceComponent implements OnInit {
   financialYear: string;
   fromDate = new FormControl();
   toDate = new FormControl();
-
+  financialYearstartDate: Date;
+  financialYearendDate: Date; 
   constructor(
     private trailBalanceService: TrailBalanceService,
     private financialYearService: FinancialYearService,
@@ -45,15 +46,22 @@ export class TrailBalanceComponent implements OnInit {
     if (storedFinancialYear) {
       this.financialYear = storedFinancialYear;
       this.userId = this.storageService.getUser().id;
-      // const [startYear, endYear] = this.financialYear.split('-').map(Number);
-      // const startDate = new Date(startYear, 3, 1); // April 1st of start year
-      // const endDate = new Date(endYear, 2, 31); // March 31st of end year
+      const [startYear, endYear] = this.financialYear.split('-').map(Number);
+      this.financialYearstartDate = new Date(startYear, 3, 1); // April 1st of start year
+      this.financialYearendDate = new Date(endYear, 2, 31); // March 31st of end year
       // this.fromDate.setValue(startDate);
       // this.toDate.setValue(endDate);
       // this.getTrailBalanceReport();
     }
   }
+  dateFilter = (date: Date | null): boolean => {
+    if (!date) {
+      return false; // Ignore null dates
+    }
   
+    // Return whether the date falls within the financial year range
+    return date >= this.financialYearstartDate && date <= this.financialYearendDate;
+  }; 
 
   getTrailBalanceReport(): void {
     const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string;

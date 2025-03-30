@@ -222,7 +222,7 @@ export class JournalListComponent implements OnInit, OnDestroy {
 
   addJournalEntry(): void {
     const dialogRef = this.dialog.open(AddJournalEntryDialogComponent, {
-      width: '100p0x',
+      width: '1000px',
       data: this.financialYear
     });
 
@@ -344,9 +344,9 @@ export class JournalListComponent implements OnInit, OnDestroy {
       for (const [pageNumber, page] of this.cache.entries()) {
         console.log(pageNumber);
         console.log(page);
-        if (
+        if ((
           new Date(convertedObjectInsert.journal_date).getTime() >= page.dataRange.start &&
-          new Date(convertedObjectInsert.journal_date).getTime() <= page.dataRange.end
+          new Date(convertedObjectInsert.journal_date).getTime() <= page.dataRange.end) || (page.dataRange.start > new Date(convertedObjectInsert.journal_date).getTime() && !this.cache.has(pageNumber-1))
         ) {
           updateCache(page, 'INSERT', convertedObjectInsert);
           if (Number(pageNumber) === this.currentPage) {  // Convert pageNumber to a number before comparison
@@ -420,8 +420,8 @@ export class JournalListComponent implements OnInit, OnDestroy {
 
     const handleDelete = (data: any) => {
       console.log('Processing DELETE event');
-      const entryId = data.entryType === 'journal' ? data.data.id : data.data.entry.journal_id;
-      const journal_date = data.entryType === 'journal' ? data.data.journal_date : data.data.entry.journal_date;
+      const entryId = data.entryType === 'journal' ? data.data.id : data.data.group.journal_id;
+      const journal_date = data.entryType === 'journal' ? data.data.journal_date : data.data.group.journal_date;
 
       for (const [pageNumber, page] of this.cache.entries()) {
         if (new Date(journal_date).getTime() >= page.dataRange.start

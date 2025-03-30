@@ -1,0 +1,87 @@
+/* Title Styles */
+.dialog-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #3F51B5; /* Deep blue */
+}
+
+/* Toggle Button Group */
+.toggle-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.toggle-group {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #E3F2FD; /* Light blue */
+}
+
+.toggle-button {
+    font-weight: bold;
+    padding: 5px 15px;
+    color: #1976D2; /* Button text color */
+    border: none;
+    background-color: #E3F2FD; /* Background color */
+}
+
+/* Summary Card Styles */
+.summary-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 20px;
+    background-color: #fdfdfd; /* White background */
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    padding: 10px;
+    background-color: #1976D2; /* Table header background */
+    color: white;
+    font-weight: bold;
+}
+
+td {
+    text-align: left;
+    padding: 10px;
+    background-color: #E3F2FD; /* Alternating row color */
+}
+
+
+.graph-main-container{
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+canvas {
+    width: 100%; /* Fills the container's width */
+    height: 100%; /* Fills the container's height */
+}
+
+/* Dialog Content */
+.dialog-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+/* Dialog Actions */
+.dialog-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    padding-bottom: 10px;
+    background-color: #f9f9f9; /* Light grey */
+}

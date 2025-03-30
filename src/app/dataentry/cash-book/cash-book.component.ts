@@ -104,7 +104,7 @@ export class CashBookComponent implements OnInit, OnDestroy {
                 break;
               case 'UPDATE':
                 console.log('Processing UPDATE event');
-                const updateIndex = this.transactions.data.findIndex(entry => entry.id === formattedEntry.id);
+                const updateIndex = this.transactions.data.findIndex(entry => entry.unique_entry_id === formattedEntry.unique_entry_id);
                 if (updateIndex !== -1) {
                   this.transactions.data[updateIndex] = {
                     ...this.transactions.data[updateIndex],
@@ -121,7 +121,7 @@ export class CashBookComponent implements OnInit, OnDestroy {
           });
         } else if (action === 'DELETE') {
           console.log('Processing DELETE event');
-          const deleteIndex = this.transactions.data.findIndex(entry => entry.id === data.data.id);
+          const deleteIndex = this.transactions.data.findIndex(entry => entry.unique_entry_id === data.data.unique_entry_id);
           if (deleteIndex !== -1) {
             this.transactions.data.splice(deleteIndex, 1);
             this.transactions.data = [...this.transactions.data]; // Ensure the array is updated
@@ -165,7 +165,7 @@ export class CashBookComponent implements OnInit, OnDestroy {
 
   addCashEntry(): void {
     const dialogRef = this.dialog.open(AddCashBookDialogComponent, {
-      width: '800px',
+      width: '900px',
       data: { currentBalance: this.currentBalance, financialYear: this.financialYear }
     });
 
@@ -178,7 +178,7 @@ export class CashBookComponent implements OnInit, OnDestroy {
 
   editCashEntry(transaction: CashEntry): void {
     const dialogRef = this.dialog.open(EditCashBookDialogComponent, {
-      width: '800px',
+      width: '900px',
       data: { entry: transaction, currentBalance: this.currentBalance, financialYear: this.financialYear }
     });
 
@@ -211,6 +211,7 @@ export class CashBookComponent implements OnInit, OnDestroy {
   updateTransaction(updatedTransaction: CashEntry): void {
     const updatedEntry = {
       id: updatedTransaction.id!,
+      unique_entry_id:updatedTransaction.unique_entry_id!,
       cash_entry_date: updatedTransaction.cash_entry_date,
       account_id: updatedTransaction.account_id,
       account_name: updatedTransaction.account_name,
@@ -225,12 +226,12 @@ export class CashBookComponent implements OnInit, OnDestroy {
       group_id:updatedTransaction.group_id
     };
 
-    this.cashEntriesService.updateCashEntry(updatedEntry.id, updatedEntry).subscribe();
+    this.cashEntriesService.updateCashEntry(updatedEntry.unique_entry_id, updatedEntry).subscribe();
   }
 
   deleteTransaction(transaction: CashEntry): void {
-    if (transaction.id) {
-      this.cashEntriesService.deleteCashEntry(transaction.id).subscribe();
+    if (transaction.unique_entry_id) {
+      this.cashEntriesService.deleteCashEntry(transaction.unique_entry_id).subscribe();
     }
   }
 
@@ -242,7 +243,8 @@ export class CashBookComponent implements OnInit, OnDestroy {
     this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id, this.financialYear).subscribe(accounts => {
       const cashAccount = accounts.find(account => account.name === 'CASH');
       if (cashAccount) {
-        this.openingBalance = cashAccount.debit_balance;
+        this.openingBalance = parseFloat((cashAccount.debit_balance - cashAccount.credit_balance).toFixed(2));
+
       }
 
       this.groupedTransactions.forEach((dateGroup, groupIndex) => {

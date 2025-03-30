@@ -24,6 +24,7 @@ export class AddCashBookDialogComponent implements OnInit {
   narrations = ['CASH-PAID', 'CASH DEPOSIT', 'CASH RECEIVED', 'TRANSFER', 'CUSTOM'];
   isCustomNarration = false;
   runningBalance: number;
+  orgRunningBalance: number;
 
   constructor(
     private fb: FormBuilder,
@@ -35,7 +36,8 @@ export class AddCashBookDialogComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.runningBalance= this.data.currentBalance;
+    this.runningBalance = parseFloat(this.data.currentBalance);
+    this.orgRunningBalance=this.runningBalance;
     this.cashBookForm = this.fb.group({
       cash_entry_date: [null, Validators.required],
       account_name: [null, Validators.required],
@@ -95,7 +97,7 @@ export class AddCashBookDialogComponent implements OnInit {
   updateRunningBalance(): void {
     const cashDebit = parseFloat(this.cashBookForm.value.cash_debit) || 0;
     const cashCredit = parseFloat(this.cashBookForm.value.cash_credit) || 0;
-    this.runningBalance = this.data.currentBalance - cashDebit + cashCredit;
+    this.runningBalance = this.orgRunningBalance - cashDebit + cashCredit;
   }
 
   onSave(): void {

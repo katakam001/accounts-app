@@ -1,4 +1,5 @@
 export interface CashEntry {
+  unique_entry_id?:string
   id?: number;
   cash_entry_date: Date;
   account_id: number;

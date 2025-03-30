@@ -19,7 +19,7 @@ export class CashEntriesService {
     return this.http.get<CashEntry[]>(`${this.apiUrl}?userId=${userId}&financialYear=${financialYear}`);
   }
 
-  getCashEntry(id: number): Observable<CashEntry> {
+  getCashEntry(id: string): Observable<CashEntry> {
     return this.http.get<CashEntry>(`${this.apiUrl}/${id}`);
   }
 
@@ -27,11 +27,11 @@ export class CashEntriesService {
     return this.http.post<CashEntry>(this.apiUrl, cashEntry);
   }
 
-  updateCashEntry(id: number, cashEntry: CashEntry): Observable<CashEntry> {
+  updateCashEntry(id: string, cashEntry: CashEntry): Observable<CashEntry> {
     return this.http.put<CashEntry>(`${this.apiUrl}/${id}`, cashEntry);
   }
 
-  deleteCashEntry(id: number): Observable<CashEntry> {
+  deleteCashEntry(id: string): Observable<CashEntry> {
     return this.http.delete<CashEntry>(`${this.apiUrl}/${id}`);
   }
 }
