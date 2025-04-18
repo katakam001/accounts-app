@@ -1,0 +1,63 @@
+<div class="file-upload-section">
+  <!-- Title -->
+  <h2 class="file-upload-title">Upload Your Excel File</h2>
+
+  <!-- File Input Section -->
+  <div class="file-input-section">
+    <mat-icon class="upload-icon">upload_file</mat-icon>
+    <input
+      type="file"
+      id="fileUpload"
+      (change)="onFileSelected($event)"
+      class="file-input"
+      accept=".xlsx, .xls"
+    />
+    <label for="fileUpload" class="file-label">Choose an Excel File</label>
+  </div>
+
+  <!-- Display Selected Filename -->
+  <p *ngIf="selectedFile" class="file-info">
+    <mat-icon class="file-info-icon">insert_drive_file</mat-icon>
+    <span>{{ selectedFile.name }}</span>
+  </p>
+
+  <!-- Buttons Section -->
+  <div class="button-group">
+    <!-- Validate Button -->
+    <button
+      mat-raised-button
+      color="accent"
+      class="validate-button"
+      [disabled]="!selectedFile || isUploading"
+      (click)="validateFile()"
+    >
+      <mat-icon>check_circle</mat-icon> Validate File
+    </button>
+
+    <!-- Upload Button -->
+    <button
+      mat-raised-button
+      color="primary"
+      class="upload-button"
+      [disabled]="!selectedFile || (!validationSuccess && !userOverride) || isUploading"
+      (click)="uploadFile()"
+    >
+      <mat-icon>cloud_upload</mat-icon> {{ isUploading ? 'Uploading...' : 'Upload Invoices' }}
+    </button>
+  </div>
+
+  <!-- Override Checkbox Section -->
+  <div class="override-checkbox-container">
+    <mat-checkbox class="override-checkbox" [(ngModel)]="userOverride" name="userOverride">
+      Override Validation
+    </mat-checkbox>
+  </div>
+
+  <!-- Validation Message -->
+  <p *ngIf="validationMessage" class="status-message">{{ validationMessage }}</p>
+
+  <!-- Upload Status Message -->
+  <p *ngIf="uploadMessage" class="upload-status-message" [class.success]="uploadSuccess" [class.error]="!uploadSuccess">
+    {{ uploadMessage }}
+  </p>
+</div>

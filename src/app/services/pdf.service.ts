@@ -8,7 +8,7 @@ import { environment } from '../../environments/environment';
 })
 export class PdfService {
     private baseUrl = environment.apiUrl;
-    private apiUrl = `${this.baseUrl}/api/upload/bank-statement-pdf`; // Append the path to the base URL
+    private apiUrl = `${this.baseUrl}/api/upload`; // Append the path to the base URL
 
   constructor(private http: HttpClient) {}
 
@@ -26,10 +26,34 @@ export class PdfService {
     formData.append('financialYear', financialYear);
   
     // Send the POST request with all data
-    return this.http.post(this.apiUrl, formData, {
+    return this.http.post(`${this.apiUrl}/bank-statement-pdf`, formData, {
       reportProgress: true,
       observe: 'events',
     });
+  }
+  uploadExcelFile(file: File,userId:number,financialYear:string): Observable<any> {
+    const formData = new FormData();
+    // Append the file
+    formData.append('file', file);
+  
+    // Append additional parameters
+    formData.append('userId', userId.toString())
+    formData.append('financialYear', financialYear);
+  
+    // Send the POST request with all data
+    return this.http.post(`${this.apiUrl}/entries-upload`, formData, {
+      reportProgress: true,
+      observe: 'events',
+    });
+  }
+  validateExcelFile(file: File, userId: number, financialYear: string): Observable<Blob> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userId', userId.toString());
+    formData.append('financialYear', financialYear);
+  
+    // Send the file to the backend, expecting a Blob response
+    return this.http.post(`${this.apiUrl}/validate-entries-upload`, formData, { responseType: 'blob' });
   }
   
 }

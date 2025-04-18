@@ -1,26 +1,36 @@
 <div class="ledger-container">
-  <h2 class="report-title">Ledger</h2>
-  <div class="header-container">
-    <mat-form-field appearance="fill">
-      <mat-label>Account Name</mat-label>
-      <input type="text" matInput     [formControl]="searchName"  [matAutocomplete]="auto" />
-      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onAccountSelectionChange($event.option.value)">
-          <mat-option *ngFor="let account of accountList | supplierFilter: searchName.value" [value]="account">
-          {{ account.name }}
-        </mat-option>
-      </mat-autocomplete>
+  <!-- Date Filter Section -->
+  <div class="filter-container">
+    <mat-form-field appearance="outline" class="date-field">
+      <mat-label>From Date</mat-label>
+      <input matInput [matDatepicker]="picker1" [(ngModel)]="fromDate" [matDatepickerFilter]="dateFilter" placeholder="Select From Date" />
+      <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+      <mat-datepicker #picker1></mat-datepicker>
     </mat-form-field>
-    <div class="export-buttons">
-      <button class="pdf-button" (click)="exportToPDF()">
-        <mat-icon>picture_as_pdf</mat-icon> Export to PDF
-      </button>
-      <button class="excel-button" (click)="exportToExcel()">
-        <mat-icon>table_chart</mat-icon> Export to Excel
-      </button>
+
+    <mat-form-field appearance="outline" class="date-field">
+      <mat-label>To Date</mat-label>
+      <input matInput [matDatepicker]="picker2" [(ngModel)]="toDate" [matDatepickerFilter]="dateFilter" placeholder="Select To Date" />
+      <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+      <mat-datepicker #picker2></mat-datepicker>
+    </mat-form-field>
+
+    <div class="apply-filter-container">
+      <mat-icon class="apply-filter-icon" (click)="applyDateFilter()" aria-label="Apply Filter">filter_alt</mat-icon>
+      <span class="apply-filter-label">Date Filter</span>
     </div>
   </div>
-  <div>
-    <div class="ledger-header">
+
+  <!-- Ledger Table Section -->
+  <div *ngFor="let groupedEntry of groupedEntries" class="grouped-entry">
+    <!-- Account Header -->
+    <div class="account-header">
+      <div class="account-name"><strong>Account Name: {{ groupedEntry.account_name }}</strong></div>
+      <div class="date-range"><strong>Date Range: {{ fromDate | date: 'dd/MM/yyyy' }} - {{ toDate | date: 'dd/MM/yyyy' }}</strong></div>
+    </div>
+
+    <!-- Table Headers -->
+    <div class="header">
       <div class="header-date">Date</div>
       <div class="header-narration">Narration</div>
       <div class="header-credit">Credit</div>
@@ -28,15 +38,20 @@
       <div class="header-balance">Balance</div>
     </div>
 
-    <cdk-virtual-scroll-viewport itemSize="10" class="ledger-viewport" (scrolledIndexChange)="onScroll()">
-      <div *cdkVirtualFor="let entry of ledger" class="ledger-entry"
-        [ngClass]="{'credit-entry': entry.type, 'debit-entry': !entry.type}">
-        <div class="entry-date">{{ entry.date | date: 'dd-MM-yyyy' }}</div>
-        <div class="entry-narration">{{ entry.narration }}</div>
-        <div class="entry-credit right-align">{{ entry.credit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
-        <div class="entry-debit right-align">{{ entry.debit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
-        <div class="entry-balance right-align">{{ entry.balance | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
-      </div>
-    </cdk-virtual-scroll-viewport>
+    <!-- Entries Table -->
+    <div *ngFor="let entry of groupedEntry.entries" class="entry-row"
+    [ngClass]="{'credit-entry': entry.type, 'debit-entry': !entry.type}">
+      <div class="entry-date">{{ entry.date | date: 'MM/dd/yyyy' }}</div>
+      <div class="entry-narration">{{ entry.narration }}</div>
+      <div class="entry-credit">{{ entry.type ? (entry.amount | currency:'INR':'symbol':'1.2-2':'en-IN') : '' }}</div>
+      <div class="entry-debit">{{ !entry.type ? (entry.amount | currency:'INR':'symbol':'1.2-2':'en-IN') : '' }}</div>
+      <div class="entry-balance">{{ entry.balance | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+    </div>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div class="pagination-buttons">
+    <button mat-raised-button color="primary" (click)="previousPage()" [disabled]="startCursor?.account_id === accountIndex[0] && startCursor?.entry_id === startAccountIdentryId">Previous</button>
+    <button mat-raised-button color="primary" (click)="nextPage()" [disabled]="!hasMore && !inMemomryforwardExist">Next</button>
   </div>
 </div>

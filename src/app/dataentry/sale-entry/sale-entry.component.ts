@@ -298,7 +298,7 @@ export class SaleEntryComponent implements OnInit, OnDestroy {
   fetchSuppliers(): Promise<void> {
     return new Promise((resolve) => {
       const userId = this.storageService.getUser().id;
-      this.accountService.getAccountsByUserIdAndFinancialYear(userId, this.financialYear, ['Sundry Creditors', 'Sundry Debtors']).subscribe((accounts: any[]) => {
+      this.accountService.getAccountsByUserIdAndFinancialYear(userId, this.financialYear, ['Sundry Creditors', 'Sundry Debtors','Suspense']).subscribe((accounts: any[]) => {
         accounts.forEach(account => {
           this.accountMap[account.id] = account.name;
           this.gstNoMap[account.id]=account.gst_no;

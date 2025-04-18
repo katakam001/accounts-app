@@ -278,7 +278,7 @@ export class AddEditEntryDialogComponent implements OnInit {
 
   fetchSuppliers(): Promise<void> {
     return new Promise((resolve) => {
-      this.accountService.getAccountsByUserIdAndFinancialYear(this.data.userId, this.data.financialYear, ['Sundry Creditors', 'Sundry Debtors']).subscribe((accounts: Account[]) => {
+      this.accountService.getAccountsByUserIdAndFinancialYear(this.data.userId, this.data.financialYear, ['Sundry Creditors', 'Sundry Debtors','Suspense']).subscribe((accounts: Account[]) => {
         this.suppliers = accounts;
         this.gstNoMap = new Map(accounts.map(account => [account.id, account.gst_no || '']));
         resolve();

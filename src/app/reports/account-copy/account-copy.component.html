@@ -1,0 +1,42 @@
+<div class="ledger-container">
+  <h2 class="report-title">Account Copy</h2>
+  <div class="header-container">
+    <mat-form-field appearance="fill">
+      <mat-label>Account Name</mat-label>
+      <input type="text" matInput     [formControl]="searchName"  [matAutocomplete]="auto" />
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onAccountSelectionChange($event.option.value)">
+          <mat-option *ngFor="let account of accountList | supplierFilter: searchName.value" [value]="account">
+          {{ account.name }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+    <div class="export-buttons">
+      <button class="pdf-button" (click)="exportToPDF()">
+        <mat-icon>picture_as_pdf</mat-icon> Export to PDF
+      </button>
+      <button class="excel-button" (click)="exportToExcel()">
+        <mat-icon>table_chart</mat-icon> Export to Excel
+      </button>
+    </div>
+  </div>
+  <div>
+    <div class="ledger-header">
+      <div class="header-date">Date</div>
+      <div class="header-narration">Narration</div>
+      <div class="header-credit">Credit</div>
+      <div class="header-debit">Debit</div>
+      <div class="header-balance">Balance</div>
+    </div>
+
+    <cdk-virtual-scroll-viewport itemSize="10" class="ledger-viewport" (scrolledIndexChange)="onScroll()">
+      <div *cdkVirtualFor="let entry of ledger" class="ledger-entry"
+        [ngClass]="{'credit-entry': entry.type, 'debit-entry': !entry.type}">
+        <div class="entry-date">{{ entry.date | date: 'dd-MM-yyyy' }}</div>
+        <div class="entry-narration">{{ entry.narration }}</div>
+        <div class="entry-credit right-align">{{ entry.credit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+        <div class="entry-debit right-align">{{ entry.debit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+        <div class="entry-balance right-align">{{ entry.balance | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+      </div>
+    </cdk-virtual-scroll-viewport>
+  </div>
+</div>

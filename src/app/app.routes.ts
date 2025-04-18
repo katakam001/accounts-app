@@ -45,6 +45,8 @@ export const routes: Routes = [
   { path: 'stockRegister', loadChildren: () => import('./reports/stock-register/stock-register.module').then(m => m.StockRegisterModule), title: 'Stock Register page', canActivate: [AuthGuard] },
   { path: 'yieldStatement', loadChildren: () => import('./reports/yield-statement/yield-statement.module').then(m => m.YieldStatementModule), title: 'Yield Statment page', canActivate: [AuthGuard] },
   { path: 'daybook', loadChildren: () => import('./reports/daybook/daybook.module').then(m => m.DayBookModule), title: 'Day Book page', canActivate: [AuthGuard] },
+  { path: 'accountCopy', loadChildren: () => import('./reports/account-copy/account-copy.module').then(m => m.AccountCopyModule), title: 'Account Copy page', canActivate: [AuthGuard] },
   { path: 'ledger', loadChildren: () => import('./reports/ledger/ledger.module').then(m => m.LedgerModule), title: 'Ledger page', canActivate: [AuthGuard] },
   { path: 'bankStatement', loadChildren: () => import('./upload/bank-statement/bank-statement.module').then(m => m.BankStatementModule), title: 'Bank Statement page', canActivate: [AuthGuard] },
+  { path: 'entriesUpload', loadChildren: () => import('./upload/entries/entries.module').then(m => m.EntriesModule), title: 'Entries upload page', canActivate: [AuthGuard] },
 ];

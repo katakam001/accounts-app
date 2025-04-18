@@ -86,5 +86,5 @@ export class EntryService {
 
   deleteEntries(invoice_seq_id: number, type: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${invoice_seq_id}/${type}`);
-  }  
+  }
 }
