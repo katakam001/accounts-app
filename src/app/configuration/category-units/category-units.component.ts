@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-category-units',
@@ -36,6 +37,7 @@ export class CategoryUnitsComponent implements OnInit {
     private categoryUnitService: CategoryUnitService,
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
+    private snackBar: MatSnackBar, // Inject MatSnackBar
     public dialog: MatDialog
   ) {
     this.categoryUnits = new MatTableDataSource<any>([]);
@@ -121,6 +123,7 @@ export class CategoryUnitsComponent implements OnInit {
       const newData = [...this.categoryUnits.data, response];
       this.categoryUnits.data = newData; // Assign the new array
       this.categoryUnits._updateChangeSubscription(); // Refresh the table
+      this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation addition is successfully.`,'Close',{ duration: 3000 });
     });
   }
   
@@ -133,16 +136,23 @@ export class CategoryUnitsComponent implements OnInit {
         newData[index] = response; // Update the copied array
         this.categoryUnits.data = newData; // Assign the new array
         this.categoryUnits._updateChangeSubscription(); // Refresh the table
+        this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation updation is successfully.`,'Close',{ duration: 3000 });
       }
     });
   }
   
-  deleteCategoryUnit(categoryUnitId: number): void {
-    this.categoryUnitService.deleteCategoryUnit(categoryUnitId).subscribe(() => {
+  deleteCategoryUnit(categoryUnitId: number,category_name:string,unit_name:string): void {
+    this.categoryUnitService.deleteCategoryUnit(categoryUnitId).subscribe({
+      next: () => {
       // Create a *new* array without the deleted category unit
       const newData = this.categoryUnits.data.filter(unit => unit.id !== categoryUnitId);
       this.categoryUnits.data = newData; // Assign the new array
       this.categoryUnits._updateChangeSubscription(); // Refresh the table
-    });
-  }  
+      this.snackBar.open(`Category "${category_name}" to Unit "${unit_name}" relation deletion is successfully.`, 'Close', { duration: 3000 });
+    },
+    error: (error) => {
+      this.snackBar.open(error.message, 'Close', { duration: 10000 });
+    }
+  });
+} 
 }

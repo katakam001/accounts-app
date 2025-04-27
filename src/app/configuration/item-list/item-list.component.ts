@@ -11,6 +11,7 @@ import { ItemsService } from '../../services/items.service';
 import { AddEditItemDialogComponent } from '../../dialogbox/add-edit-item-dialog/add-edit-item-dialog.component';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-item-list',
@@ -41,6 +42,7 @@ export class ItemListComponent implements OnInit {
     private itemsService: ItemsService,
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
+    private snackBar:MatSnackBar,
     public dialog: MatDialog
   ) {}
 
@@ -97,6 +99,7 @@ export class ItemListComponent implements OnInit {
       const newData = [...this.dataSource.data, response];
       this.dataSource.data = newData; // Assign the new array
       this.dataSource._updateChangeSubscription(); // Refresh the table
+      this.snackBar.open(`Item "${response.name}" added successfully.`,'Close',{ duration: 3000 });
     });
   }
   
@@ -109,16 +112,23 @@ export class ItemListComponent implements OnInit {
         newData[index] = response; // Update the copied array
         this.dataSource.data = newData; // Assign the new array
         this.dataSource._updateChangeSubscription(); // Refresh the table
+        this.snackBar.open(`Item "${response.name}" updation is successfully.`,'Close',{ duration: 3000 });
       }
     });
   }
   
-  deleteItem(itemId: number): void {
-    this.itemsService.deleteItem(itemId).subscribe(() => {
+  deleteItem(itemId: number,name: string): void {
+    this.itemsService.deleteItem(itemId).subscribe({
+      next: () => {
       // Create a *new* array without the deleted item
       const newData = this.dataSource.data.filter(item => item.id !== itemId);
       this.dataSource.data = newData; // Assign the new array
       this.dataSource._updateChangeSubscription(); // Refresh the table
+        this.snackBar.open(`Item "${name}" deletion is successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        this.snackBar.open(error.message, 'Close', { duration: 10000 });
+      }
     });
-  }  
+  } 
 }

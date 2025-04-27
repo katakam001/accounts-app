@@ -1,9 +1,9 @@
 <div class="category-units-container">
-  <mat-toolbar color="primary" class="toolbar">
+  <mat-toolbar color="primary">
     <span>Category Units</span>
     <span class="spacer"></span>
     <button mat-raised-button class="add-categoryUnits-button" (click)="openAddCategoryUnitDialog()">
-      Add New Category Unit
+      <mat-icon>add</mat-icon>Add New Category Unit
     </button>
   </mat-toolbar>
 
@@ -43,7 +43,7 @@
             <button mat-icon-button class="edit-button" (click)="openEditCategoryUnitDialog(categoryUnit)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button class="delete-button" (click)="deleteCategoryUnit(categoryUnit.id)">
+            <button mat-icon-button class="delete-button" (click)="deleteCategoryUnit(categoryUnit.id,categoryUnit.category_name,categoryUnit.unit_name)">
               <mat-icon>delete</mat-icon>
             </button>
           </td>

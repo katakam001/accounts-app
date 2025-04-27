@@ -1,9 +1,9 @@
 <div class="items-container">
-    <mat-toolbar color="primary" class="toolbar">
+    <mat-toolbar color="primary">
       <span>Items</span>
       <span class="spacer"></span>
       <button mat-raised-button class="add-item-button" (click)="openAddItemDialog()">
-        Add New Item
+        <mat-icon>add</mat-icon>Add New Item
       </button>
     </mat-toolbar>
   
@@ -21,7 +21,7 @@
               <button mat-icon-button class="edit-button" (click)="openEditItemDialog(item)">
                 <mat-icon>edit</mat-icon>
               </button>
-              <button mat-icon-button class="delete-button" (click)="deleteItem(item.id)">
+              <button mat-icon-button class="delete-button" (click)="deleteItem(item.id,item.name)">
                 <mat-icon>delete</mat-icon>
               </button>
             </td>

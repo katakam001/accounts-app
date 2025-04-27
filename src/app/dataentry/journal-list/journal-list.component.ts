@@ -16,6 +16,7 @@ import { WebSocketService } from '../../services/websocket.service'; // Import W
 import { Subscription } from 'rxjs'; // Import Subscription
 import { GroupService } from '../../services/group.service';
 import { CachedPage } from '../../models/cache-key.interface';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-journal-list',
@@ -49,6 +50,7 @@ export class JournalListComponent implements OnInit, OnDestroy {
     private accountService: AccountService,
     private groupService: GroupService,
     private route: ActivatedRoute,
+    private snackBar: MatSnackBar, // Inject MatSnackBar
     private webSocketService: WebSocketService // Inject WebSocket service
   ) { }
 
@@ -228,7 +230,11 @@ export class JournalListComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.journalService.addJournalEntry(result).subscribe();
+        this.journalService.addJournalEntry(result).subscribe({
+          next: () => {
+            this.snackBar.open(`Journal entries addition is successfully.`,'Close',{ duration: 3000 });
+          }
+        });
       }
     });
   }
@@ -241,13 +247,24 @@ export class JournalListComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.journalService.updateJournalEntry(result).subscribe();
+        this.journalService.updateJournalEntry(result).subscribe({
+          next: () => {
+            this.snackBar.open(`Journal entries updation is successfully.`,'Close',{ duration: 3000 });
+          }
+        });
       }
     });
   }
 
   deleteJournalEntry(id: number): void {
-    this.journalService.deleteJournalEntry(id).subscribe();
+    this.journalService.deleteJournalEntry(id).subscribe({
+      next: () => {
+        this.snackBar.open(`Journal entries deletion is successfully.`,'Close',{ duration: 3000 });
+      },
+      error: (error) => {
+        this.snackBar.open(error.message, 'Close', { duration: 10000 });
+      },
+    });
   }
 
   subscribeToWebSocketEvents(): void {

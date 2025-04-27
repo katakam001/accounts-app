@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { StorageService } from '../../services/storage.service';
 import { FinancialYearService } from '../../services/financial-year.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-purchase-categories',
@@ -29,7 +30,8 @@ export class PurchaseCategoriesComponent implements OnInit {
     private categoryService: CategoryService,
     public dialog: MatDialog,
     private storageService: StorageService,
-    private financialYearService: FinancialYearService
+    private financialYearService: FinancialYearService,
+    private snackBar:MatSnackBar
   ) {
     this.categories = new MatTableDataSource<any>([]);
   }
@@ -85,6 +87,7 @@ export class PurchaseCategoriesComponent implements OnInit {
       const newData = [...this.categories.data, newCategory];
       this.categories.data = newData; // Assign the new array
       this.categories._updateChangeSubscription(); // Refresh the table
+      this.snackBar.open(`Category "${newCategory.name}" added successfully.`,'Close',{ duration: 3000 });
     });
   }
   
@@ -97,16 +100,23 @@ export class PurchaseCategoriesComponent implements OnInit {
         newData[index] = updatedCategory; // Update the copied array
         this.categories.data = newData; // Assign the new array
         this.categories._updateChangeSubscription(); // Refresh the table
+        this.snackBar.open(`Category "${updatedCategory.name}" updation is successfully.`,'Close',{ duration: 3000 });
       }
     });
   }
   
-  deleteCategory(categoryId: number): void {
-    this.categoryService.deleteCategory(categoryId).subscribe(() => {
-      // Create a *new* array without the deleted category
-      const newData = this.categories.data.filter(category => category.id !== categoryId);
-      this.categories.data = newData; // Assign the new array
-      this.categories._updateChangeSubscription(); // Refresh the table
+  deleteCategory(categoryId: number, name: string): void {
+    this.categoryService.deleteCategory(categoryId).subscribe({
+      next: () => {
+        // Create a *new* array without the deleted category
+        const newData = this.categories.data.filter(category => category.id !== categoryId);
+        this.categories.data = newData; // Assign the new array
+        this.categories._updateChangeSubscription(); // Refresh the table
+        this.snackBar.open(`Category "${name}" deletion is successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        this.snackBar.open(error.message, 'Close', { duration: 10000 });
+      }
     });
-  }  
+  }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, tap, map, switchMap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { NgxIndexedDBService } from 'ngx-indexed-db';
@@ -234,13 +234,24 @@ export class FieldMappingService {
         const updatedFieldMappings = cachedFieldMappings.filter(fm => fm.id !== fieldMappingId);
         this.setCachedFieldMappings(updatedFieldMappings);
         this.setTotalFieldMappingsCount(this.getTotalFieldMappingsCount() - 1);
-  
+
         this.dbService.delete('fieldMappings', fieldMappingId).subscribe({
           next: () => console.log('Field mapping deleted from IndexedDB:', fieldMappingId),
           error: (error: any) => console.error('Error deleting field mapping from IndexedDB:', error)
         });
       }),
-      catchError(this.handleError<any>('deleteFieldMapping'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('delete fields_mapping')) {
+          // Handle duplicate error specifically
+          if (error.error.detail.includes('invoices'))
+            return throwError(() => new Error('Field Mapping deletion failed: This field mapping is associated with existing invoice. Please remove or reassign the invoice linked to this field mapping before attempting deletion.'));
+          else
+            return throwError(() => new Error(error.error.detail)); // Re-throw error if needed    
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to delete field Mapping. Please try again later.'));
+        }
+      })
     );
   }  
 

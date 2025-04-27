@@ -1,9 +1,9 @@
 <div class="fields-container">
-  <mat-toolbar color="primary" class="toolbar">
+  <mat-toolbar color="primary">
     <span>Fields</span>
     <span class="spacer"></span>
     <button mat-raised-button class="add-field-button" (click)="addField()">
-      Add New Field
+      <mat-icon>add</mat-icon>Add New Field
     </button>
   </mat-toolbar>
 
@@ -18,10 +18,10 @@
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef> Actions </th>
           <td mat-cell *matCellDef="let field">
-            <button mat-icon-button class="edit-button" (click)="editField(field)">
+            <button mat-icon-button color="primary" class="edit-button" (click)="editField(field)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button class="delete-button" (click)="deleteField(field.id)">
+            <button mat-icon-button color="warn" class="delete-button" (click)="deleteField(field.id,field.field_name)">
               <mat-icon>delete</mat-icon>
             </button>
           </td>

@@ -15,9 +15,7 @@ mat-toolbar {
 
 .account-card {
   margin-top: 20px;
-  background-color: #e0e0e0; /* Light gray background */
-  border: 1px solid #bdbdbd; /* Gray border */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 table {
@@ -43,17 +41,25 @@ button.mat-button {
 }
 
 .add-account-button {
-  background-color: #ff9800; /* Orange background */
-  color: white;
-  border-radius: 4px;
-  padding: 8px 16px;
-  transition: background-color 0.3s ease;
+  background-color: #4caf50; /* Green background */
+  color: white; /* White text */
+  border: none; /* Remove border */
+  padding: 8px 16px; /* Add padding */
+  border-radius: 4px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s ease; /* Smooth transition */
+  display: flex;
+  font-size: 14px; /* Larger, readable text */
+  align-items: center;
+}
+
+.add-account-button mat-icon {
+  margin-right: 8px; /* Add margin to the right of the icon */
 }
 
 .add-account-button:hover {
-  background-color: #fb8c00; /* Darker orange on hover */
+  background-color: #388e3c; /* Darker green on hover */
 }
-
 .edit-button {
   background-color: #4caf50; /* Green background */
   color: #fff; /* White text */
@@ -97,17 +103,18 @@ button.mat-button {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  background-color: #f0f4f8; /* Light background color */
-  border-radius: 10px; /* Rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-  margin: 20px 0; /* Margin for spacing */
+  padding: 16px;
+  background-color: #2196f3; /* Brighter blue color for more attraction */
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Enhanced shadow for depth */
+  margin-top: 8px; /* Reduced margin between elements */
+  margin-bottom: 16px; /* Keep a slight gap for balance */
 }
 
 .financial-year-text {
-  font-size: 24px; /* Larger font size */
-  font-weight: bold; /* Bold text */
-  color: #333; /* Dark text color */
+  font-size: 24px; /* Slightly larger font size */
+  font-weight: bold; /* Make the text stand out */
+  color: white; /* White text for better contrast */
 }
 
 .totals-container {
@@ -143,3 +150,30 @@ button.mat-button {
 .difference-neutral {
   color: black;
 }
+
+.filter-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 4px; /* Reduced space */
+}
+
+.search-field {
+  width: 800px;
+  max-width: 100%;
+  border-radius: 4px; /* Rounded corners */
+}
+mat-form-field {
+  margin-bottom: 0; /* Remove extra space below search bar */
+}
+
+@media (max-width: 768px) {
+  .search-field {
+    width: 100%;
+  }
+  .financial-year-container {
+    font-size: 16px;
+    padding: 12px;
+  }
+}
+

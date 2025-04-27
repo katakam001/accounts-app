@@ -15,16 +15,19 @@ import { FinancialYearService } from '../../services/financial-year.service';
 import { Group } from '../../models/group.interface';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { FormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-account-list',
   standalone: true,
-  imports: [MatCardModule, MatToolbarModule, MatTooltipModule, MatIconModule, MatTableModule, CommonModule, MatSortModule,MatSnackBarModule],
+  imports: [MatCardModule, MatToolbarModule, MatTooltipModule, MatIconModule, MatTableModule, CommonModule, MatSortModule,MatSnackBarModule,FormsModule,MatInputModule],
   templateUrl: './account-list.component.html',
   styleUrls: ['./account-list.component.css']
 })
 export class AccountListComponent implements OnInit {
   accounts = new MatTableDataSource<Account>();
+  originalData: Account[] = [];
   displayedColumns: string[] = ['name', 'gst_no', 'debit_balance', 'credit_balance', 'group', 'address', 'isDealer', 'actions'];
   financialYear: string;
   totalDebits: number = 0;
@@ -44,7 +47,20 @@ export class AccountListComponent implements OnInit {
     this.getFinancialYear();
     this.accounts.sort = this.sort; // Initialize sorting
   }
-
+  applyFilter(event: any) {
+    const filterValue = event.target.value.trim().toLowerCase();
+    if (!filterValue) {
+      // Reset data to the original if the search field is empty
+      this.accounts.data = [...this.originalData];
+    } else {
+      // Filter accounts based on name, GST number, or group
+      this.accounts.data = this.originalData.filter(account =>
+        account.name.toLowerCase().includes(filterValue) ||
+        account.gst_no?.toLowerCase().includes(filterValue) ||
+        account.group.name.toLowerCase().includes(filterValue)
+      );
+    }
+  }
   getFinancialYear() {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
@@ -56,6 +72,7 @@ export class AccountListComponent implements OnInit {
   fetchAccounts(userId: number, financialYear: string): void {
     this.accountService.getAccountsByUserIdAndFinancialYear(userId, financialYear).subscribe((data: Account[]) => {
       this.accounts.data = data;
+      this.originalData = [...this.accounts.data]; // Initialize filtered accounts
       this.accounts.sort = this.sort; // Set the sort after fetching the data
       this.calculateTotals();
     });
@@ -97,6 +114,7 @@ export class AccountListComponent implements OnInit {
         this.accountService.addAccount(result).subscribe({
           next: (response) => {
             this.accounts.data = [...this.accounts.data, response];
+            this.originalData = [...this.accounts.data]; // Initialize filtered accounts
             this.accounts._updateChangeSubscription();
             this.calculateTotals();
             // Show success message
@@ -137,16 +155,17 @@ export class AccountListComponent implements OnInit {
     });
   }
 
-  deleteAccount(id: number): void {
+  deleteAccount(id: number,name:string): void {
     this.accountService.deleteAccount(id).subscribe({
       next: () => {
         this.accounts.data = this.accounts.data.filter(account => account.id !== id);
+        this.originalData = [...this.accounts.data]; // Initialize filtered accounts
         this.accounts._updateChangeSubscription();
         this.calculateTotals();
+        this.snackBar.open(`Account "${name}" deletion is successfully.`,'Close',{ duration: 3000 });
       },
       error: (error) => {
-        console.error('Error deleting account:', error);
-        // Handle the error
+        this.snackBar.open(error.message, 'Close', { duration: 10000 });
       }
     });
   }
@@ -160,6 +179,7 @@ updateAccount(updatedAccount: Account): void {
         const newData = [...this.accounts.data];
         newData[index] = response;
         this.accounts.data = newData;
+        this.originalData = [...this.accounts.data]; // Initialize filtered accounts
         this.accounts._updateChangeSubscription(); // Refresh the table
         this.calculateTotals(); // Recalculate totals after update
         this.snackBar.open(`Account "${response.name}" updation is successfully.`,'Close',{ duration: 3000 });

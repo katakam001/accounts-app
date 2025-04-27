@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { AddEditFieldDialogComponent } from '../../dialogbox/add-edit-field-dialog/add-edit-field-dialog.component';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-fields',
@@ -40,7 +41,8 @@ export class FieldsComponent implements OnInit {
     private fieldService: FieldService,
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private snackBar: MatSnackBar // Inject MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -98,6 +100,7 @@ export class FieldsComponent implements OnInit {
       const newData = [...this.dataSource.data, response];  // Spread operator creates a copy
       this.dataSource.data = newData; // Assign the new array
       this.dataSource._updateChangeSubscription(); // Still needed but now works correctly
+      this.snackBar.open(`Field "${response.field_name}" added successfully.`,'Close',{ duration: 3000 });
     });
   }
 
@@ -111,16 +114,23 @@ export class FieldsComponent implements OnInit {
         newData[index] = response; // Update the copied array
         this.dataSource.data = newData; // Assign the new array
         this.dataSource._updateChangeSubscription();
+        this.snackBar.open(`Field "${response.field_name}" updation is successfully.`,'Close',{ duration: 3000 });
       }
     });
   }
 
-  deleteField(fieldId: number): void {
-    this.fieldService.deleteField(fieldId).subscribe(() => {
+  deleteField(fieldId: number,name:string): void {
+    this.fieldService.deleteField(fieldId).subscribe({
+      next: () => {
       // Create a *new* array without the deleted field
       const newData = this.dataSource.data.filter(field => field.id !== fieldId);
       this.dataSource.data = newData; // Assign the new array
       this.dataSource._updateChangeSubscription();
-    });
-  }
+      this.snackBar.open(`Field "${name}" deletion is successfully.`,'Close',{ duration: 3000 });
+    },
+    error: (error) => {
+      this.snackBar.open(error.message, 'Close', { duration: 10000 });
+    }
+  });  
+}
 }

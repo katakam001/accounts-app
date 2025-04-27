@@ -1,9 +1,9 @@
 <div class="purchase-fields-container">
-  <mat-toolbar color="primary" class="toolbar">
+  <mat-toolbar color="primary">
     <span>Category To Fields Mapping</span>
     <span class="spacer"></span>
     <button mat-raised-button class="add-purchase-fields-button" (click)="openAddFieldDialog()">
-      Add New Field
+      <mat-icon>add</mat-icon>Add New Field Mapping
     </button>
   </mat-toolbar>
 
@@ -77,7 +77,7 @@
             <button mat-icon-button class="edit-button" (click)="openEditFieldDialog(field)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button class="delete-button" (click)="deleteField(field.id)">
+            <button mat-icon-button class="delete-button" (click)="deleteField(field.id,field.category_name,field.field_name)">
               <mat-icon>delete</mat-icon>
             </button>
           </td>

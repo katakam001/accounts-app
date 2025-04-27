@@ -18,6 +18,7 @@ import { GroupNode } from '../../models/group-node.interface';
 import { Account } from '../../models/account.interface';
 import { GroupMappingService } from '../../services/group-mapping.service';
 import { AccountService } from '../../services/account.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-purchase-fields',
@@ -63,6 +64,7 @@ export class PurchaseFieldsComponent implements OnInit {
     private groupMappingService: GroupMappingService, // Inject FieldMappingService
     private accountService: AccountService,
     private storageService: StorageService,
+    private snackBar: MatSnackBar, // Inject MatSnackBar
     public dialog: MatDialog
   ) {
     this.fields = new MatTableDataSource<any>([]);
@@ -165,6 +167,7 @@ export class PurchaseFieldsComponent implements OnInit {
               result.account_name = this.accountMap.get(result.account_id) || '';
       this.originalData = [...this.originalData, result];
       this.applyFilter(); // Reapply filters to update the displayed data
+      this.snackBar.open(`Category "${result.category_name}" to Field Mapping "${result.field_name}" relation addition is successfully.`,'Close',{ duration: 3000 });
       }
     });
   }
@@ -183,15 +186,21 @@ export class PurchaseFieldsComponent implements OnInit {
       this.originalData = this.originalData.map(f => f.id === result.id ? result : f);
       console.log(this.originalData);
       this.applyFilter(); // Reapply filters to update the displayed data
+      this.snackBar.open(`Category "${result.category_name}" to Field Mapping "${result.field_name}" relation updation is successfully.`,'Close',{ duration: 3000 });
       }
     });
   }
-
-  deleteField(fieldId: number): void {
-    this.fieldMappingService.deleteFieldMapping(fieldId).subscribe(() => {
-          // Remove the field from the original data
-    this.originalData = this.originalData.filter(f => f.id !== fieldId);
-    this.applyFilter(); // Reapply filters to update the displayed data
+  deleteField(fieldId: number,category_name:string,field_name:string): void {
+    this.fieldMappingService.deleteFieldMapping(fieldId).subscribe({
+      next: () => {
+        // Remove the field from the original data
+        this.originalData = this.originalData.filter(f => f.id !== fieldId);
+        this.applyFilter(); // Reapply filters to update the displayed data
+        this.snackBar.open(`Category "${category_name}" to Field Mapping "${field_name}" relation deletion is successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        this.snackBar.open(error.message, 'Close', { duration: 10000 });
+      }
     });
   }
     // Function to find a node by its name

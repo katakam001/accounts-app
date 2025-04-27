@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
@@ -69,8 +69,20 @@ export class ConversionService {
         this.conversions = this.conversions.filter(c => c.id !== id);
         this.saveToLocalStorage();
       }),
-      catchError(this.handleError<any>('deleteConversion'))
-    );
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('delete conversion')) {
+          // Handle duplicate error specifically
+          if (error.error.detail.includes('processed_items'))
+            return throwError(() => new Error('Conversion deletion failed: This item is associated with existing Yield setting. Please remove or reassign the yield setting linked to this item before attempting deletion.'));
+          else if (error.error.detail.includes('production_entries'))
+            return throwError(() => new Error('Conversion deletion failed: This item is associated with existing production entries. Please remove or reassign the production entries linked to this item before attempting deletion.'));
+          else
+            return throwError(() => new Error(error.error.detail)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to delete group. Please try again later.'));
+        }
+      }));
   }
 
   clearCache(): void {

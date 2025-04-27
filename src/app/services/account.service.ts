@@ -310,7 +310,24 @@ export class AccountService {
 
         // Decrement totalAccountsCount by 1
       }),
-      catchError(this.handleError<HttpResponse<void>>('deleteAccount'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('delete account')) {
+          // Handle duplicate error specifically
+          if (error.error.detail.includes('journal_items'))
+            return throwError(() => new Error('Account deletion failed: This account is associated with existing journal entries. Please remove or reassign the journal entries linked to this account before attempting deletion.'));
+          else if (error.error.detail.includes('cash_entries'))
+            return throwError(() => new Error('Account deletion failed: This account is associated with existing cash entries. Please remove or reassign the cash entries linked to this account before attempting deletion.'));
+          else if (error.error.detail.includes('entries'))
+            return throwError(() => new Error('Account deletion failed: This account is associated with existing invoices. Please remove or reassign the invoices linked to this account before attempting deletion.'));
+          else if (error.error.detail.includes('fields_mapping'))
+            return throwError(() => new Error('Account deletion failed: This account is associated with existing field mappping as tax account. Please remove or reassign the field mapping linked to this tax account before attempting deletion.'));
+          else
+            return throwError(() => new Error(error.error.detail)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to delete account. Please try again later.'));
+        }
+      })
     );
   }
 

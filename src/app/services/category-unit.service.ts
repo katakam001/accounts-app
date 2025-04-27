@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
@@ -117,8 +117,18 @@ export class CategoryUnitService {
         });
         this.saveToLocalStorage();
       }),
-      catchError(this.handleError<any>('deleteCategoryUnit'))
-    );
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('delete category_units')) {
+          // Handle duplicate error specifically
+          if (error.error.detail.includes('invoices'))
+            return throwError(() => new Error('Category units deletion failed: This Category unit is associated with existing invoice. Please remove or reassign the invoice linked to this Category unit before attempting deletion.'));
+          else
+            return throwError(() => new Error(error.error.detail)); // Re-throw error if needed    
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to delete category units. Please try again later.'));
+        }
+      }));
   }
 
   clearCache(): void {

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
@@ -69,8 +69,28 @@ export class UnitService {
         this.unitCache = this.unitCache.filter(u => u.id !== unitId);
         this.saveToLocalStorage();
       }),
-      catchError(this.handleError<any>('deleteUnit'))
-    );
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('delete unit')) {
+          // Handle duplicate error specifically
+          if (error.error.detail.includes('entries'))
+            return throwError(() => new Error('Unit deletion failed: This unit is associated with existing invoices. Please remove or reassign the invoices linked to this unit before attempting deletion.'));
+          else if (error.error.detail.includes('category_units'))
+            return throwError(() => new Error('Unit deletion failed: This unit is associated with existing category units. Please remove or reassign the category units linked to this unit before attempting deletion.'));
+          else if (error.error.detail.includes('raw_items'))
+            return throwError(() => new Error('Unit deletion failed: This unit is associated with existing Yield setting. Please remove or reassign the yield setting linked to this unit before attempting deletion.'));
+          else if (error.error.detail.includes('processed_items'))
+            return throwError(() => new Error('Unit deletion failed: This unit is associated with existing Yield setting. Please remove or reassign the yield setting linked to this unit before attempting deletion.'));
+          else if (error.error.detail.includes('production_entries'))
+            return throwError(() => new Error('Unit deletion failed: This unit is associated with existing production entries. Please remove or reassign the production entries linked to this unit before attempting deletion.'));
+          else if (error.error.detail.includes('stock_register'))
+            return throwError(() => new Error('Unit deletion failed: This unit is associated with existing production entries or invoices. Please remove or reassign the production entries or invoices linked to this unit before attempting deletion.'));
+          else
+            return throwError(() => new Error(error.error.detail)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to delete group. Please try again later.'));
+        }
+      }));
   }
 
   clearCache(): void {

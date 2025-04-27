@@ -11,11 +11,13 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { StorageService } from '../../services/storage.service';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-group-list',
   standalone: true,
-  imports: [MatTableModule, MatToolbarModule, MatCardModule, CommonModule, MatSortModule],
+  imports: [MatTableModule, MatToolbarModule, MatCardModule, CommonModule, MatSortModule,MatIconModule],
   templateUrl: './group-list.component.html',
   styleUrls: ['./group-list.component.css']
 })
@@ -31,7 +33,8 @@ export class GroupListComponent implements OnInit {
     private groupService: GroupService,
     public dialog: MatDialog,
     private storageService: StorageService,
-    private financialYearService: FinancialYearService
+    private financialYearService: FinancialYearService,
+    private snackBar: MatSnackBar // Inject MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -66,6 +69,7 @@ export class GroupListComponent implements OnInit {
           // Create a new array with the added group
           this.groups.data = [...this.groups.data, response];
           this.groups._updateChangeSubscription(); // Refresh the table
+          this.snackBar.open(`Group "${response.name}" added successfully.`,'Close',{ duration: 3000 });
         });
       }
     });
@@ -84,18 +88,18 @@ export class GroupListComponent implements OnInit {
     });
   }
 
-  deleteGroup(id: number): void {
-    this.groupService.deleteGroup(id).subscribe(
-      () => {
+  deleteGroup(id: number,name:string): void {
+    this.groupService.deleteGroup(id).subscribe({
+      next: () => {
         // Create a new array without the deleted group
         this.groups.data = this.groups.data.filter(group => group.id !== id);
         this.groups._updateChangeSubscription(); // Refresh the table
-        console.log('Group deleted successfully');
+        this.snackBar.open(`Group "${name}" deletion is successfully.`,'Close',{ duration: 3000 });
       },
-      error => {
-        console.error('Error deleting group:', error);
+      error: (error) => {
+        this.snackBar.open(error.message, 'Close', { duration: 10000 });
       }
-    );
+    });
   }
 
   updateGroup(updatedGroup: Group): void {
@@ -107,6 +111,7 @@ export class GroupListComponent implements OnInit {
         newData[index] = response;
         this.groups.data = newData;
         this.groups._updateChangeSubscription(); // Refresh the table
+        this.snackBar.open(`Group "${response.name}" updation is successfully.`,'Close',{ duration: 3000 });
       }
     });
   }

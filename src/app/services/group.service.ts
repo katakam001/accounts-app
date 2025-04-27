@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { Group } from '../models/group.interface';
 import { environment } from '../../environments/environment';
@@ -70,7 +70,20 @@ export class GroupService {
         this.groupCache = this.groupCache.filter(g => g.id !== id);
         this.saveToLocalStorage();
       }),
-      catchError(this.handleError<void>('deleteGroup'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('delete group')) {
+          // Handle duplicate error specifically
+          if (error.error.detail.includes('journal_items'))
+            return throwError(() => new Error('Group deletion failed: This group is associated with existing journal entries. Please remove or reassign the journal entries linked to this group before attempting deletion.'));
+          else if (error.error.detail.includes('cash_entries'))
+            return throwError(() => new Error('Group deletion failed: This group is associated with existing cash entries. Please remove or reassign the cash entries linked to this group before attempting deletion.'));
+          else
+            return throwError(() => new Error(error.error.detail)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to delete group. Please try again later.'));
+        }
+      })
     );
   }
 

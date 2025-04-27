@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { Observable,  throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { JournalEntry } from '../models/journal-entry.interface';
 import { environment } from '../../environments/environment';
 import { saveAs } from 'file-saver';
@@ -85,7 +86,28 @@ export class JournalService {
   }
 
   deleteJournalEntry(id: number): Observable<HttpResponse<void>> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, { observe: 'response' });
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, { observe: 'response' })
+      .pipe(
+        map(response => {
+          // Handle the successful 204 response (it contains no content)
+          if (response.status === 204) {
+            return response;
+          }
+          return response; // Default case for other successful responses (if any)
+        }),
+        catchError((error: any) => {
+          if (error.error && error.error.message && error.error.message.includes('delete journal')) {
+            // Handle duplicate error specifically
+            if (error.error.detail.includes('entries'))
+              return throwError(() => new Error('journal entries deletion failed: This journal entries is associated with existing invoices. Please remove or reassign the invoices linked to this journal entries before attempting deletion.'));
+            else
+              return throwError(() => new Error(error.error.detail)); // Re-throw error if needed
+          } else {
+            // Handle other errors
+            return throwError(() => new Error('Failed to delete group. Please try again later.'));
+          }
+        })
+      );
   }
 
   // New method to export daybook to PDF

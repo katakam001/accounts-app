@@ -28,7 +28,7 @@
         <button mat-icon-button class="edit-button" (click)="openEditConversionDialog(conversion)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button class="delete-button" (click)="deleteConversion(conversion.id)">
+        <button mat-icon-button class="delete-button" (click)="deleteConversion(conversion.id,conversion.from_unit_name,conversion.to_unit_name)">
           <mat-icon>delete</mat-icon>
         </button>
       </mat-card-actions>

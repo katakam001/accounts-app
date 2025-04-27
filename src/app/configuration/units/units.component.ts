@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { StorageService } from '../../services/storage.service';
 import { FinancialYearService } from '../../services/financial-year.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-units',
@@ -30,6 +31,7 @@ export class UnitsComponent implements OnInit {
     private unitService: UnitService,
     public dialog: MatDialog,
     private storageService: StorageService,
+    private snackBar:MatSnackBar,
     private financialYearService: FinancialYearService
   ) {
     this.units = new MatTableDataSource<any>([]);
@@ -87,6 +89,7 @@ export class UnitsComponent implements OnInit {
       const newData = [...this.units.data, response];
       this.units.data = newData; // Assign the new array
       this.units._updateChangeSubscription(); // Refresh the table
+      this.snackBar.open(`Unit "${response.name}" added successfully.`, 'Close', { duration: 3000 });
     });
   }
   
@@ -99,16 +102,23 @@ export class UnitsComponent implements OnInit {
         newData[index] = response; // Update the copied array
         this.units.data = newData; // Assign the new array
         this.units._updateChangeSubscription(); // Refresh the table
+        this.snackBar.open(`Unit "${response.name}" updation is successfully.`, 'Close', { duration: 3000 });
       }
     });
   }
   
-  deleteUnit(unitId: number): void {
-    this.unitService.deleteUnit(unitId).subscribe(() => {
+  deleteUnit(unitId: number,name:string): void {
+    this.unitService.deleteUnit(unitId).subscribe({
+      next: () => {
       // Create a *new* array without the deleted unit
       const newData = this.units.data.filter(unit => unit.id !== unitId);
       this.units.data = newData; // Assign the new array
       this.units._updateChangeSubscription(); // Refresh the table
+      this.snackBar.open(`Unit "${name}" deletion is successfully.`, 'Close', { duration: 3000 });
+    },
+    error: (error) => {
+      this.snackBar.open(error.message, 'Close', { duration: 10000 });
+    }
     });
-  }  
+  }
 }

@@ -1,9 +1,9 @@
 <div class="units-container">
-  <mat-toolbar color="primary" class="toolbar">
+  <mat-toolbar color="primary">
     <span>Units</span>
     <span class="spacer"></span>
     <button mat-raised-button class="add-units-button" (click)="openAddUnitDialog()">
-      Add New Unit
+      <mat-icon>add</mat-icon>Add New Unit
     </button>
   </mat-toolbar>
 
@@ -21,7 +21,7 @@
             <button mat-icon-button class="edit-button" (click)="openEditUnitDialog(unit)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button class="delete-button" (click)="deleteUnit(unit.id)">
+            <button mat-icon-button class="delete-button" (click)="deleteUnit(unit.id,unit.name)">
               <mat-icon>delete</mat-icon>
             </button>
           </td>

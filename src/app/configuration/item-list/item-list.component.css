@@ -2,50 +2,100 @@
     padding: 20px;
   }
   
-  .toolbar {
+  mat-toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .spacer {
+    flex: 1 1 auto;
+  }  
+  table {
+    width: 100%;
+  }
+  
+  th.mat-header-cell {
+    background-color: #3f51b5; /* Indigo background */
+    color: white;
+    font-weight: bold;
+  }
+  
+  td.mat-cell {
+    background-color: #e8eaf6; /* Light indigo background */
+  }
+  
+  button {
+    margin-right: 10px;
+  }
+  
+  button.mat-button {
+    font-weight: bold;
   }
   
   .add-item-button {
-    background-color: #ff9800; /* Orange background */
-    color: white;
-    border-radius: 4px;
-    padding: 8px 16px;
-    transition: background-color 0.3s ease;
+    background-color: #4caf50; /* Green background */
+    color: white; /* White text */
+    border: none; /* Remove border */
+    padding: 8px 16px; /* Add padding */
+    border-radius: 4px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s ease; /* Smooth transition */
+    display: flex;
+    font-size: 14px; /* Larger, readable text */
+    align-items: center;
+  }
+  
+  .add-item-button mat-icon {
+    margin-right: 8px; /* Add margin to the right of the icon */
   }
   
   .add-item-button:hover {
-    background-color: #fb8c00; /* Darker orange on hover */
+    background-color: #388e3c; /* Darker green on hover */
   }
-  
+
   .edit-button {
     background-color: #4caf50; /* Green background */
-    color: white;
-    border-radius: 4px;
-    padding: 8px 16px;
-    transition: background-color 0.3s ease;
+    color: #fff; /* White text */
+    border: none;
+    padding: 6px 12px; /* Comfortable padding */
+    border-radius: 8px; /* Rounded corners */
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    font-size: 14px; /* Larger, readable text */
+    font-weight: bold; /* Emphasize the button label */
   }
   
   .edit-button:hover {
     background-color: #388e3c; /* Darker green on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Enhanced shadow on hover */
   }
   
   .delete-button {
     background-color: #f44336; /* Red background */
-    color: white;
-    border-radius: 4px;
-    padding: 8px 16px;
-    transition: background-color 0.3s ease;
+    color: #fff; /* White text */
+    border: none;
+    padding: 6px 12px; /* Comfortable padding */
+    border-radius: 8px; /* Rounded corners */
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    font-size: 14px; /* Larger, readable text */
+    font-weight: bold; /* Emphasize the button label */
   }
   
   .delete-button:hover {
     background-color: #d32f2f; /* Darker red on hover */
+    transform: translateY(-2px); /* Slight lift effect */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Enhanced shadow on hover */
   }
   
   .items-card {
     margin-top: 20px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    background-color: #e0e0e0; /* Light gray background */
+    border: 1px solid #bdbdbd; /* Gray border */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
   }
-  

@@ -12,6 +12,7 @@ import { ConversionService } from '../../services/conversion.service';
 import { AddEditConversionDialogComponent } from '../../dialogbox/add-edit-conversion-dialog/add-edit-conversion-dialog.component';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-conversion',
@@ -42,6 +43,7 @@ export class ConversionComponent implements OnInit {
     private conversionService: ConversionService,
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
+    private snackBar: MatSnackBar, // Inject MatSnackBar
     public dialog: MatDialog
   ) {}
 
@@ -98,6 +100,7 @@ export class ConversionComponent implements OnInit {
       const newData = [...this.dataSource.data, response];
       this.dataSource.data = newData; // Assign the new array
       this.dataSource._updateChangeSubscription(); // Refresh the table
+      this.snackBar.open(`The conversion from "${response.from_unit_name}" to "${response.to_unit_name}" addition is successfully.`, 'Close', { duration: 3000 });
     });
   }
   
@@ -110,16 +113,23 @@ export class ConversionComponent implements OnInit {
         newData[index] = response; // Update the copied array
         this.dataSource.data = newData; // Assign the new array
         this.dataSource._updateChangeSubscription(); // Refresh the table
+        this.snackBar.open(`The conversion from "${response.from_unit_name}" to "${response.to_unit_name}" updation is successfully.`, 'Close', { duration: 3000 });
       }
     });
   }
   
-  deleteConversion(conversionId: number): void {
-    this.conversionService.deleteConversion(conversionId).subscribe(() => {
+  deleteConversion(conversionId: number,from_unit_name:string,to_unit_name:string): void {
+    this.conversionService.deleteConversion(conversionId).subscribe({
+      next: () => {
       // Create a *new* array without the deleted conversion
       const newData = this.dataSource.data.filter(conversion => conversion.id !== conversionId);
       this.dataSource.data = newData; // Assign the new array
       this.dataSource._updateChangeSubscription(); // Refresh the table
-    });
-  }  
+      this.snackBar.open(`The conversion from "${from_unit_name}" to "${to_unit_name}" was successfully deleted.`, 'Close', { duration: 3000 });
+    },
+    error: (error) => {
+      this.snackBar.open(error.message, 'Close', { duration: 10000 });
+    }
+  });  
+}
 }

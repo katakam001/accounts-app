@@ -1,9 +1,9 @@
 <div class="purchase-categories-container">
-  <mat-toolbar color="primary" class="toolbar">
+  <mat-toolbar color="primary">
     <span>Categories</span>
     <span class="spacer"></span>
     <button mat-raised-button class="add-purchase-categories-button" (click)="openAddCategoryDialog()">
-      Add New Category
+      <mat-icon>add</mat-icon>Add New Category
     </button>
   </mat-toolbar>
 
@@ -25,10 +25,10 @@
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef> Actions </th>
           <td mat-cell *matCellDef="let category">
-            <button mat-icon-button class="edit-button" (click)="openEditCategoryDialog(category)">
+            <button mat-icon-button color="primary" class="edit-button" (click)="openEditCategoryDialog(category)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button class="delete-button" (click)="deleteCategory(category.id)">
+            <button mat-icon-button color="warn" class="delete-button" (click)="deleteCategory(category.id,category.name)">
               <mat-icon>delete</mat-icon>
             </button>
           </td>

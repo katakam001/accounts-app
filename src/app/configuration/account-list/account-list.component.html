@@ -2,14 +2,25 @@
   <mat-toolbar color="primary">
     <span>Account List</span>
     <span class="spacer"></span>
-    <button mat-raised-button color="accent" class="add-account-button" (click)="addAccount()">Add Account</button>
+    <button mat-raised-button class="add-account-button" (click)="addAccount()">
+      <mat-icon>add</mat-icon>Add Account
+    </button>
   </mat-toolbar>
 
   <mat-card class="account-card">
     <mat-card-content>
-      <div *ngIf="financialYear" class="financial-year-container">
-        <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
+      <div class="filter-container">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search Accounts</mat-label>
+          <input matInput (keyup)="applyFilter($event)" placeholder="Search by name, GST, or group">
+          <button mat-icon-button matSuffix>
+            <mat-icon color="primary">search</mat-icon>
+          </button>
+        </mat-form-field>       
       </div>
+        <mat-card *ngIf="financialYear" class="financial-year-container">
+          <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
+        </mat-card>
       <table mat-table [dataSource]="accounts" matSort class="mat-elevation-z8">
 
         <!-- Name Column -->
@@ -65,7 +76,7 @@
             <button mat-icon-button color="primary" class="edit-button" (click)="editAccount(account)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" class="delete-button" (click)="deleteAccount(account.id)">
+            <button mat-icon-button color="warn" class="delete-button" (click)="deleteAccount(account.id,account.name)">
               <mat-icon>delete</mat-icon>
             </button>
           </td>
