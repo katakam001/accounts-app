@@ -39,7 +39,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./purchase-fields.component.css']
 })
 export class PurchaseFieldsComponent implements OnInit {
-  fields: MatTableDataSource<any>;
+  fields = new MatTableDataSource<any>();  
   displayedColumns: string[] = ['category_name', 'field_name', 'field_type', 'field_category', 'exclude_from_total','account_name', 'required', 'actions'];
   categories: string[] = [];
   fieldTypes: string[] = [];
@@ -67,7 +67,6 @@ export class PurchaseFieldsComponent implements OnInit {
     private snackBar: MatSnackBar, // Inject MatSnackBar
     public dialog: MatDialog
   ) {
-    this.fields = new MatTableDataSource<any>([]);
   }
 
   ngOnInit(): void {

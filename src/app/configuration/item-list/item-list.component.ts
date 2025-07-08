@@ -1,6 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatSort, MatSortModule, SortDirection } from '@angular/material/sort';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -29,10 +29,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   templateUrl: './item-list.component.html',
   styleUrls: ['./item-list.component.css']
 })
-export class ItemListComponent implements OnInit {
+export class ItemListComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['name', 'actions'];
-  dataSource: MatTableDataSource<any>;
-  items: any[] = [];
+  dataSource = new MatTableDataSource<any>();
   userId: number;
   financialYear: string;
 
@@ -42,13 +41,20 @@ export class ItemListComponent implements OnInit {
     private itemsService: ItemsService,
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
-    private snackBar:MatSnackBar,
+    private snackBar: MatSnackBar,
     public dialog: MatDialog
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.userId = this.storageService.getUser().id;
     this.getFinancialYear();
+  }
+
+  ngAfterViewInit() {
+    // Assign the MatSort instance to the MatTableDataSource
+    this.dataSource.sort = this.sort;
+    // You might also want to trigger an initial sort if desired
+    // this.dataSource.sort.sort({ id: 'name', start: 'asc', disableClear: false });
   }
 
   getFinancialYear() {
@@ -61,9 +67,7 @@ export class ItemListComponent implements OnInit {
 
   loadItems(): void {
     this.itemsService.getItemsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
-      this.items = data;
-      this.dataSource = new MatTableDataSource(this.items);
-      this.dataSource.sort = this.sort;
+      this.dataSource.data = data;
     });
   }
 
@@ -98,11 +102,21 @@ export class ItemListComponent implements OnInit {
       // Create a *new* array with the added item
       const newData = [...this.dataSource.data, response];
       this.dataSource.data = newData; // Assign the new array
-      this.dataSource._updateChangeSubscription(); // Refresh the table
-      this.snackBar.open(`Item "${response.name}" added successfully.`,'Close',{ duration: 3000 });
+      // Re-apply sort after data changes
+      if (this.dataSource.sort) {
+        const activeSort = this.dataSource.sort.active || 'name'; // Default to 'name' if no active sort
+        const sortDirection: SortDirection = this.dataSource.sort.direction || 'asc'; // Default to 'asc'
+
+        this.dataSource.sort.sort({
+          id: activeSort,
+          start: sortDirection,
+          disableClear: false // Crucial: Add disableClear property
+        });
+      }
+      this.snackBar.open(`Item "${response.name}" added successfully.`, 'Close', { duration: 3000 });
     });
   }
-  
+
   updateItem(item: any): void {
     this.itemsService.editItem(item.id, item).subscribe(response => {
       const index = this.dataSource.data.findIndex(i => i.id === response.id);
@@ -111,24 +125,45 @@ export class ItemListComponent implements OnInit {
         const newData = [...this.dataSource.data]; // Copy existing data
         newData[index] = response; // Update the copied array
         this.dataSource.data = newData; // Assign the new array
+        // Re-apply sort after data changes
+        if (this.dataSource.sort) {
+          const activeSort = this.dataSource.sort.active || 'name'; // Default to 'name' if no active sort
+          const sortDirection: SortDirection = this.dataSource.sort.direction || 'asc'; // Default to 'asc'
+
+          this.dataSource.sort.sort({
+            id: activeSort,
+            start: sortDirection,
+            disableClear: false // Crucial: Add disableClear property
+          });
+        }
         this.dataSource._updateChangeSubscription(); // Refresh the table
-        this.snackBar.open(`Item "${response.name}" updation is successfully.`,'Close',{ duration: 3000 });
+        this.snackBar.open(`Item "${response.name}" updation is successfully.`, 'Close', { duration: 3000 });
       }
     });
   }
-  
-  deleteItem(itemId: number,name: string): void {
+
+  deleteItem(itemId: number, name: string): void {
     this.itemsService.deleteItem(itemId).subscribe({
       next: () => {
-      // Create a *new* array without the deleted item
-      const newData = this.dataSource.data.filter(item => item.id !== itemId);
-      this.dataSource.data = newData; // Assign the new array
-      this.dataSource._updateChangeSubscription(); // Refresh the table
+        // Create a *new* array without the deleted item
+        const newData = this.dataSource.data.filter(item => item.id !== itemId);
+        this.dataSource.data = newData; // Assign the new array
+        // Re-apply sort after data changes
+        if (this.dataSource.sort) {
+          const activeSort = this.dataSource.sort.active || 'name'; // Default to 'name' if no active sort
+          const sortDirection: SortDirection = this.dataSource.sort.direction || 'asc'; // Default to 'asc'
+
+          this.dataSource.sort.sort({
+            id: activeSort,
+            start: sortDirection,
+            disableClear: false // Crucial: Add disableClear property
+          });
+        }
         this.snackBar.open(`Item "${name}" deletion is successfully.`, 'Close', { duration: 3000 });
       },
       error: (error) => {
         this.snackBar.open(error.message, 'Close', { duration: 10000 });
       }
     });
-  } 
+  }
 }

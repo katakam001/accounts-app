@@ -1,6 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatSort, MatSortModule, SortDirection } from '@angular/material/sort';
 import { FieldService } from '../../services/field.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -29,9 +29,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   templateUrl: './fields.component.html',
   styleUrls: ['./fields.component.css']
 })
-export class FieldsComponent implements OnInit {
+export class FieldsComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['field_name', 'actions'];
-  dataSource: MatTableDataSource<any>;
+  dataSource = new MatTableDataSource<any>();
   userId: number;
   financialYear: string;
 
@@ -43,11 +43,18 @@ export class FieldsComponent implements OnInit {
     private storageService: StorageService,
     public dialog: MatDialog,
     private snackBar: MatSnackBar // Inject MatSnackBar
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.userId = this.storageService.getUser().id;
     this.getFinancialYear();
+  }
+
+  ngAfterViewInit() {
+    // Assign the MatSort instance to the MatTableDataSource
+    this.dataSource.sort = this.sort;
+    // You might also want to trigger an initial sort if desired
+    // this.dataSource.sort.sort({ id: 'field_name', start: 'asc', disableClear: false });
   }
 
   getFinancialYear() {
@@ -61,8 +68,7 @@ export class FieldsComponent implements OnInit {
 
   loadFields(): void {
     this.fieldService.getAllFieldsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
-      this.dataSource = new MatTableDataSource(data);
-      this.dataSource.sort = this.sort;
+      this.dataSource.data = data;
     });
   }
 
@@ -99,8 +105,18 @@ export class FieldsComponent implements OnInit {
       // Create a *new* array with the added field
       const newData = [...this.dataSource.data, response];  // Spread operator creates a copy
       this.dataSource.data = newData; // Assign the new array
-      this.dataSource._updateChangeSubscription(); // Still needed but now works correctly
-      this.snackBar.open(`Field "${response.field_name}" added successfully.`,'Close',{ duration: 3000 });
+      // Re-apply sort after data changes
+      if (this.dataSource.sort) {
+        const activeSort = this.dataSource.sort.active || 'field_name'; // Default to 'name' if no active sort
+        const sortDirection: SortDirection = this.dataSource.sort.direction || 'asc'; // Default to 'asc'
+
+        this.dataSource.sort.sort({
+          id: activeSort,
+          start: sortDirection,
+          disableClear: false // Crucial: Add disableClear property
+        });
+      }
+      this.snackBar.open(`Field "${response.field_name}" added successfully.`, 'Close', { duration: 3000 });
     });
   }
 
@@ -113,24 +129,44 @@ export class FieldsComponent implements OnInit {
         const newData = [...this.dataSource.data]; // Copy existing data
         newData[index] = response; // Update the copied array
         this.dataSource.data = newData; // Assign the new array
-        this.dataSource._updateChangeSubscription();
-        this.snackBar.open(`Field "${response.field_name}" updation is successfully.`,'Close',{ duration: 3000 });
+        // Re-apply sort after data changes
+        if (this.dataSource.sort) {
+          const activeSort = this.dataSource.sort.active || 'field_name'; // Default to 'name' if no active sort
+          const sortDirection: SortDirection = this.dataSource.sort.direction || 'asc'; // Default to 'asc'
+
+          this.dataSource.sort.sort({
+            id: activeSort,
+            start: sortDirection,
+            disableClear: false // Crucial: Add disableClear property
+          });
+        }
+        this.snackBar.open(`Field "${response.field_name}" updation is successfully.`, 'Close', { duration: 3000 });
       }
     });
   }
 
-  deleteField(fieldId: number,name:string): void {
+  deleteField(fieldId: number, name: string): void {
     this.fieldService.deleteField(fieldId).subscribe({
       next: () => {
-      // Create a *new* array without the deleted field
-      const newData = this.dataSource.data.filter(field => field.id !== fieldId);
-      this.dataSource.data = newData; // Assign the new array
-      this.dataSource._updateChangeSubscription();
-      this.snackBar.open(`Field "${name}" deletion is successfully.`,'Close',{ duration: 3000 });
-    },
-    error: (error) => {
-      this.snackBar.open(error.message, 'Close', { duration: 10000 });
-    }
-  });  
-}
+        // Create a *new* array without the deleted field
+        const newData = this.dataSource.data.filter(field => field.id !== fieldId);
+        this.dataSource.data = newData; // Assign the new array
+        // Re-apply sort after data changes
+        if (this.dataSource.sort) {
+          const activeSort = this.dataSource.sort.active || 'field_name'; // Default to 'name' if no active sort
+          const sortDirection: SortDirection = this.dataSource.sort.direction || 'asc'; // Default to 'asc'
+
+          this.dataSource.sort.sort({
+            id: activeSort,
+            start: sortDirection,
+            disableClear: false // Crucial: Add disableClear property
+          });
+        }
+        this.snackBar.open(`Field "${name}" deletion is successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        this.snackBar.open(error.message, 'Close', { duration: 10000 });
+      }
+    });
+  }
 }

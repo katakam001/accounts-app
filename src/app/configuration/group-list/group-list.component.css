@@ -13,13 +13,11 @@
     flex: 1 1 auto;
   }
   
-  .group-card {
-    margin-top: 20px;
-    background-color: #e0e0e0; /* Light gray background */
-    border: 1px solid #bdbdbd; /* Gray border */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-  }
-  
+    .group-card {
+      margin-top: 20px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    
   table {
     width: 100%;
   }
@@ -118,4 +116,6 @@
   color: #333; /* Dark text color */
 }
 
-  
+    .mat-elevation-z8 {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
 import { GroupService } from '../../services/group.service';
@@ -10,18 +10,27 @@ import { MatCardModule } from '@angular/material/card';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { StorageService } from '../../services/storage.service';
 import { FinancialYearService } from '../../services/financial-year.service';
-import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatSort, MatSortModule, SortDirection } from '@angular/material/sort'; // Import SortDirection
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-group-list',
   standalone: true,
-  imports: [MatTableModule, MatToolbarModule, MatCardModule, CommonModule, MatSortModule,MatIconModule],
+  imports: [
+    MatTableModule,
+    MatToolbarModule,
+    MatCardModule,
+    CommonModule,
+    MatSortModule,
+    MatIconModule,
+    MatButtonModule
+  ],
   templateUrl: './group-list.component.html',
   styleUrls: ['./group-list.component.css']
 })
-export class GroupListComponent implements OnInit {
+export class GroupListComponent implements OnInit, AfterViewInit {
   groups = new MatTableDataSource<Group>();
   displayedColumns: string[] = ['name', 'description', 'actions'];
   financialYear: string;
@@ -34,12 +43,19 @@ export class GroupListComponent implements OnInit {
     public dialog: MatDialog,
     private storageService: StorageService,
     private financialYearService: FinancialYearService,
-    private snackBar: MatSnackBar // Inject MatSnackBar
-  ) {}
+    private snackBar: MatSnackBar
+  ) { }
 
   ngOnInit(): void {
     this.userId = this.storageService.getUser().id;
     this.getFinancialYear();
+  }
+
+  ngAfterViewInit() {
+    // Assign the MatSort instance to the MatTableDataSource
+    this.groups.sort = this.sort;
+    // You might also want to trigger an initial sort if desired
+    // this.groups.sort.sort({ id: 'name', start: 'asc', disableClear: false });
   }
 
   getFinancialYear() {
@@ -53,7 +69,6 @@ export class GroupListComponent implements OnInit {
   fetchGroups(userId: number, financialYear: string): void {
     this.groupService.getGroupsByUserIdAndFinancialYear(userId, financialYear).subscribe((data: Group[]) => {
       this.groups.data = data;
-      this.groups.sort = this.sort; // Set the sort after fetching the data
     });
   }
 
@@ -66,10 +81,21 @@ export class GroupListComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.groupService.addGroup(result).subscribe((response: Group) => {
-          // Create a new array with the added group
-          this.groups.data = [...this.groups.data, response];
-          this.groups._updateChangeSubscription(); // Refresh the table
-          this.snackBar.open(`Group "${response.name}" added successfully.`,'Close',{ duration: 3000 });
+          const newData = [...this.groups.data, response];
+          this.groups.data = newData; // Update the data source
+
+          // Re-apply sort after data changes
+          if (this.groups.sort) {
+            const activeSort = this.groups.sort.active || 'name'; // Default to 'name' if no active sort
+            const sortDirection: SortDirection = this.groups.sort.direction || 'asc'; // Default to 'asc'
+
+            this.groups.sort.sort({
+              id: activeSort,
+              start: sortDirection,
+              disableClear: false // Crucial: Add disableClear property
+            });
+          }
+          this.snackBar.open(`Group "${response.name}" added successfully.`, 'Close', { duration: 3000 });
         });
       }
     });
@@ -88,13 +114,23 @@ export class GroupListComponent implements OnInit {
     });
   }
 
-  deleteGroup(id: number,name:string): void {
+  deleteGroup(id: number, name: string): void {
     this.groupService.deleteGroup(id).subscribe({
       next: () => {
-        // Create a new array without the deleted group
-        this.groups.data = this.groups.data.filter(group => group.id !== id);
-        this.groups._updateChangeSubscription(); // Refresh the table
-        this.snackBar.open(`Group "${name}" deletion is successfully.`,'Close',{ duration: 3000 });
+        this.groups.data = this.groups.data.filter(group => group.id !== id); // Update the data source
+
+        // Re-apply sort after data changes
+        if (this.groups.sort) {
+          const activeSort = this.groups.sort.active || 'name';
+          const sortDirection: SortDirection = this.groups.sort.direction || 'asc';
+
+          this.groups.sort.sort({
+            id: activeSort,
+            start: sortDirection,
+            disableClear: false // Crucial: Add disableClear property
+          });
+        }
+        this.snackBar.open(`Group "${name}" deletion is successfully.`, 'Close', { duration: 3000 });
       },
       error: (error) => {
         this.snackBar.open(error.message, 'Close', { duration: 10000 });
@@ -106,12 +142,22 @@ export class GroupListComponent implements OnInit {
     this.groupService.updateGroup(updatedGroup).subscribe((response: Group) => {
       const index = this.groups.data.findIndex(group => group.id === updatedGroup.id);
       if (index !== -1) {
-        // Create a new array with the updated group
         const newData = [...this.groups.data];
         newData[index] = response;
-        this.groups.data = newData;
-        this.groups._updateChangeSubscription(); // Refresh the table
-        this.snackBar.open(`Group "${response.name}" updation is successfully.`,'Close',{ duration: 3000 });
+        this.groups.data = newData; // Update the data source
+
+        // Re-apply sort after data changes
+        if (this.groups.sort) {
+          const activeSort = this.groups.sort.active || 'name';
+          const sortDirection: SortDirection = this.groups.sort.direction || 'asc';
+
+          this.groups.sort.sort({
+            id: activeSort,
+            start: sortDirection,
+            disableClear: false // Crucial: Add disableClear property
+          });
+        }
+        this.snackBar.open(`Group "${response.name}" updation is successfully.`, 'Close', { duration: 3000 });
       }
     });
   }

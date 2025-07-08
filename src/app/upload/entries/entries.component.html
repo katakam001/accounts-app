@@ -1,18 +1,31 @@
 <div class="file-upload-section">
   <!-- Title -->
-  <h2 class="file-upload-title">Upload Your Excel File</h2>
+  <h2 class="file-upload-title">Upload Your Invoices Template File</h2>
 
-  <!-- File Input Section -->
-  <div class="file-input-section">
+  <!-- Invoice Type Selection -->
+  <h3 class="select-invoice-title">Select Invoice Type</h3>
+  <div class="invoice-type-section">
+    <div class="invoice-type-options">
+      <div class="invoice-option purchase-invoice" [class.active]="selectedInvoiceType === 'purchase'"
+        (click)="selectedInvoiceType = 'purchase'" matTooltip="Upload invoices for purchases from suppliers">
+        <mat-icon class="invoice-icon">shopping_cart</mat-icon>
+        <span>Purchase Bulk Upload</span>
+      </div>
+
+      <div class="invoice-option sales-invoice" [class.active]="selectedInvoiceType === 'sales'"
+        (click)="selectedInvoiceType = 'sales'" matTooltip="Upload invoices for sales to customers">
+        <mat-icon class="invoice-icon">store</mat-icon>
+        <span>Sales Bulk Upload</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- File Upload Section (Disabled Until Invoice Type is Selected) -->
+  <div class="file-input-section" [ngClass]="{ 'disabled': !selectedInvoiceType }">
     <mat-icon class="upload-icon">upload_file</mat-icon>
-    <input
-      type="file"
-      id="fileUpload"
-      (change)="onFileSelected($event)"
-      class="file-input"
-      accept=".xlsx, .xls"
-    />
-    <label for="fileUpload" class="file-label">Choose an Excel File</label>
+    <input type="file" id="fileUpload" (change)="onFileSelected($event)" class="file-input" accept=".csv"
+      [disabled]="!selectedInvoiceType" />
+    <label for="fileUpload" class="file-label">Choose a CSV File</label>
   </div>
 
   <!-- Display Selected Filename -->
@@ -21,27 +34,25 @@
     <span>{{ selectedFile.name }}</span>
   </p>
 
-  <!-- Buttons Section -->
+  <!-- Download Template Section -->
+  <div class="download-template-container">
+    <button mat-raised-button class="download-template-button" [disabled]="!selectedInvoiceType"
+      (click)="downloadTemplate()">
+      <mat-icon>file_download</mat-icon> Download {{ selectedInvoiceType | titlecase }} Template
+    </button>
+  </div>
+
+  <!-- Buttons Section with Improved Spacing -->
   <div class="button-group">
     <!-- Validate Button -->
-    <button
-      mat-raised-button
-      color="accent"
-      class="validate-button"
-      [disabled]="!selectedFile || isUploading"
-      (click)="validateFile()"
-    >
+    <button mat-raised-button color="accent" class="validate-button" [disabled]="!selectedFile || isUploading"
+      (click)="validateFile()">
       <mat-icon>check_circle</mat-icon> Validate File
     </button>
 
     <!-- Upload Button -->
-    <button
-      mat-raised-button
-      color="primary"
-      class="upload-button"
-      [disabled]="!selectedFile || (!validationSuccess && !userOverride) || isUploading"
-      (click)="uploadFile()"
-    >
+    <button mat-raised-button color="primary" class="upload-button"
+      [disabled]="!selectedFile || !canUpload() || isUploading" (click)="uploadFile()">
       <mat-icon>cloud_upload</mat-icon> {{ isUploading ? 'Uploading...' : 'Upload Invoices' }}
     </button>
   </div>

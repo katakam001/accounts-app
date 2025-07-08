@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatSort, MatSortModule, SortDirection } from '@angular/material/sort'; // Import SortDirection
 import { CategoryService } from '../../services/category.service';
 import { AddEditCategoryDialogComponent } from '../../dialogbox/add-edit-category-dialog/add-edit-category-dialog.component';
 import { CommonModule } from '@angular/common';
@@ -19,8 +19,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   templateUrl: './purchase-categories.component.html',
   styleUrls: ['./purchase-categories.component.css']
 })
-export class PurchaseCategoriesComponent implements OnInit {
-  categories: MatTableDataSource<any>;
+export class PurchaseCategoriesComponent implements OnInit, AfterViewInit {
+  categories = new MatTableDataSource<any>();
   displayedColumns: string[] = ['name', 'type', 'actions'];
   financialYear: string;
 
@@ -31,13 +31,19 @@ export class PurchaseCategoriesComponent implements OnInit {
     public dialog: MatDialog,
     private storageService: StorageService,
     private financialYearService: FinancialYearService,
-    private snackBar:MatSnackBar
+    private snackBar: MatSnackBar
   ) {
-    this.categories = new MatTableDataSource<any>([]);
   }
 
   ngOnInit(): void {
     this.getFinancialYear();
+  }
+
+  ngAfterViewInit() {
+    // Assign the MatSort instance to the MatTableDataSource
+    this.categories.sort = this.sort;
+    // You might also want to trigger an initial sort if desired
+    // this.categories.sort.sort({ id: 'name', start: 'asc', disableClear: false });
   }
 
   getFinancialYear() {
@@ -51,7 +57,6 @@ export class PurchaseCategoriesComponent implements OnInit {
   fetchCategories(userId: number, financialYear: string): void {
     this.categoryService.getCategoriesByUserIdAndFinancialYear(userId, financialYear).subscribe((data: any[]) => {
       this.categories.data = data;
-      this.categories.sort = this.sort; // Set the sort after fetching the data
     });
   }
 
@@ -86,11 +91,21 @@ export class PurchaseCategoriesComponent implements OnInit {
       // Create a *new* array with the added category
       const newData = [...this.categories.data, newCategory];
       this.categories.data = newData; // Assign the new array
-      this.categories._updateChangeSubscription(); // Refresh the table
-      this.snackBar.open(`Category "${newCategory.name}" added successfully.`,'Close',{ duration: 3000 });
+      // Re-apply sort after data changes
+      if (this.categories.sort) {
+        const activeSort = this.categories.sort.active || 'name'; // Default to 'name' if no active sort
+        const sortDirection: SortDirection = this.categories.sort.direction || 'asc'; // Default to 'asc'
+
+        this.categories.sort.sort({
+          id: activeSort,
+          start: sortDirection,
+          disableClear: false // Crucial: Add disableClear property
+        });
+      }
+      this.snackBar.open(`Category "${newCategory.name}" added successfully.`, 'Close', { duration: 3000 });
     });
   }
-  
+
   updateCategory(updatedCategory: any): void {
     this.categoryService.updateCategory(updatedCategory.id, updatedCategory).subscribe(() => {
       const index = this.categories.data.findIndex(category => category.id === updatedCategory.id);
@@ -99,19 +114,37 @@ export class PurchaseCategoriesComponent implements OnInit {
         const newData = [...this.categories.data]; // Copy existing data
         newData[index] = updatedCategory; // Update the copied array
         this.categories.data = newData; // Assign the new array
-        this.categories._updateChangeSubscription(); // Refresh the table
-        this.snackBar.open(`Category "${updatedCategory.name}" updation is successfully.`,'Close',{ duration: 3000 });
+        if (this.categories.sort) {
+          const activeSort = this.categories.sort.active || 'name'; // Default to 'name' if no active sort
+          const sortDirection: SortDirection = this.categories.sort.direction || 'asc'; // Default to 'asc'
+
+          this.categories.sort.sort({
+            id: activeSort,
+            start: sortDirection,
+            disableClear: false // Crucial: Add disableClear property
+          });
+        }
+        this.snackBar.open(`Category "${updatedCategory.name}" updation is successfully.`, 'Close', { duration: 3000 });
       }
     });
   }
-  
+
   deleteCategory(categoryId: number, name: string): void {
     this.categoryService.deleteCategory(categoryId).subscribe({
       next: () => {
         // Create a *new* array without the deleted category
         const newData = this.categories.data.filter(category => category.id !== categoryId);
         this.categories.data = newData; // Assign the new array
-        this.categories._updateChangeSubscription(); // Refresh the table
+        if (this.categories.sort) {
+          const activeSort = this.categories.sort.active || 'name'; // Default to 'name' if no active sort
+          const sortDirection: SortDirection = this.categories.sort.direction || 'asc'; // Default to 'asc'
+
+          this.categories.sort.sort({
+            id: activeSort,
+            start: sortDirection,
+            disableClear: false // Crucial: Add disableClear property
+          });
+        }
         this.snackBar.open(`Category "${name}" deletion is successfully.`, 'Close', { duration: 3000 });
       },
       error: (error) => {

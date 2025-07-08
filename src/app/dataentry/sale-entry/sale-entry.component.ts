@@ -190,7 +190,7 @@ export class SaleEntryComponent implements OnInit, OnDestroy {
 
   groupEntriesByInvoiceSeqId(entries: any[]): any[] {
     const groupedEntries: { [key: string]: any } = {};
-    
+
     // Group entries by invoice number
     entries.forEach(entry => {
       const invoice_seq_id = entry.invoice_seq_id;
@@ -211,9 +211,15 @@ export class SaleEntryComponent implements OnInit, OnDestroy {
       groupedEntries[invoice_seq_id].groupTotalAmount += Number(entry.total_amount);
       groupedEntries[invoice_seq_id].entries.push(entry);
     });
-  
+
     // Convert groupedEntries to an array and sort by saleDate in ascending order
-    return Object.values(groupedEntries).sort((a, b) => new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime());
+    return Object.values(groupedEntries).sort((a, b) => {
+      const dateComparison = new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime();
+      if (dateComparison !== 0) {
+        return dateComparison; // First, sort by entry_date
+      }
+      return a.invoiceNumber.localeCompare(b.invoiceNumber); // Then, sort by invoiceNumber
+    });
   }
 
     onNextPage() {

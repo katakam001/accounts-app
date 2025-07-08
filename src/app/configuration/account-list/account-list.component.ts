@@ -45,7 +45,6 @@ export class AccountListComponent implements OnInit {
 
   ngOnInit(): void {
     this.getFinancialYear();
-    this.accounts.sort = this.sort; // Initialize sorting
   }
   applyFilter(event: any) {
     const filterValue = event.target.value.trim().toLowerCase();
@@ -73,14 +72,43 @@ export class AccountListComponent implements OnInit {
     this.accountService.getAccountsByUserIdAndFinancialYear(userId, financialYear).subscribe((data: Account[]) => {
       this.accounts.data = data;
       this.originalData = [...this.accounts.data]; // Initialize filtered accounts
+      // 🧠 Sorting for nested fields
+      this.accounts.sortingDataAccessor = (item, property) => {
+        switch (property) {
+          case 'group': return item.group?.name?.toLowerCase() || '';
+          case 'address':
+            const city = item.address?.city?.toLowerCase() || '';
+            const street = item.address?.street?.toLowerCase() || '';
+            return `${city} ${street}`.trim();
+          case 'debit_balance':
+            return typeof item.debit_balance === 'number'
+              ? item.debit_balance
+              : parseFloat(item.debit_balance) || 0;
+          case 'credit_balance':
+            return typeof item.credit_balance === 'number'
+              ? item.credit_balance
+              : parseFloat(item.credit_balance) || 0;
+          default: return (item as any)[property];
+        }
+      };
       this.accounts.sort = this.sort; // Set the sort after fetching the data
       this.calculateTotals();
     });
   }
 
   calculateTotals(): void {
-    this.totalDebits = this.accounts.data.reduce((sum, account) => sum + account.debit_balance, 0);
-    this.totalCredits = this.accounts.data.reduce((sum, account) => sum + account.credit_balance, 0);
+
+    const toNumber = (val: any): number => typeof val === 'number' ? val : parseFloat(val) || 0;
+
+    // 💰 Calculate totals
+    this.totalDebits = this.accounts.data.reduce(
+      (sum, account) => sum + toNumber(account.debit_balance),
+      0
+    );
+    this.totalCredits = this.accounts.data.reduce(
+      (sum, account) => sum + toNumber(account.credit_balance),
+      0
+    );
   }
 
   formatNumber(value: number): string {

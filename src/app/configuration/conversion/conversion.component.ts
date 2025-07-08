@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatSort, MatSortModule, SortDirection } from '@angular/material/sort';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -32,8 +32,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./conversion.component.css']
 })
 export class ConversionComponent implements OnInit {
-  dataSource: MatTableDataSource<any>;
-  conversions: any[] = [];
+  dataSource = new MatTableDataSource<any>();
   userId: number;
   financialYear: string;
 
@@ -45,11 +44,18 @@ export class ConversionComponent implements OnInit {
     private storageService: StorageService,
     private snackBar: MatSnackBar, // Inject MatSnackBar
     public dialog: MatDialog
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.userId = this.storageService.getUser().id;
     this.getFinancialYear();
+  }
+
+  ngAfterViewInit() {
+    // Assign the MatSort instance to the MatTableDataSource
+    this.dataSource.sort = this.sort;
+    // You might also want to trigger an initial sort if desired
+    // this.dataSource.sort.sort({ id: 'from_unit_name', start: 'asc', disableClear: false });
   }
 
   getFinancialYear() {
@@ -62,9 +68,7 @@ export class ConversionComponent implements OnInit {
 
   loadConversions(): void {
     this.conversionService.getConversionsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
-      this.conversions = data;
-      this.dataSource = new MatTableDataSource(this.conversions);
-      this.dataSource.sort = this.sort;
+      this.dataSource.data = data;
     });
   }
 
@@ -99,11 +103,22 @@ export class ConversionComponent implements OnInit {
       // Create a *new* array with the added conversion
       const newData = [...this.dataSource.data, response];
       this.dataSource.data = newData; // Assign the new array
+      // Re-apply sort after data changes
+      if (this.dataSource.sort) {
+        const activeSort = this.dataSource.sort.active || 'from_unit_name'; // Default to 'name' if no active sort
+        const sortDirection: SortDirection = this.dataSource.sort.direction || 'asc'; // Default to 'asc'
+
+        this.dataSource.sort.sort({
+          id: activeSort,
+          start: sortDirection,
+          disableClear: false // Crucial: Add disableClear property
+        });
+      }
       this.dataSource._updateChangeSubscription(); // Refresh the table
       this.snackBar.open(`The conversion from "${response.from_unit_name}" to "${response.to_unit_name}" addition is successfully.`, 'Close', { duration: 3000 });
     });
   }
-  
+
   updateConversion(conversion: any): void {
     this.conversionService.updateConversion(conversion.id, conversion).subscribe(response => {
       const index = this.dataSource.data.findIndex(c => c.id === response.id);
@@ -112,24 +127,45 @@ export class ConversionComponent implements OnInit {
         const newData = [...this.dataSource.data]; // Copy existing data
         newData[index] = response; // Update the copied array
         this.dataSource.data = newData; // Assign the new array
-        this.dataSource._updateChangeSubscription(); // Refresh the table
+        // Re-apply sort after data changes
+        if (this.dataSource.sort) {
+          const activeSort = this.dataSource.sort.active || 'from_unit_name'; // Default to 'name' if no active sort
+          const sortDirection: SortDirection = this.dataSource.sort.direction || 'asc'; // Default to 'asc'
+
+          this.dataSource.sort.sort({
+            id: activeSort,
+            start: sortDirection,
+            disableClear: false // Crucial: Add disableClear property
+          });
+        }
         this.snackBar.open(`The conversion from "${response.from_unit_name}" to "${response.to_unit_name}" updation is successfully.`, 'Close', { duration: 3000 });
       }
     });
   }
-  
-  deleteConversion(conversionId: number,from_unit_name:string,to_unit_name:string): void {
+
+  deleteConversion(conversionId: number, from_unit_name: string, to_unit_name: string): void {
     this.conversionService.deleteConversion(conversionId).subscribe({
       next: () => {
-      // Create a *new* array without the deleted conversion
-      const newData = this.dataSource.data.filter(conversion => conversion.id !== conversionId);
-      this.dataSource.data = newData; // Assign the new array
-      this.dataSource._updateChangeSubscription(); // Refresh the table
-      this.snackBar.open(`The conversion from "${from_unit_name}" to "${to_unit_name}" was successfully deleted.`, 'Close', { duration: 3000 });
-    },
-    error: (error) => {
-      this.snackBar.open(error.message, 'Close', { duration: 10000 });
-    }
-  });  
-}
+        // Create a *new* array without the deleted conversion
+        const newData = this.dataSource.data.filter(conversion => conversion.id !== conversionId);
+        this.dataSource.data = newData; // Assign the new array
+        // Re-apply sort after data changes
+        if (this.dataSource.sort) {
+          const activeSort = this.dataSource.sort.active || 'from_unit_name'; // Default to 'name' if no active sort
+          const sortDirection: SortDirection = this.dataSource.sort.direction || 'asc'; // Default to 'asc'
+
+          this.dataSource.sort.sort({
+            id: activeSort,
+            start: sortDirection,
+            disableClear: false // Crucial: Add disableClear property
+          });
+        }
+        this.dataSource._updateChangeSubscription(); // Refresh the table
+        this.snackBar.open(`The conversion from "${from_unit_name}" to "${to_unit_name}" was successfully deleted.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        this.snackBar.open(error.message, 'Close', { duration: 10000 });
+      }
+    });
+  }
 }

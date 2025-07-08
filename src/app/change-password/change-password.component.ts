@@ -56,7 +56,7 @@ export class ChangePasswordComponent {
           },
           error: err => {
             this.isLoading = false;
-            this.errorMessage = 'Error changing password';
+            this.errorMessage = err.message; // ✅ Extract message directly
             this.successMessage = null;
           }
         });

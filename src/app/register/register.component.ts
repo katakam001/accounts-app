@@ -72,7 +72,7 @@ export class RegisterComponent implements OnInit {
             }, 3000); // Redirect after 3 seconds
           },
           error: err => {
-            this.errorMessage = err.error.message;
+    this.errorMessage = err.message; // ✅ Extract message directly
             this.isSignUpFailed = true;
             this.isSuccessful = false;
           }

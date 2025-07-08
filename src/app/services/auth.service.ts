@@ -69,16 +69,16 @@ export class AuthService {
   }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
-    // Extract error message from the response
     let errorMessage = 'Something went wrong; please try again later.';
-    if (error.error instanceof ErrorEvent) {
-      // Client-side error
-      errorMessage = error.error.message;
+
+    if (error.error && typeof error.error === 'object' && 'message' in error.error) {
+        errorMessage = error.error.message; // ✅ Properly extract the message from backend
     } else {
-      // Server-side error
-      errorMessage = error.error.message || `Error Code: ${error.status}\nMessage: ${error.message}`;
+        errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
     }
-    console.error('An error occurred:', errorMessage);
-    return throwError(errorMessage);
-  }
+
+    // console.error('An error occurred:', errorMessage);
+    return throwError(() => new Error(errorMessage)); // ✅ Ensure proper error propagation
+}
+
 }

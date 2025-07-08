@@ -19,6 +19,12 @@
   color: #4caf50;
   margin-bottom: 20px;
 }
+.select-invoice-title {
+  font-size: 1.2rem; /* ✅ Slightly smaller for hierarchy */
+  color: #0077b6; /* A slightly darker green to differentiate */
+  margin-bottom: 15px; /* Adjust spacing */
+  font-weight: bold; /* Make it stand out */
+}
 
 /* File Input Section */
 .file-input-section {
@@ -49,6 +55,20 @@
   font-size: 2rem;
   color: #4caf50;
   margin-bottom: 10px;
+}
+
+.file-input-section.disabled .file-label {
+  background: #9e9e9e; /* Grey out the label */
+  cursor: not-allowed;
+}
+
+.file-input-section.disabled .upload-icon {
+  color: #9e9e9e; /* Grey out the icon */
+}
+
+.file-input-section.disabled input {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 /* File Info Section */
@@ -98,6 +118,22 @@
   transform: translateY(-2px);
 }
 
+/* Ensure disabled buttons appear greyed out */
+.validate-button:disabled,
+.upload-button:disabled {
+  background-color: #BDBDBD !important; /* ✅ Greyed out when disabled */
+  color: white !important; /* Keep readable text */
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Prevent hover effects when disabled */
+.validate-button:disabled:hover,
+.upload-button:disabled:hover {
+  background-color: #BDBDBD !important; /* Keep grey */
+  transform: none; /* Disable animation */
+}
+
 /* Status Messages */
 .status-message,
 .upload-status-message {
@@ -133,3 +169,63 @@
   margin-right: 10px;
 }
 
+.invoice-type-options {
+  display: flex;
+  gap: 20px;
+}
+
+.invoice-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 150px;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  transition: 0.3s ease-in-out;
+}
+
+.purchase-invoice {
+  background-color: #e0f2f1;
+}
+
+.sales-invoice {
+  background-color: #fff3e0;
+}
+
+.invoice-option.active {
+  border: 3px solid #007BFF;
+}
+
+.invoice-icon {
+  font-size: 30px;
+  margin-bottom: 8px;
+}
+
+.download-template-container {
+  margin-bottom: 15px; /* ✅ Fix gap issue before buttons */
+}
+
+.download-template-button {
+  background-color: #2196F3; /* ✅ Default button color */
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+}
+
+.download-template-button:hover {
+  background-color: #1976D2; /* ✅ Darker shade on hover */
+}
+
+.download-template-button:disabled {
+  background-color: #BDBDBD; /* ✅ Greyed out when disabled */
+  cursor: not-allowed;
+}

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { PdfService } from '../../services/pdf.service';
+import { UploadService } from '../../services/upload.service';
 import { HttpEventType } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -15,10 +15,10 @@ import { AccountService } from '../../services/account.service';
 
 @Component({
   selector: 'app-bank-statement',
-  imports: [CommonModule,FormsModule,MatSelectModule,    MatInputModule,
+  imports: [CommonModule, FormsModule, MatSelectModule, MatInputModule,
     MatSelectModule,
     MatButtonModule,
-    MatFormFieldModule,MatIconModule],
+    MatFormFieldModule, MatIconModule],
   templateUrl: './bank-statement.component.html',
   styleUrls: ['./bank-statement.component.css']
 })
@@ -39,16 +39,15 @@ export class BankStatementComponent {
   bankNames: string[] = [];
   accountNames: Account[] = [];
 
-  banks: string[] = ['UNION BANK OF INDIA', 'CANARA BANK', 'ICICI BANK','INDIAN BANK', 'SBI','CITY UNION BANK'];
+  banks: string[] = ['UNION BANK OF INDIA', 'CANARA BANK', 'ICICI BANK', 'INDIAN BANK', 'SBI', 'CITY UNION BANK'];
   creditCards: string[] = ['Credit Card X', 'Credit Card Y', 'Credit Card Z'];
-  // bankAccounts: string[] = ['Bank Account 1', 'Bank Account 2', 'Bank Account 3'];
   creditCardAccounts: Account[] = [];
 
-  constructor(private pdfService: PdfService,
-     private storageService: StorageService,
-         private accountService: AccountService,
-        private financialYearService: FinancialYearService,
-  ) {}
+  constructor(private uploadService: UploadService,
+    private storageService: StorageService,
+    private accountService: AccountService,
+    private financialYearService: FinancialYearService,
+  ) { }
 
   ngOnInit(): void {
     this.userId = this.storageService.getUser().id;
@@ -66,35 +65,69 @@ export class BankStatementComponent {
     }
   }
 
-  // Handle File Upload
   uploadFile(): void {
-    if (this.selectedFile) {
-      this.isUploading = true;
-      this.uploadMessage = null;
-      console.log(this.selectedStatementType);
-      console.log(this.selectedBankName);
-      console.log(this.selectedAccountName);
+    if (!this.selectedFile) {
+      console.error('No file selected.');
+      this.uploadMessage = 'Please select a file before uploading.';
+      return;
+    }
 
+    this.isUploading = true;
+    this.uploadMessage = null;
 
-        this.pdfService.uploadPdf(this.selectedFile, this.selectedStatementType, this.selectedBankName, this.selectedAccountName,this.userId,this.financialYear).subscribe(
-          (event) => {
-          if (event.type === HttpEventType.UploadProgress && event.total) {
-            const progress = Math.round((100 * event.loaded) / event.total);
-            this.uploadMessage = `Uploading: ${progress}%`;
-          } else if (event.type === HttpEventType.Response) {
-            this.isUploading = false;
-            this.uploadSuccess = true;
-            this.uploadMessage = 'File uploaded successfully!';
-          }
-        },
-        (error) => {
+    const metadata = {
+      statementType: this.selectedStatementType,
+      bankName: this.selectedBankName,
+      accountId: this.selectedAccountName,
+      userId: this.userId.toString(),
+      financialYear: this.financialYear
+    };
+
+    // Step 1: Get Presigned URL from Backend
+    this.uploadService.getPresignedUrl(this.selectedFile.name, metadata).subscribe(
+      (response) => {
+        const presignedUrl = response?.presignedUrl; // Safe check
+
+        if (!presignedUrl) {
           this.isUploading = false;
           this.uploadSuccess = false;
-          this.uploadMessage = 'Error uploading file: ' + error.message;
-          console.error('Error uploading file:', error);
+          this.uploadMessage = 'Error: Presigned URL is missing!';
+          console.error('Error: Presigned URL is missing in backend response.');
+          return;
         }
-      );
-    }
+
+        // Step 2: Upload File Using Presigned URL
+        this.uploadService.uploadFile(this.selectedFile!, presignedUrl)?.subscribe(
+          (event) => {
+            if (event.type === HttpEventType.UploadProgress && event.total) {
+              const progress = Math.round((100 * event.loaded) / event.total);
+              this.uploadMessage = `Uploading: ${progress}%`;
+            } else if (event.type === HttpEventType.Response) {
+              this.isUploading = false;
+              this.uploadSuccess = true;
+              this.uploadMessage = 'File uploaded successfully!';
+              // Step 3: Call Start Monitoring API here
+              this.uploadService.startMonitoring().subscribe(
+                () => console.log('Monitoring started successfully!'),
+                error => console.error('Error starting monitoring:', error)
+              );
+            }
+          },
+          (error) => {
+            this.isUploading = false;
+            this.uploadSuccess = false;
+            this.uploadMessage = 'Error uploading file: ' + error.message;
+            console.error('Error uploading file:', error);
+          }
+        );
+      },
+      (error) => {
+        this.isUploading = false;
+        this.uploadSuccess = false;
+        this.uploadMessage = 'Error generating presigned URL: ' + error.message;
+        console.error('Error fetching presigned URL:', error);
+      }
+    );
   }
 
   // Handle Dropdown Changes
@@ -123,8 +156,8 @@ export class BankStatementComponent {
     }
   }
   fetchAccounts(): void {
-    this.accountService.getAccountsByUserIdAndFinancialYear(this.userId, this.financialYear,['Bank Account']).subscribe((accounts: Account[]) => {
-      this.bankAccounts=accounts;
+    this.accountService.getAccountsByUserIdAndFinancialYear(this.userId, this.financialYear, ['Bank Account']).subscribe((accounts: Account[]) => {
+      this.bankAccounts = accounts;
       this.onStatementTypeChange();
     });
   }

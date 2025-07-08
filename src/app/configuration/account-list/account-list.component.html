@@ -16,11 +16,11 @@
           <button mat-icon-button matSuffix>
             <mat-icon color="primary">search</mat-icon>
           </button>
-        </mat-form-field>       
+        </mat-form-field>
       </div>
-        <mat-card *ngIf="financialYear" class="financial-year-container">
-          <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
-        </mat-card>
+      <mat-card *ngIf="financialYear" class="financial-year-container">
+        <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
+      </mat-card>
       <table mat-table [dataSource]="accounts" matSort class="mat-elevation-z8">
 
         <!-- Name Column -->
@@ -38,26 +38,30 @@
         <!-- Debit Balance Column -->
         <ng-container matColumnDef="debit_balance">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Debit Balance </th>
-          <td mat-cell *matCellDef="let account"> {{ formatNumber(account.debit_balance) }} </td>
+          <td mat-cell *matCellDef="let account">{{ account.debit_balance | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+          </td>
         </ng-container>
 
         <!-- Credit Balance Column -->
         <ng-container matColumnDef="credit_balance">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Credit Balance </th>
-          <td mat-cell *matCellDef="let account"> {{ formatNumber(account.credit_balance) }} </td>
+          <td mat-cell *matCellDef="let account">{{ account.credit_balance | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+          </td>
+
         </ng-container>
 
         <!-- Group Column -->
         <ng-container matColumnDef="group">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Group </th>
-          <td mat-cell *matCellDef="let account"> {{ getGroupName(account.group) }} </td>
+          <td mat-cell *matCellDef="let account"> {{ account.group?.name || '' }} </td>
         </ng-container>
 
         <!-- Address Column -->
         <ng-container matColumnDef="address">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Address </th>
           <td mat-cell *matCellDef="let account">
-            <span *ngIf="account.address" matTooltip="{{account.address.street}}, {{account.address.city}}, {{account.address.state}}, {{account.address.postal_code}}, {{account.address.country}}">
+            <span *ngIf="account.address"
+              matTooltip="{{account.address.street}}, {{account.address.city}}, {{account.address.state}}, {{account.address.postal_code}}, {{account.address.country}}">
               {{account.address.street}}, {{account.address.city}}
             </span>
           </td>
@@ -86,8 +90,8 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
       </table>
       <div class="totals-container">
-        <p class="total-debits">Total Debits: {{ formatNumber(totalDebits) }}</p>
-        <p class="total-credits">Total Credits: {{ formatNumber(totalCredits) }}</p>
+        <p class="total-debits">Total Debits: {{ totalDebits | currency:'INR':'symbol':'1.2-2':'en-IN' }}</p>
+        <p class="total-credits">Total Credits: {{ totalCredits | currency:'INR':'symbol':'1.2-2':'en-IN'}}</p>
         <p [ngClass]="getDifference().class">Difference: {{ getDifference().value }}</p>
       </div>
     </mat-card-content>

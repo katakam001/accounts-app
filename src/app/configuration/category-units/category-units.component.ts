@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatSort, MatSortModule, SortDirection } from '@angular/material/sort';
 import { CategoryUnitService } from '../../services/category-unit.service';
 import { AddEditCategoryUnitDialogComponent } from '../../dialogbox/add-edit-category-unit-dialog/add-edit-category-unit-dialog.component';
 import { CommonModule } from '@angular/common';
@@ -20,8 +20,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   templateUrl: './category-units.component.html',
   styleUrls: ['./category-units.component.css']
 })
-export class CategoryUnitsComponent implements OnInit {
-  categoryUnits: MatTableDataSource<any>;
+export class CategoryUnitsComponent implements OnInit, AfterViewInit {
+  categoryUnits = new MatTableDataSource<any>();
   originalData: any[] = [];
   displayedColumns: string[] = ['category_name', 'unit_name', 'actions'];
   categories: string[] = [];
@@ -40,12 +40,18 @@ export class CategoryUnitsComponent implements OnInit {
     private snackBar: MatSnackBar, // Inject MatSnackBar
     public dialog: MatDialog
   ) {
-    this.categoryUnits = new MatTableDataSource<any>([]);
   }
 
   ngOnInit(): void {
     this.userId = this.storageService.getUser().id;
     this.getFinancialYear();
+  }
+
+  ngAfterViewInit() {
+    // Assign the MatSort instance to the MatTableDataSource
+    this.categoryUnits.sort = this.sort;
+    // You might also want to trigger an initial sort if desired
+    // this.categoryUnits.sort.sort({ id: 'category_name', start: 'asc', disableClear: false });
   }
 
   getFinancialYear() {
@@ -61,7 +67,6 @@ export class CategoryUnitsComponent implements OnInit {
     this.categoryUnitService.getCategoryUnitsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
       this.originalData = data;
       this.categoryUnits.data = data;
-      this.categoryUnits.sort = this.sort; // Set the sort after fetching the data
       this.extractFilterOptions(data);
     });
   }
@@ -122,11 +127,21 @@ export class CategoryUnitsComponent implements OnInit {
       // Create a *new* array with the added category unit
       const newData = [...this.categoryUnits.data, response];
       this.categoryUnits.data = newData; // Assign the new array
-      this.categoryUnits._updateChangeSubscription(); // Refresh the table
-      this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation addition is successfully.`,'Close',{ duration: 3000 });
+      // Re-apply sort after data changes
+      if (this.categoryUnits.sort) {
+        const activeSort = this.categoryUnits.sort.active || 'category_name'; // Default to 'name' if no active sort
+        const sortDirection: SortDirection = this.categoryUnits.sort.direction || 'asc'; // Default to 'asc'
+
+        this.categoryUnits.sort.sort({
+          id: activeSort,
+          start: sortDirection,
+          disableClear: false // Crucial: Add disableClear property
+        });
+      }
+      this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation addition is successfully.`, 'Close', { duration: 3000 });
     });
   }
-  
+
   updateCategoryUnit(categoryUnit: any): void {
     this.categoryUnitService.updateCategoryUnit(categoryUnit.id, categoryUnit).subscribe(response => {
       const index = this.categoryUnits.data.findIndex(unit => unit.id === response.id);
@@ -135,24 +150,44 @@ export class CategoryUnitsComponent implements OnInit {
         const newData = [...this.categoryUnits.data]; // Copy existing data
         newData[index] = response; // Update the copied array
         this.categoryUnits.data = newData; // Assign the new array
-        this.categoryUnits._updateChangeSubscription(); // Refresh the table
-        this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation updation is successfully.`,'Close',{ duration: 3000 });
+        // Re-apply sort after data changes
+        if (this.categoryUnits.sort) {
+          const activeSort = this.categoryUnits.sort.active || 'category_name'; // Default to 'name' if no active sort
+          const sortDirection: SortDirection = this.categoryUnits.sort.direction || 'asc'; // Default to 'asc'
+
+          this.categoryUnits.sort.sort({
+            id: activeSort,
+            start: sortDirection,
+            disableClear: false // Crucial: Add disableClear property
+          });
+        }
+        this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation updation is successfully.`, 'Close', { duration: 3000 });
       }
     });
   }
-  
-  deleteCategoryUnit(categoryUnitId: number,category_name:string,unit_name:string): void {
+
+  deleteCategoryUnit(categoryUnitId: number, category_name: string, unit_name: string): void {
     this.categoryUnitService.deleteCategoryUnit(categoryUnitId).subscribe({
       next: () => {
-      // Create a *new* array without the deleted category unit
-      const newData = this.categoryUnits.data.filter(unit => unit.id !== categoryUnitId);
-      this.categoryUnits.data = newData; // Assign the new array
-      this.categoryUnits._updateChangeSubscription(); // Refresh the table
-      this.snackBar.open(`Category "${category_name}" to Unit "${unit_name}" relation deletion is successfully.`, 'Close', { duration: 3000 });
-    },
-    error: (error) => {
-      this.snackBar.open(error.message, 'Close', { duration: 10000 });
-    }
-  });
-} 
+        // Create a *new* array without the deleted category unit
+        const newData = this.categoryUnits.data.filter(unit => unit.id !== categoryUnitId);
+        this.categoryUnits.data = newData; // Assign the new array
+        // Re-apply sort after data changes
+        if (this.categoryUnits.sort) {
+          const activeSort = this.categoryUnits.sort.active || 'category_name'; // Default to 'name' if no active sort
+          const sortDirection: SortDirection = this.categoryUnits.sort.direction || 'asc'; // Default to 'asc'
+
+          this.categoryUnits.sort.sort({
+            id: activeSort,
+            start: sortDirection,
+            disableClear: false // Crucial: Add disableClear property
+          });
+        }
+        this.snackBar.open(`Category "${category_name}" to Unit "${unit_name}" relation deletion is successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        this.snackBar.open(error.message, 'Close', { duration: 10000 });
+      }
+    });
+  }
 }
