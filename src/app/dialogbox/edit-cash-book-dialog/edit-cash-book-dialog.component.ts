@@ -16,7 +16,7 @@ import { SupplierFilterPipe } from '../../pipe/supplier-filter.pipe';
 @Component({
   selector: 'app-edit-cash-book-dialog',
   standalone: true,
-  imports: [MatInputModule, ReactiveFormsModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule,MatAutocompleteModule, SupplierFilterPipe],
+  imports: [MatInputModule, ReactiveFormsModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule, MatAutocompleteModule, SupplierFilterPipe],
   templateUrl: './edit-cash-book-dialog.component.html',
   styleUrls: ['./edit-cash-book-dialog.component.css']
 })
@@ -62,17 +62,19 @@ export class EditCashBookDialogComponent implements OnInit {
       cash_debit: [null, Validators.required],
       cash_credit: [null, Validators.required],
       amount: [null, Validators.required],
-      type: [null, Validators.required]
+      type: [null, Validators.required],
+      cash_account_id: [0], // New field
+      cash_group_id: [0]    // New field
     });
   }
 
   patchFormValues(entry: CashEntry): void {
     this.cashBookForm.patchValue({
       id: entry.id,
-      unique_entry_id:entry.unique_entry_id,
+      unique_entry_id: entry.unique_entry_id,
       cash_entry_date: new Date(entry.cash_entry_date),
       account_id: entry.account_id,
-      group_id:entry.group_id,
+      group_id: entry.group_id,
       account_name: entry.account_name,
       narration: this.calculateNarration(entry.narration_description),
       narration_description: entry.narration_description,
@@ -81,8 +83,8 @@ export class EditCashBookDialogComponent implements OnInit {
       amount: entry.amount,
       type: entry.type
     });
-    const previous_cash_debit=parseFloat(this.cashBookForm.value.cash_debit);
-    const previous_cash_credit=parseFloat(this.cashBookForm.value.cash_credit);
+    const previous_cash_debit = parseFloat(this.cashBookForm.value.cash_debit);
+    const previous_cash_credit = parseFloat(this.cashBookForm.value.cash_credit);
     this.runningBalance = parseFloat(this.data.currentBalance);
     this.orgRunningBalance = parseFloat((this.runningBalance + previous_cash_debit - previous_cash_credit).toFixed(2));
   }
@@ -105,21 +107,44 @@ export class EditCashBookDialogComponent implements OnInit {
   };
 
   fetchAccountList(): void {
-    this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id, this.data.financialYear).subscribe((accounts: Account[]) => {
-      this.accountList = accounts.map(account => ({
-        id: account.id,
-        name: account.name,
-        group_id:account.group.id
-      }));
+    this.accountService.getAccountsByUserIdAndFinancialYear(
+      this.storageService.getUser().id,
+      this.data.financialYear
+    ).subscribe((accounts: Account[]) => {
+      let cashAccount: Account | undefined;
+
+      // Find the CASH account
+      accounts.forEach(account => {
+        if (account.name.trim().toUpperCase() === 'CASH') {
+          cashAccount = account;
+        }
+      });
+
+      // Filter out the CASH account from the list
+      this.accountList = accounts
+        .filter(account => account.name.trim().toUpperCase() !== 'CASH')
+        .map(account => ({
+          id: account.id,
+          name: account.name,
+          group_id: account.group.id
+        }));
+
+      // Set CASH account details in the form
+      if (cashAccount) {
+        this.cashBookForm.patchValue({
+          cash_account_id: cashAccount.id,
+          cash_group_id: cashAccount.group.id
+        });
+      }
     });
   }
 
   onAccountSelectionChange(event: any): void {
-      this.cashBookForm.patchValue({
-        account_id: event.id,
-        account_name: event.name,
-        group_id:event.group_id
-      });
+    this.cashBookForm.patchValue({
+      account_id: event.id,
+      account_name: event.name,
+      group_id: event.group_id
+    });
   }
 
   onNarrationChange(value: string): void {
@@ -150,14 +175,14 @@ export class EditCashBookDialogComponent implements OnInit {
     this.runningBalance = parseFloat((this.orgRunningBalance - cashDifference).toFixed(2));
     // Perform the calculation and ensure precision
     console.log(this.runningBalance);
-  } 
+  }
 
   onSave(): void {
     this.cashBookForm.controls['narration_description'].enable();
     if (this.cashBookForm.valid) {
       const cashEntry = {
         ...this.cashBookForm.value,
-        amount: this.cashBookForm.get('cash_debit')?.value > 0 ? this.cashBookForm.get('cash_debit')?.value  : this.cashBookForm.get('cash_credit')?.value,
+        amount: this.cashBookForm.get('cash_debit')?.value > 0 ? this.cashBookForm.get('cash_debit')?.value : this.cashBookForm.get('cash_credit')?.value,
         user_id: this.storageService.getUser().id,
         financial_year: this.data.financialYear,
         cash_entry_date: this.datePipe.transform(this.cashBookForm.get('cash_entry_date')?.value, 'yyyy-MM-dd', 'en-IN') // Transform the date

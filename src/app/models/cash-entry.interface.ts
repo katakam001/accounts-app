@@ -13,4 +13,6 @@ export interface CashEntry {
   user_id: number;
   financial_year: string;
   group_id:number;
+  cash_account_id?: number; // Optional CASH account ID
+  cash_group_id?: number;   // Optional CASH group ID
 }

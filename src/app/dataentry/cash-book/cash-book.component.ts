@@ -202,7 +202,9 @@ export class CashBookComponent implements OnInit, OnDestroy {
       balance: 0, // Initial balance, will be recalculated
       user_id: this.storageService.getUser().id,
       financial_year: this.financialYear,
-      group_id:transaction.group_id
+      group_id:transaction.group_id,
+      cash_account_id: transaction.cash_account_id, // ✅ Added
+      cash_group_id: transaction.cash_group_id      // ✅ Added
     };
 
     this.cashEntriesService.addCashEntry(newEntry).subscribe();
@@ -223,7 +225,9 @@ export class CashBookComponent implements OnInit, OnDestroy {
       balance: 0, // Initial balance, will be recalculated
       user_id: this.storageService.getUser().id,
       financial_year: this.financialYear,
-      group_id:updatedTransaction.group_id
+      group_id:updatedTransaction.group_id,
+      cash_account_id: updatedTransaction.cash_account_id, // ✅ Added
+      cash_group_id: updatedTransaction.cash_group_id      // ✅ Added
     };
 
     this.cashEntriesService.updateCashEntry(updatedEntry.unique_entry_id, updatedEntry).subscribe();

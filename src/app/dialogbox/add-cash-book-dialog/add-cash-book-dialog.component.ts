@@ -14,7 +14,7 @@ import { SupplierFilterPipe } from '../../pipe/supplier-filter.pipe';
 @Component({
   selector: 'app-cash-book-dialog',
   standalone: true,
-  imports: [  ReactiveFormsModule,CommonModule,MatSelectModule,MatInputModule,MatDatepickerModule,MatAutocompleteModule, SupplierFilterPipe],
+  imports: [ReactiveFormsModule, CommonModule, MatSelectModule, MatInputModule, MatDatepickerModule, MatAutocompleteModule, SupplierFilterPipe],
   templateUrl: './add-cash-book-dialog.component.html',
   styleUrls: ['./add-cash-book-dialog.component.css']
 })
@@ -33,11 +33,11 @@ export class AddCashBookDialogComponent implements OnInit {
     private accountService: AccountService,
     private datePipe: DatePipe, // Inject DatePipe
     private storageService: StorageService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.runningBalance = parseFloat(this.data.currentBalance);
-    this.orgRunningBalance=this.runningBalance;
+    this.orgRunningBalance = this.runningBalance;
     this.cashBookForm = this.fb.group({
       cash_entry_date: [null, Validators.required],
       account_name: [null, Validators.required],
@@ -48,17 +48,43 @@ export class AddCashBookDialogComponent implements OnInit {
       amount: [0, Validators.required],
       account_id: [0, Validators.required],
       group_id: [0, Validators.required],
-      type: [false, Validators.required]
+      type: [false, Validators.required],
+      cash_account_id: [0], // New field
+      cash_group_id: [0]    // New field
     });
     this.fetchAccountList();
   }
+
   fetchAccountList(): void {
-    this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id,this.data.financialYear).subscribe((accounts: Account[]) => {
-      this.accountList = accounts.map(account => ({
-        id: account.id,
-        name: account.name,
-        group_id:account.group.id
-      }));
+    this.accountService.getAccountsByUserIdAndFinancialYear(
+      this.storageService.getUser().id,
+      this.data.financialYear
+    ).subscribe((accounts: Account[]) => {
+      let cashAccount: Account | undefined;
+
+      // Find the CASH account
+      accounts.forEach(account => {
+        if (account.name.trim().toUpperCase() === 'CASH') {
+          cashAccount = account;
+        }
+      });
+
+      // Filter out the CASH account from the list
+      this.accountList = accounts
+        .filter(account => account.name.trim().toUpperCase() !== 'CASH')
+        .map(account => ({
+          id: account.id,
+          name: account.name,
+          group_id: account.group.id
+        }));
+
+      // Set CASH account details in the form
+      if (cashAccount) {
+        this.cashBookForm.patchValue({
+          cash_account_id: cashAccount.id,
+          cash_group_id: cashAccount.group.id
+        });
+      }
     });
   }
 
@@ -74,11 +100,11 @@ export class AddCashBookDialogComponent implements OnInit {
   };
 
   onAccountSelectionChange(event: any): void {
-      this.cashBookForm.patchValue({
-        account_id: event.id,
-        group_id:event.group_id,
-        account_name:event.name
-      });
+    this.cashBookForm.patchValue({
+      account_id: event.id,
+      group_id: event.group_id,
+      account_name: event.name
+    });
   }
 
   onNarrationChange(value: string): void {
@@ -115,3 +141,4 @@ export class AddCashBookDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 }
+

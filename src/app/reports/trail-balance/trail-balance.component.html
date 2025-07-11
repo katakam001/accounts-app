@@ -2,7 +2,7 @@
   <h2 class="report-title">Trail Balance Report</h2>
 
   <div class="filter-container">
-      <mat-form-field appearance="fill" class="custom-date-picker">
+    <mat-form-field appearance="fill" class="custom-date-picker">
       <mat-label>From Date</mat-label>
       <input matInput [matDatepicker]="fromDatePicker" [matDatepickerFilter]="dateFilter" [formControl]="fromDate">
       <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
@@ -10,13 +10,14 @@
     </mat-form-field>
 
 
-      <mat-form-field appearance="fill" class="custom-date-picker">
+    <mat-form-field appearance="fill" class="custom-date-picker">
       <mat-label>To Date</mat-label>
       <input matInput [matDatepicker]="toDatePicker" [matDatepickerFilter]="dateFilter" [formControl]="toDate">
       <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
       <mat-datepicker #toDatePicker></mat-datepicker>
     </mat-form-field>
-    <button mat-raised-button color="primary" class="generate-report-button" (click)="getTrailBalanceReport()">Generate Report</button>
+    <button mat-raised-button color="primary" class="generate-report-button" (click)="getTrailBalanceReport()">Generate
+      Report</button>
   </div>
 
   <div *ngIf="financialYear" class="financial-year-container">
@@ -30,7 +31,6 @@
         <th>Account Name</th>
         <th>Total Debit</th>
         <th>Total Credit</th>
-        <th>Balance</th>
       </tr>
     </thead>
     <tbody>
@@ -38,10 +38,22 @@
         (click)="navigateToJournalEntry(entry.accountId, entry.groupId, entry.groupName)">
         <td>{{ entry.groupName }}</td>
         <td>{{ entry.accountName }}</td>
-        <td class="right-align">{{ entry.totalDebit }}</td>
-        <td class="right-align">{{ entry.totalCredit }}</td>
-        <td class="right-align">{{ entry.balance }}</td>  
+        <td class="right-align">{{ entry.totalDebit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+        <td class="right-align">{{ entry.totalCredit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
       </tr>
     </tbody>
+    <tfoot *ngIf="trailBalanceReport.length > 0">
+      <tr class="totals-row">
+        <td colspan="2"><strong>Overall Totals</strong></td>
+        <td class="right-align"><strong>{{ overallDebit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong></td>
+        <td class="right-align"><strong>{{ overallCredit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</strong></td>
+      </tr>
+    </tfoot>
   </table>
+  <div class="difference-container" *ngIf="trailBalanceReport.length > 0">
+    <p [ngClass]="getDifferenceClass()" class="right-align">
+      <strong>Net Difference:</strong>
+      {{ differenceAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+    </p>
+  </div>
 </div>

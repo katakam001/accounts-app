@@ -14,7 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 @Component({
   selector: 'app-trail-balance',
   standalone: true,
-  imports: [CommonModule,ReactiveFormsModule,MatDatepickerModule,
+  imports: [CommonModule, ReactiveFormsModule, MatDatepickerModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule],
@@ -28,7 +28,11 @@ export class TrailBalanceComponent implements OnInit {
   fromDate = new FormControl();
   toDate = new FormControl();
   financialYearstartDate: Date;
-  financialYearendDate: Date; 
+  financialYearendDate: Date;
+  overallDebit: number = 0;
+  overallCredit: number = 0;
+  differenceAmount: number = 0;
+
   constructor(
     private trailBalanceService: TrailBalanceService,
     private financialYearService: FinancialYearService,
@@ -58,25 +62,50 @@ export class TrailBalanceComponent implements OnInit {
     if (!date) {
       return false; // Ignore null dates
     }
-  
+
     // Return whether the date falls within the financial year range
     return date >= this.financialYearstartDate && date <= this.financialYearendDate;
-  }; 
+  };
 
   getTrailBalanceReport(): void {
     const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string;
     const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string;
-    this.trailBalanceService.getTrailBalanceReport(this.userId, fromDateStr, toDateStr,this.financialYear).subscribe((data: TrailBalanceReport[]) => {
-      this.trailBalanceReport = data.map(entry => ({
-        ...entry,
-        totalDebit: this.formatNumber(Number(entry.totalDebit)),
-        totalCredit: this.formatNumber(Number(entry.totalCredit)),
-        balance: this.formatNumber(Number(entry.balance))
-      }));
+
+    this.trailBalanceService.getTrailBalanceReport(this.userId, fromDateStr, toDateStr, this.financialYear).subscribe((data: TrailBalanceReport[]) => {
+      this.overallDebit = 0;
+      this.overallCredit = 0;
+      this.differenceAmount=0;
+
+      this.trailBalanceReport = data.map(entry => {
+        const balance = Number(entry.balance);
+        const accountDebit = Number(entry.totalDebit);
+        const accountCredit = Number(entry.totalCredit);
+
+        const debit = balance < 0 ? Math.abs(balance) : 0;
+        const credit = balance > 0 ? balance : 0;
+        this.overallDebit += accountDebit;
+        this.overallCredit += accountCredit;
+        this.differenceAmount = Math.abs(this.overallDebit - this.overallCredit);
+
+        return {
+          ...entry,
+          totalDebit: debit.toFixed(2),
+          totalCredit: credit.toFixed(2)
+        };
+      });
     });
   }
+  getDifferenceClass(): string {
+    let type = 'difference-neutral';
+    if (this.overallDebit > this.overallCredit) {
+      type = 'difference-debit';
+    } else if (this.overallCredit > this.overallDebit) {
+      type = 'difference-credit';
+    }
+    return type;
+  }
 
-  navigateToJournalEntry(accountId: number | null, groupId: number,groupName:string): void {
+  navigateToJournalEntry(accountId: number | null, groupId: number, groupName: string): void {
     console.log(accountId);
     console.log(groupId);
     if (groupName === 'Sundry Debtors' || groupName === 'Sundry Creditors') {
@@ -85,9 +114,6 @@ export class TrailBalanceComponent implements OnInit {
       this.router.navigate(['/journalEntries'], { queryParams: { accountId: accountId } });
     }
   }
-  
 
-  formatNumber(value: number): string {
-    return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
-  }
 }
+
