@@ -32,6 +32,7 @@ export class TrailBalanceComponent implements OnInit {
   overallDebit: number = 0;
   overallCredit: number = 0;
   differenceAmount: number = 0;
+  isGroupDrilldownActive: boolean = false;
 
   constructor(
     private trailBalanceService: TrailBalanceService,
@@ -53,9 +54,6 @@ export class TrailBalanceComponent implements OnInit {
       const [startYear, endYear] = this.financialYear.split('-').map(Number);
       this.financialYearstartDate = new Date(startYear, 3, 1); // April 1st of start year
       this.financialYearendDate = new Date(endYear, 2, 31); // March 31st of end year
-      // this.fromDate.setValue(startDate);
-      // this.toDate.setValue(endDate);
-      // this.getTrailBalanceReport();
     }
   }
   dateFilter = (date: Date | null): boolean => {
@@ -74,27 +72,28 @@ export class TrailBalanceComponent implements OnInit {
     this.trailBalanceService.getTrailBalanceReport(this.userId, fromDateStr, toDateStr, this.financialYear).subscribe((data: TrailBalanceReport[]) => {
       this.overallDebit = 0;
       this.overallCredit = 0;
-      this.differenceAmount=0;
+      this.differenceAmount = 0;
 
-      this.trailBalanceReport = data.map(entry => {
-        const balance = Number(entry.balance);
-        const accountDebit = Number(entry.totalDebit);
-        const accountCredit = Number(entry.totalCredit);
+      this.trailBalanceReport = data
+        .filter(entry => Number(entry.balance) !== 0) // ✅ Filter out zero balances
+        .map(entry => {
+          const balance = Number(entry.balance);
 
-        const debit = balance < 0 ? Math.abs(balance) : 0;
-        const credit = balance > 0 ? balance : 0;
-        this.overallDebit += accountDebit;
-        this.overallCredit += accountCredit;
-        this.differenceAmount = Math.abs(this.overallDebit - this.overallCredit);
+          const debit = balance < 0 ? Math.abs(balance) : 0;
+          const credit = balance > 0 ? balance : 0;
+          this.overallDebit += debit;
+          this.overallCredit += credit;
+          this.differenceAmount = Math.abs(this.overallDebit - this.overallCredit);
 
-        return {
-          ...entry,
-          totalDebit: debit.toFixed(2),
-          totalCredit: credit.toFixed(2)
-        };
-      });
+          return {
+            ...entry,
+            totalDebit: debit.toFixed(2),
+            totalCredit: credit.toFixed(2)
+          };
+        });
     });
   }
+
   getDifferenceClass(): string {
     let type = 'difference-neutral';
     if (this.overallDebit > this.overallCredit) {
@@ -108,12 +107,43 @@ export class TrailBalanceComponent implements OnInit {
   navigateToJournalEntry(accountId: number | null, groupId: number, groupName: string): void {
     console.log(accountId);
     console.log(groupId);
-    if (groupName === 'Sundry Debtors' || groupName === 'Sundry Creditors') {
-      this.router.navigate(['/journalEntries'], { queryParams: { groupId: groupId } });
+
+    if (accountId == null && (groupName === 'Sundry Debtors' || groupName === 'Sundry Creditors')) {
+      const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string;
+      const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string;
+
+      this.trailBalanceService.getAccountsForGroup(groupId, this.userId, fromDateStr, toDateStr, this.financialYear).subscribe((data: TrailBalanceReport[]) => {
+        this.overallDebit = 0;
+        this.overallCredit = 0;
+        this.differenceAmount = 0;
+        this.isGroupDrilldownActive = true; // 📌 You're drilling in
+
+        this.trailBalanceReport = data
+          .filter(entry => Number(entry.balance) !== 0) // ✅ Filter out zero balances
+          .map(entry => {
+            const balance = Number(entry.balance);
+
+            const debit = balance < 0 ? Math.abs(balance) : 0;
+            const credit = balance > 0 ? balance : 0;
+            this.overallDebit += debit;
+            this.overallCredit += credit;
+            this.differenceAmount = Math.abs(this.overallDebit - this.overallCredit);
+
+            return {
+              ...entry,
+              totalDebit: debit.toFixed(2),
+              totalCredit: credit.toFixed(2)
+            };
+          });
+      });
     } else {
       this.router.navigate(['/journalEntries'], { queryParams: { accountId: accountId } });
     }
   }
 
+  handleBackToMainReport(): void {
+  this.isGroupDrilldownActive = false;
+  this.getTrailBalanceReport(); // 💫 Re-populates main report
 }
 
+}

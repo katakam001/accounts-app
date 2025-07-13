@@ -3,14 +3,16 @@
   <div class="filter-container">
     <mat-form-field appearance="outline" class="date-field">
       <mat-label>From Date</mat-label>
-      <input matInput [matDatepicker]="picker1" [(ngModel)]="fromDate" [matDatepickerFilter]="dateFilter" placeholder="Select From Date" />
+      <input matInput [matDatepicker]="picker1" [(ngModel)]="fromDate" [matDatepickerFilter]="dateFilter"
+        placeholder="Select From Date" />
       <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
       <mat-datepicker #picker1></mat-datepicker>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="date-field">
       <mat-label>To Date</mat-label>
-      <input matInput [matDatepicker]="picker2" [(ngModel)]="toDate" [matDatepickerFilter]="dateFilter" placeholder="Select To Date" />
+      <input matInput [matDatepicker]="picker2" [(ngModel)]="toDate" [matDatepickerFilter]="dateFilter"
+        placeholder="Select To Date" />
       <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
       <mat-datepicker #picker2></mat-datepicker>
     </mat-form-field>
@@ -26,7 +28,8 @@
     <!-- Account Header -->
     <div class="account-header">
       <div class="account-name"><strong>Account Name: {{ groupedEntry.account_name }}</strong></div>
-      <div class="date-range"><strong>Date Range: {{ fromDate | date: 'dd/MM/yyyy' }} - {{ toDate | date: 'dd/MM/yyyy' }}</strong></div>
+      <div class="date-range"><strong>Date Range: {{ fromDate | date: 'dd/MM/yyyy' }} - {{ toDate | date: 'dd/MM/yyyy'
+          }}</strong></div>
     </div>
 
     <!-- Table Headers -->
@@ -39,19 +42,35 @@
     </div>
 
     <!-- Entries Table -->
-    <div *ngFor="let entry of groupedEntry.entries" class="entry-row"
-    [ngClass]="{'credit-entry': entry.type, 'debit-entry': !entry.type}">
+    <div *ngFor="let entry of groupedEntry.entries" class="entry-row" [ngClass]="{   
+    'opening-entry': entry.row_type === 'opening',
+    'summary-entry': entry.row_type === 'summary',
+    'credit-entry': entry.row_type === 'entry' && entry.type,
+    'debit-entry': entry.row_type === 'entry' && !entry.type
+}">
       <div class="entry-date">{{ entry.date | date: 'dd/MM/yyyy' }}</div>
       <div class="entry-narration">{{ entry.narration }}</div>
-      <div class="entry-credit">{{ entry.type ? (entry.amount | currency:'INR':'symbol':'1.2-2':'en-IN') : '' }}</div>
-      <div class="entry-debit">{{ !entry.type ? (entry.amount | currency:'INR':'symbol':'1.2-2':'en-IN') : '' }}</div>
+
+      <div class="entry-credit">
+        {{ entry.row_type === 'summary'
+        ? (entry.overall_credit | currency:'INR':'symbol':'1.2-2':'en-IN')
+        : (entry.type ? (entry.amount | currency:'INR':'symbol':'1.2-2':'en-IN') : '') }}
+      </div>
+
+      <div class="entry-debit">
+        {{ entry.row_type === 'summary'
+        ? (entry.overall_debit | currency:'INR':'symbol':'1.2-2':'en-IN')
+        : (!entry.type ? (entry.amount | currency:'INR':'symbol':'1.2-2':'en-IN') : '') }}
+      </div>
       <div class="entry-balance">{{ entry.balance | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
     </div>
   </div>
 
   <!-- Pagination Controls -->
   <div class="pagination-buttons">
-    <button mat-raised-button color="primary" (click)="previousPage()" [disabled]="startCursor?.account_id === accountIndex[0] && startCursor?.entry_id === startAccountIdentryId">Previous</button>
-    <button mat-raised-button color="primary" (click)="nextPage()" [disabled]="!hasMore && !inMemomryforwardExist">Next</button>
+    <button mat-raised-button color="primary" (click)="previousPage()"
+      [disabled]="startCursor?.account_id === accountIndex[0] && startCursor?.entry_id === startAccountIdentryId">Previous</button>
+    <button mat-raised-button color="primary" (click)="nextPage()"
+      [disabled]="!hasMore && !inMemomryforwardExist">Next</button>
   </div>
 </div>

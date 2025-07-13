@@ -153,3 +153,13 @@
 .debit-entry {
   color: red;
 }
+
+.opening-entry {
+  color: #2196f3; /* Blue */
+  font-weight: bold;
+}
+
+.summary-entry {
+  color: #fdd835; /* yellow */
+  font-weight: bold;
+}

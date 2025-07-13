@@ -18,6 +18,8 @@
     </mat-form-field>
     <button mat-raised-button color="primary" class="generate-report-button" (click)="getTrailBalanceReport()">Generate
       Report</button>
+    <button mat-raised-button color="accent" *ngIf="isGroupDrilldownActive" (click)="handleBackToMainReport()">← Back to
+      Trail Balance</button>
   </div>
 
   <div *ngIf="financialYear" class="financial-year-container">
