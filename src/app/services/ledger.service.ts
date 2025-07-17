@@ -12,17 +12,22 @@ export class LedgerService {
 
   constructor(private http: HttpClient) { }
 
-  getLedger(accountId: number, rowCursor: number, limit: number, userId: number, financialYear: string, previousBalance: number): Observable<{ ledger: any[], nextRowCursor: number, hasMoreRecords: boolean,lastBalance: number }> {
-    const params = new HttpParams()
-      .set('rowCursor', rowCursor.toString())
-      .set('limit', limit.toString())
+  getLedger(accountId: number, userId: number, financialYear: string,nextStartRow: number, pageSize: number, fromDate?: string, toDate?: string): Observable<{ entries: any[], nextStartRow: number, hasMore: boolean }> {
+    let params = new HttpParams()
       .set('userId', userId.toString())
       .set('financialYear', financialYear)
-      .set('previousBalance', previousBalance.toString());
+      .set('pageSize', pageSize.toString())
+      .set('nextStartRow', nextStartRow.toString());
+    // Add fromDate and toDate to the params if they are provided
+    if (fromDate) {
+      params = params.set('fromDate', fromDate); // Use ISO string format
+    }
+    if (toDate) {
+      params = params.set('toDate', toDate); // Use ISO string format
+    }
 
-    return this.http.get<{ ledger: any[], nextRowCursor: number, hasMoreRecords: boolean,lastBalance: number }>(`${this.apiUrl}/${accountId}`, { params });
+    return this.http.get<{ entries: any[], nextStartRow: number, hasMore: boolean }>(`${this.apiUrl}/fetch-account-copy/${accountId}`, { params });
   }
-
   getLedgerData(userId: number, financialYear: string,nextStartRow: number, pageSize: number, fromDate?: string, toDate?: string): Observable<{ entries: any[], nextStartRow: number, hasMore: boolean }> {
     let params = new HttpParams()
       .set('userId', userId.toString())

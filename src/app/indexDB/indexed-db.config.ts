@@ -49,6 +49,14 @@ export const dbConfig: DBConfig = {
       ]
     },
     {
+      store: 'accountCopyEntries', // Ledger Entries Store for ledger data
+      storeConfig: { keyPath: 'account_id', autoIncrement: false }, // Use account_id as the key
+      storeSchema: [
+        { name: 'account_name', keypath: 'account_name', options: { unique: false } },
+        { name: 'entries', keypath: 'entries', options: { unique: false } } // Array of ledger entries
+      ]
+    },
+    {
       store: 'accountIndex', // Account Index Store for maintaining account insertion order
       storeConfig: { keyPath: 'id', autoIncrement: false },
       storeSchema: [

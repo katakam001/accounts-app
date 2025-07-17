@@ -107,11 +107,10 @@ export class TrailBalanceComponent implements OnInit {
   navigateToJournalEntry(accountId: number | null, groupId: number, groupName: string): void {
     console.log(accountId);
     console.log(groupId);
+    const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string;
+    const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string;
 
     if (accountId == null && (groupName === 'Sundry Debtors' || groupName === 'Sundry Creditors')) {
-      const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string;
-      const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string;
-
       this.trailBalanceService.getAccountsForGroup(groupId, this.userId, fromDateStr, toDateStr, this.financialYear).subscribe((data: TrailBalanceReport[]) => {
         this.overallDebit = 0;
         this.overallCredit = 0;
@@ -137,7 +136,13 @@ export class TrailBalanceComponent implements OnInit {
           });
       });
     } else {
-      this.router.navigate(['/journalEntries'], { queryParams: { accountId: accountId } });
+      this.router.navigate(['/accountCopy'], {
+        queryParams: {
+          accountId: accountId,
+          fromDate: fromDateStr,
+          toDate: toDateStr
+        }
+      });
     }
   }
 
