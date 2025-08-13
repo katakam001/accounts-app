@@ -39,7 +39,7 @@ export class BankStatementComponent {
   bankNames: string[] = [];
   accountNames: Account[] = [];
 
-  banks: string[] = ['UNION BANK OF INDIA', 'CANARA BANK', 'ICICI BANK', 'INDIAN BANK', 'SBI', 'CITY UNION BANK'];
+  banks: string[] = ['UNION BANK OF INDIA', 'CANARA BANK', 'ICICI BANK', 'INDIAN BANK', 'SBI', 'CITY UNION BANK', 'HDFC BANK','AXIS BANK','BANK OF INDIA','IDFC FIRST BANK'];
   creditCards: string[] = ['Credit Card X', 'Credit Card Y', 'Credit Card Z'];
   creditCardAccounts: Account[] = [];
 
@@ -80,7 +80,8 @@ export class BankStatementComponent {
       bankName: this.selectedBankName,
       accountId: this.selectedAccountName,
       userId: this.userId.toString(),
-      financialYear: this.financialYear
+      financialYear: this.financialYear,
+      fileSize: this.selectedFile.size.toString() // in bytes
     };
 
     // Step 1: Get Presigned URL from Backend

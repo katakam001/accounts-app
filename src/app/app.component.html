@@ -3,8 +3,12 @@
     <mat-icon>menu</mat-icon>
   </button>
   <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/home" routerLinkActive="active">Home</button>
-  <button *ngIf="storageService.isLoggedIn() && storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')" mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
-  <button *ngIf="storageService.isLoggedIn() && storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_ADMIN')" mat-button routerLink="/admin-dashboard" routerLinkActive="active">Admin Dashboard</button>
+  <button
+    *ngIf="storageService.isLoggedIn() && storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')"
+    mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
+  <button
+    *ngIf="storageService.isLoggedIn() && storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_ADMIN')"
+    mat-button routerLink="/admin-dashboard" routerLinkActive="active">Admin Dashboard</button>
   <span class="spacer"></span>
   <ng-container *ngIf="storageService.isLoggedIn()">
     <button mat-button [matMenuTriggerFor]="userMenu">
@@ -32,7 +36,7 @@
 
 <mat-sidenav-container class="example-sidenav-container" *ngIf="storageService.isLoggedIn()">
   <mat-sidenav #snav mode="side">
-      <mat-nav-list *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_ADMIN')">
+    <mat-nav-list *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_ADMIN')">
       <h3 class="section-heading">Configuration</h3>
       <a mat-list-item routerLink="/user-list" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">
@@ -107,6 +111,12 @@
         <div class="nav-item" style="display: flex; align-items: center;">
           <mat-icon style="margin-right: 8px;">inventory</mat-icon>
           <span>Item Setting</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/openingStock" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">shopping_basket</mat-icon>
+          <span>Opening Stock</span>
         </div>
       </a>
       <a mat-list-item routerLink="/yieldList" routerLinkActive="active">
@@ -193,6 +203,12 @@
           <span>Stock Register</span>
         </div>
       </a>
+      <a mat-list-item routerLink="/closingStock" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">assignment</mat-icon>
+          <span>Closing Stock</span>
+        </div>
+      </a>      
       <a mat-list-item routerLink="/yieldStatement" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">
           <mat-icon style="margin-right: 8px;">trending_up</mat-icon>
@@ -232,7 +248,7 @@
           <span>Invoices Upload</span>
         </div>
       </a>
-    </mat-nav-list>  
+    </mat-nav-list>
   </mat-sidenav>
 
   <mat-sidenav-content>

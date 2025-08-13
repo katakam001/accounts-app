@@ -20,7 +20,7 @@ export class ItemsService {
   private cacheTTL = environment.cacheTTL; // 1 day in milliseconds
   private lastCacheTime: number = this.getLastCacheTime();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getItemsByUserIdAndFinancialYear(userId: number, financialYear: string): Observable<Item[]> {
     const currentTime = Date.now();
@@ -85,6 +85,8 @@ export class ItemsService {
             return throwError(() => new Error('Item deletion failed: This item is associated with existing production entries. Please remove or reassign the production entries linked to this item before attempting deletion.'));
           else if (error.error.detail.includes('stock_register'))
             return throwError(() => new Error('Item deletion failed: This item is associated with existing production entries or invoices. Please remove or reassign the production entries or invoices linked to this item before attempting deletion.'));
+          else if (error.error.detail.includes('opening_stock'))
+            return throwError(() => new Error('Item deletion failed: This item is associated with existing opening stock. Please remove or reassign the Opening Stock linked to this item before attempting deletion.'));
           else
             return throwError(() => new Error(error.error.detail)); // Re-throw error if needed
         } else {

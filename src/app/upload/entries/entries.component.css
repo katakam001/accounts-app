@@ -26,6 +26,13 @@
   font-weight: bold; /* Make it stand out */
 }
 
+.select-tax-title {
+  font-size: 1.2rem; /* Match invoice title */
+  color: #0077b6;     /* Same accent color for consistency */
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
 /* File Input Section */
 .file-input-section {
   display: flex;
@@ -169,6 +176,10 @@
   margin-right: 10px;
 }
 
+.invoice-type-section {
+  margin-bottom: 15px; /* Adjust spacing */
+}
+
 .invoice-type-options {
   display: flex;
   gap: 20px;
@@ -229,3 +240,33 @@
   background-color: #BDBDBD; /* ✅ Greyed out when disabled */
   cursor: not-allowed;
 }
+
+.tax-type-section {
+  margin: 8px 0;
+  display: flex;
+  justify-content: center;
+
+  mat-button-toggle-group {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 4px; /* Reduced padding */
+
+    mat-button-toggle {
+      font-weight: 600;
+      padding: 6px 12px; /* Smaller padding */
+      border-radius: 6px;
+      margin: 0 4px;
+      min-width: 140px; /* Match invoice button width */
+      height: 40px;      /* Match invoice button height */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    mat-button-toggle.mat-button-toggle-checked {
+      background-color: #1976d2;
+      color: white;
+    }
+  }
+}
+

@@ -34,6 +34,10 @@
             <mat-panel-title>
               <div class="expansion-panel-header-content">
                 <mat-checkbox [(ngModel)]="group.selected"></mat-checkbox>
+                <div class="main-field sno-field">
+                  <div class="label">SNo</div>
+                  <div class="value">{{ group.sNo }}</div>
+                </div>
                 <div class="main-field">
                   <div class="label">Sale Date</div>
                   <div class="value">{{ group.entry_date | date:'dd-MM-yyyy' }}</div>

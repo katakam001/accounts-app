@@ -20,6 +20,15 @@
     </div>
   </div>
 
+  <!-- Tax Type Selection -->
+  <h3 class="select-tax-title">Select Tax Type</h3>
+  <div class="tax-type-section">
+    <mat-button-toggle-group [(ngModel)]="selectedTaxType" name="selectedTaxType" aria-label="Tax Type">
+      <mat-button-toggle value="cgst"> <mat-icon>account_balance</mat-icon> CGST / SGST</mat-button-toggle>
+      <mat-button-toggle value="igst"> <mat-icon>public</mat-icon> IGST</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+
   <!-- File Upload Section (Disabled Until Invoice Type is Selected) -->
   <div class="file-input-section" [ngClass]="{ 'disabled': !selectedInvoiceType }">
     <mat-icon class="upload-icon">upload_file</mat-icon>
@@ -36,9 +45,10 @@
 
   <!-- Download Template Section -->
   <div class="download-template-container">
-    <button mat-raised-button class="download-template-button" [disabled]="!selectedInvoiceType"
+    <button mat-raised-button class="download-template-button" [disabled]="!selectedInvoiceType || !selectedTaxType"
       (click)="downloadTemplate()">
-      <mat-icon>file_download</mat-icon> Download {{ selectedInvoiceType | titlecase }} Template
+      <mat-icon>file_download</mat-icon>
+      Download {{ selectedInvoiceType | titlecase }} - {{ selectedTaxType | titlecase }} Template
     </button>
   </div>
 

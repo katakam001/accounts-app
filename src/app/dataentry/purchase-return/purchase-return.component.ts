@@ -200,6 +200,7 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
         groupedEntries[invoice_seq_id] = {
           invoiceNumber: entry.invoiceNumber,
           invoice_seq_id: invoice_seq_id,
+          sNo:entry.sNo,
           entry_date: entry.entry_date,
           account_id: entry.account_id,
           customerName: entry.account_name,
@@ -620,6 +621,7 @@ updateEntriesWithDynamicFields(data: any[]): any[] {
             invoiceNumber: entry.invoiceNumber,
             invoice_seq_id: entry.invoice_seq_id,
             entry_date: entry.entry_date,
+            sNo:entry.sNo,
             customerName: this.accountMap[entry.account_id],
             gstNo:this.gstNoMap[entry.account_id] || '',
             account_id: entry.account_id,
@@ -695,6 +697,7 @@ updateEntriesWithDynamicFields(data: any[]): any[] {
             invoiceNumber: entry.invoiceNumber,
             invoice_seq_id:data.data.invoice_seq_id,
             entry_date: entry.entry_date,
+            sNo:entry.sNo,
             customerName: this.accountMap[entry.account_id],
             gstNo:this.gstNoMap[entry.account_id] || '',
             account_id: entry.account_id,

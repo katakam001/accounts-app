@@ -259,3 +259,21 @@ mat-form-field {
   background-color: #3f51b5;
   color: white;
 }
+
+.sno-field .label {
+  font-size: 12px;            /* Optional: smaller label */
+  margin-bottom: 3px;
+}
+
+.sno-field .value {
+  font-weight: bold;
+  font-size: 13px;
+  padding-right: 6px;
+}
+
+.main-field.sno-field {
+  width: 80px;
+  flex-shrink: 0;
+  text-align: right;
+  margin-right: 12px;         /* Adds breathing room between SNo and next field */
+}

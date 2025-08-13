@@ -1,0 +1,62 @@
+<div class="closing-stock-container">
+    <mat-toolbar color="primary">
+        <span>Closing Stock Valuation</span>
+        <span class="spacer"></span>
+    </mat-toolbar>
+
+    <mat-card class="closing-stock-card">
+        <mat-card-content>
+            <div class="filter-container">
+                <mat-form-field appearance="fill" class="filter-field">
+                    <mat-label>From Date</mat-label>
+                    <input matInput [matDatepicker]="fromPicker" [formControl]="fromDate"
+                        [matDatepickerFilter]="dateFilter">
+                    <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #fromPicker></mat-datepicker>
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="filter-field">
+                    <mat-label>To Date</mat-label>
+                    <input matInput [matDatepicker]="toPicker" [formControl]="toDate"
+                        [matDatepickerFilter]="dateFilter">
+                    <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #toPicker></mat-datepicker>
+                </mat-form-field>
+
+                <button mat-raised-button color="primary" (click)="applyFilter()">Apply</button>
+            </div>
+
+
+            <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+                <!-- Columns same as before -->
+                <ng-container matColumnDef="itemName">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Item Name</th>
+                    <td mat-cell *matCellDef="let stock"> {{ stock.item_name }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="value">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Value</th>
+                    <td mat-cell *matCellDef="let stock"> {{ stock.value | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="isManual">
+                    <th mat-header-cell *matHeaderCellDef>Manual</th>
+                    <td mat-cell *matCellDef="let stock"> {{ stock.is_manual ? 'Yes' : 'No' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef>Actions</th>
+                    <td mat-cell *matCellDef="let stock">
+                        <button mat-icon-button class="edit-button" (click)="openEditDialog(stock)">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+        </mat-card-content>
+    </mat-card>
+</div>
