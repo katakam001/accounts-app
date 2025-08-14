@@ -15,37 +15,41 @@
         <div fxLayout="row" fxLayoutGap="16px" fxFlex="100%">
           <!-- Account Name Field -->
           <mat-form-field fxFlex="25%" appearance="fill">
-          <mat-label>Account Name</mat-label>
-          <input type="text" matInput formControlName="account_name" [matAutocomplete]="accountAuto" />
-          <mat-autocomplete #accountAuto="matAutocomplete" (optionSelected)="onAccountSelectionChange($event.option.value ,i)">
-              <mat-option *ngFor="let account of accountList | supplierFilter: item.get('account_name')?.value" [value]="{ id: account.id, name: account.name}">
-              {{ account.name }}
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
+            <mat-label>Account Name</mat-label>
+            <input type="text" matInput formControlName="account_name" [matAutocomplete]="accountAuto" />
+            <mat-autocomplete #accountAuto="matAutocomplete"
+              (optionSelected)="onAccountSelectionChange($event.option.value ,i)">
+              <mat-option *ngFor="let account of accountList | supplierFilter: item.get('account_name')?.value"
+                [value]="{ id: account.id, name: account.name,group_id: account.group_id,group_name:account.group_name}">
+                {{ account.name }}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
 
           <!-- Group Name Field -->
           <mat-form-field fxFlex="25%" appearance="fill">
-          <mat-label>Group Name</mat-label>
-          <input type="text" matInput formControlName="group_name" [matAutocomplete]="groupAuto" />
-          <mat-autocomplete #groupAuto="matAutocomplete" (optionSelected)="onGroupSelectionChange($event.option.value ,i)">
-              <mat-option *ngFor="let group of groupList | groupFilter: item.get('group_name')?.value" [value]="{ id: group.id, name: group.name}">
-              {{ group.name }}
-            </mat-option>
-          </mat-autocomplete>
-        </mat-form-field>
+            <mat-label>Group Name</mat-label>
+            <input type="text" matInput formControlName="group_name" [matAutocomplete]="groupAuto" />
+            <mat-autocomplete #groupAuto="matAutocomplete"
+              (optionSelected)="onGroupSelectionChange($event.option.value ,i)">
+              <mat-option *ngFor="let group of groupList | groupFilter: item.get('group_name')?.value"
+                [value]="{ id: group.id, name: group.name}">
+                {{ group.name }}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
 
           <!-- Debit Amount Field -->
           <mat-form-field fxFlex="25%" appearance="fill">
-          <mat-label>Debit Amount</mat-label>
-          <input matInput formControlName="debit_amount">
-        </mat-form-field>
+            <mat-label>Debit Amount</mat-label>
+            <input matInput formControlName="debit_amount">
+          </mat-form-field>
 
           <!-- Credit Amount Field -->
           <mat-form-field fxFlex="25%" appearance="fill">
-          <mat-label>Credit Amount</mat-label>
-          <input matInput formControlName="credit_amount">
-        </mat-form-field>
+            <mat-label>Credit Amount</mat-label>
+            <input matInput formControlName="credit_amount">
+          </mat-form-field>
         </div>
 
         <div fxLayout="row" fxLayoutAlign="space-between center" fxFlex="100%">
@@ -53,16 +57,22 @@
             <mat-label>Narration</mat-label>
             <textarea matInput formControlName="narration" rows="1"></textarea>
           </mat-form-field>
-        <button mat-icon-button color="warn" (click)="removeItem(i)" class="remove-button">
-          <mat-icon>delete</mat-icon>
-        </button>
+          <button mat-icon-button color="warn" (click)="removeItem(i)" class="remove-button">
+            <mat-icon>delete</mat-icon>
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Add Item Button -->
     <div fxLayoutAlign="start center" style="margin-top: 16px;">
-    <button mat-button (click)="addItem()" class="add-item-button">Add Item</button>
+      <button mat-button (click)="addItem()" class="add-item-button">Add Item</button>
+    </div>
+        <!-- 💡 Add Totals Display Here -->
+    <div fxLayout="row" fxLayoutAlign="space-between center" style="margin-top: 16px;"
+      [ngClass]="{ 'mismatch': totalDebit !== totalCredit }">
+      <div><strong>Total Debit:</strong> {{ totalDebit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
+      <div><strong>Total Credit:</strong> {{ totalCredit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>
     </div>
   </form>
 </mat-dialog-content>

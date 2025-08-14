@@ -24,12 +24,19 @@ export class JournalService {
 
   constructor(private http: HttpClient) { }
 
-  getJournalEntriesByUserIdAndFinancialYear(userId: number, financialYear: string,nextStartRow:number, pageSize:number): Observable<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }> {
+  getJournalEntriesByUserIdAndFinancialYear(userId: number, financialYear: string,nextStartRow:number, pageSize:number, fromDate?: string, toDate?: string): Observable<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }> {
     let params = new HttpParams()
     .set('userId', userId.toString())
     .set('financialYear', financialYear)
     .set('pageSize', pageSize.toString())
     .set('nextStartRow', nextStartRow.toString());
+        // Add fromDate and toDate to the params if they are provided
+    if (fromDate) {
+      params = params.set('fromDate', fromDate); // Use ISO string format
+    }
+    if (toDate) {
+      params = params.set('toDate', toDate); // Use ISO string format
+    }
     return this.http.get<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }>(`${this.apiUrl}`, { params });
   }
 

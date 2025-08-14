@@ -1,15 +1,29 @@
 <div class="journal-list-container">
-  <mat-toolbar color="primary">
-    <span>Journal Entries</span>
+  <mat-toolbar color="primary" class="toolbar">
+    <span class="title">Journal Entries</span>
+    <mat-form-field appearance="outline" class="date-field">
+      <mat-label>From Date</mat-label>
+      <input matInput [matDatepicker]="fromPicker" [formControl]="fromDate" [matDatepickerFilter]="dateFilter">
+      <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+      <mat-datepicker #fromPicker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="date-field">
+      <mat-label>To Date</mat-label>
+      <input matInput [matDatepicker]="toPicker" [formControl]="toDate" [matDatepickerFilter]="dateFilter">
+      <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+      <mat-datepicker #toPicker></mat-datepicker>
+    </mat-form-field>
+    <div class="apply-filter-container">
+      <mat-icon class="apply-filter-icon" (click)="applyDateFilter()" aria-label="Apply Filter">filter_alt</mat-icon>
+      <span class="apply-filter-label">Date Filter</span>
+    </div>
     <span class="spacer"></span>
-    <button mat-raised-button color="accent" (click)="addJournalEntry()" class="add-button">Add New Journal Entry</button>
+    <button mat-raised-button (click)="addJournalEntry()" class="add-button">Add New Journal Entry</button>
   </mat-toolbar>
 
-  <mat-card class="journal-card" >
+  <mat-card class="journal-card">
     <mat-card-content>
-      <div *ngIf="financialYear" class="financial-year-container">
-        <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
-      </div>
       <table mat-table [dataSource]="journalEntries" multiTemplateDataRows class="mat-elevation-z8 entry-table">
 
         <!-- Journal Date Column -->
@@ -20,7 +34,7 @@
           </td>
         </ng-container>
 
-         <!-- User Name Column -->
+        <!-- User Name Column -->
         <ng-container matColumnDef="user_name">
           <th mat-header-cell *matHeaderCellDef> User </th>
           <td mat-cell *matCellDef="let entry"> {{entry.user_name}} </td>
@@ -30,58 +44,60 @@
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef> Actions </th>
           <td mat-cell *matCellDef="let entry">
-            <button mat-raised-button color="primary" (click)="editJournalEntry(entry)" class="edit-button">Edit</button>
-            <button mat-raised-button color="warn" (click)="deleteJournalEntry(entry.id)" class="delete-button">Delete</button>
+            <button mat-raised-button color="primary" (click)="editJournalEntry(entry)"
+              class="edit-button">Edit</button>
+            <button mat-raised-button color="warn" (click)="deleteJournalEntry(entry.id)"
+              class="delete-button">Delete</button>
           </td>
-        </ng-container>        
+        </ng-container>
 
         <!-- Expanded Content Column - The detail row is made up of this one column that spans across all columns -->
         <ng-container matColumnDef="expandedDetail">
           <td mat-cell *matCellDef="let entry" [attr.colspan]="displayedColumns.length">
             <mat-card class="nested-card">
-                <table mat-table [dataSource]="entry.items" class="mat-elevation-z8 items-table">
-                  <!-- Nested Columns -->
-                  <ng-container matColumnDef="account_name">
-                    <th mat-header-cell *matHeaderCellDef> Account </th>
-                    <td mat-cell *matCellDef="let item"> {{item.account_name}} </td>
-                  </ng-container>
+              <table mat-table [dataSource]="entry.items" class="mat-elevation-z8 items-table">
+                <!-- Nested Columns -->
+                <ng-container matColumnDef="account_name">
+                  <th mat-header-cell *matHeaderCellDef> Account </th>
+                  <td mat-cell *matCellDef="let item"> {{item.account_name}} </td>
+                </ng-container>
 
-                  <ng-container matColumnDef="group_name">
-                    <th mat-header-cell *matHeaderCellDef> Group </th>
-                    <td mat-cell *matCellDef="let item"> {{item.group_name}} </td>
-                  </ng-container>
+                <ng-container matColumnDef="group_name">
+                  <th mat-header-cell *matHeaderCellDef> Group </th>
+                  <td mat-cell *matCellDef="let item"> {{item.group_name}} </td>
+                </ng-container>
 
-                  <ng-container matColumnDef="debit_amount">
-                    <th mat-header-cell *matHeaderCellDef> Debit Amount </th>
-                    <td mat-cell *matCellDef="let item"> {{item.debit_amount}} </td>
-                  </ng-container>
+                <ng-container matColumnDef="debit_amount">
+                  <th mat-header-cell *matHeaderCellDef> Debit Amount </th>
+                  <td mat-cell *matCellDef="let item"> {{item.debit_amount}} </td>
+                </ng-container>
 
-                  <ng-container matColumnDef="credit_amount">
-                    <th mat-header-cell *matHeaderCellDef> Credit Amount </th>
-                    <td mat-cell *matCellDef="let item"> {{item.credit_amount}} </td>
-                  </ng-container>
+                <ng-container matColumnDef="credit_amount">
+                  <th mat-header-cell *matHeaderCellDef> Credit Amount </th>
+                  <td mat-cell *matCellDef="let item"> {{item.credit_amount}} </td>
+                </ng-container>
 
-                  <ng-container matColumnDef="narration">
-                    <th mat-header-cell *matHeaderCellDef> Narration </th>
-                    <td mat-cell *matCellDef="let item">
-                      <div>
-                        <span *ngIf="!item.showFullNarration">
-                          {{ item.narration | slice: 0:50 }}<span *ngIf="item.narration.length > 50">...</span>
-                        </span>
-                        <span *ngIf="item.showFullNarration">
-                          {{ item.narration }}
-                        </span>
-                        <button mat-button (click)="item.showFullNarration = !item.showFullNarration">
-                          {{ item.showFullNarration ? 'Show Less' : 'Show More' }}
-                        </button>
-                      </div>
-                    </td>
-                  </ng-container>
-                  
+                <ng-container matColumnDef="narration">
+                  <th mat-header-cell *matHeaderCellDef> Narration </th>
+                  <td mat-cell *matCellDef="let item">
+                    <div>
+                      <span *ngIf="!item.showFullNarration">
+                        {{ item.narration | slice: 0:50 }}<span *ngIf="item.narration.length > 50">...</span>
+                      </span>
+                      <span *ngIf="item.showFullNarration">
+                        {{ item.narration }}
+                      </span>
+                      <button mat-button (click)="item.showFullNarration = !item.showFullNarration">
+                        {{ item.showFullNarration ? 'Show Less' : 'Show More' }}
+                      </button>
+                    </div>
+                  </td>
+                </ng-container>
 
-                  <tr mat-header-row *matHeaderRowDef="nestedDisplayedColumns"></tr>
-                  <tr mat-row *matRowDef="let row; columns: nestedDisplayedColumns;"></tr>
-                </table>
+
+                <tr mat-header-row *matHeaderRowDef="nestedDisplayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: nestedDisplayedColumns;"></tr>
+              </table>
 
             </mat-card>
           </td>
@@ -94,8 +110,10 @@
       </table>
       <!-- Pagination Buttons -->
       <div class="pagination-buttons">
-        <button mat-raised-button color="primary" (click)="onPreviousPage()" [disabled]="currentPage === 1">Previous</button>
-        <button mat-raised-button color="primary" (click)="onNextPage()" [disabled]="!cache.has(currentPage+1) && !hasMore">Next</button>
+        <button mat-raised-button color="primary" (click)="onPreviousPage()"
+          [disabled]="currentPage === 1">Previous</button>
+        <button mat-raised-button color="primary" (click)="onNextPage()"
+          [disabled]="!cache.has(currentPage+1) && !hasMore">Next</button>
       </div>
     </mat-card-content>
   </mat-card>

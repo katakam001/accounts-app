@@ -14,6 +14,20 @@ import { AuthInterceptor } from './interceptors/auth.interceptor'; // Import the
 import { CredentialsInterceptor } from './interceptors/credentials.interceptor'; // Import the CredentialsInterceptor
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { SupplierFilterPipe } from './pipe/supplier-filter.pipe';
+import { MomentDateAdapter } from '@angular/material-moment-adapter';
+import { MAT_DATE_FORMATS, MAT_DATE_LOCALE, DateAdapter } from '@angular/material/core';
+
+export const MY_DATE_FORMATS = {
+  parse: {
+    dateInput: 'DD/MM/YYYY',
+  },
+  display: {
+    dateInput: 'DD/MM/YYYY',
+    monthYearLabel: 'MMM YYYY',
+    dateA11yLabel: 'DD/MM/YYYY',
+    monthYearA11yLabel: 'MMMM YYYY',
+  },
+};
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -32,6 +46,9 @@ export const appConfig: ApplicationConfig = {
     provideIndexedDb(dbConfig),
     DatePipe,
     SupplierFilterPipe,
+    { provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE] },
+    { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS },
+    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
     { provide: HTTP_INTERCEPTORS, useClass: CredentialsInterceptor, multi: true }, // Provide the CredentialsInterceptor
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }, // Provide the AuthInterceptor
     provideCharts(withDefaultRegisterables()) // Provide ng2-charts

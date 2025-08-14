@@ -14,11 +14,12 @@ import { StorageService } from '../../services/storage.service';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { SupplierFilterPipe } from '../../pipe/supplier-filter.pipe';
 import { GroupFilterPipe } from '../../pipe/group-filter.pipe';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-add-journal-entry-dialog',
   standalone: true,
-  imports: [ MatInputModule, ReactiveFormsModule,MatIconModule,CommonModule,MatSelectModule,MatDialogModule,MatDatepickerModule,MatAutocompleteModule, SupplierFilterPipe,GroupFilterPipe],
+  imports: [MatInputModule, ReactiveFormsModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule, MatAutocompleteModule, SupplierFilterPipe, GroupFilterPipe],
   templateUrl: './add-journal-entry-dialog.component.html',
   styleUrls: ['./add-journal-entry-dialog.component.css']
 })
@@ -34,15 +35,16 @@ export class AddJournalEntryDialogComponent implements OnInit {
     private accountService: AccountService,
     private groupService: GroupService,
     private datePipe: DatePipe, // Inject DatePipe
+    private snackBar: MatSnackBar,
     private storageService: StorageService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.addJournalEntryForm = this.fb.group({
       journal_date: ['', Validators.required],
       user_id: [this.storageService.getUser().id],
       user_name: [this.storageService.getUser().username],
-      financial_year:[this.data],
+      financial_year: [this.data],
       items: this.fb.array([this.createItem()])
     });
     this.fetchAccountList();
@@ -57,7 +59,7 @@ export class AddJournalEntryDialogComponent implements OnInit {
       group_id: [0],
       debit_amount: [0, Validators.required],
       credit_amount: [0, Validators.required],
-      narration:['', Validators.required]
+      narration: ['', Validators.required]
     });
   }
 
@@ -85,16 +87,18 @@ export class AddJournalEntryDialogComponent implements OnInit {
   }
 
   fetchAccountList(): void {
-    this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id,this.data).subscribe((accounts: Account[]) => {
+    this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id, this.data).subscribe((accounts: Account[]) => {
       this.accountList = accounts.map(account => ({
         id: account.id,
-        name: account.name
+        name: account.name,
+        group_id: account.group.id,
+        group_name: account.group.name 
       }));
     });
   }
 
   fetchGroupList(): void {
-    this.groupService.getGroupsByUserIdAndFinancialYear(this.storageService.getUser().id,this.data).subscribe((groups: Group[]) => {
+    this.groupService.getGroupsByUserIdAndFinancialYear(this.storageService.getUser().id, this.data).subscribe((groups: Group[]) => {
       console.log(groups);
       this.groupList = groups.map(group => ({
         id: group.id,
@@ -106,32 +110,50 @@ export class AddJournalEntryDialogComponent implements OnInit {
 
   onAccountSelectionChange(event: any, index: number): void {
     const itemGroup = this.items.at(index) as FormGroup;
-      itemGroup.patchValue({
-        account_id: event.id,
-        account_name: event.name,
-      });
+    console.log(event);
+    itemGroup.patchValue({
+      account_id: event.id,
+      account_name: event.name,
+      group_id: event.group_id,
+      group_name: event.group_name
+    });
   }
 
   onGroupSelectionChange(event: any, index: number): void {
     const itemGroup = this.items.at(index) as FormGroup;
-      itemGroup.patchValue({
-        group_id: event.id,
-        group_name:event.name
-      });
+    itemGroup.patchValue({
+      group_id: event.id,
+      group_name: event.name
+    });
   }
 
   onCancel(): void {
     this.dialogRef.close();
   }
 
+  get totalDebit(): number {
+    return this.items.controls.reduce((sum, control) => sum + Number(control.value.debit_amount || 0), 0);
+  }
+
+  get totalCredit(): number {
+    return this.items.controls.reduce((sum, control) => sum + Number(control.value.credit_amount || 0), 0);
+  }
+
   onSave(): void {
+    if (this.totalDebit !== this.totalCredit) {
+      this.snackBar.open('Total Debit and Credit must be equal to save the entry.', 'Close', {
+        duration: 3000,
+        panelClass: ['snackbar-error']
+      });
+      return;
+    }
     const items = this.items.controls.map((control: AbstractControl) => {
       const itemGroup = control as FormGroup;
       const debitAmount = itemGroup.value.debit_amount;
       const creditAmount = itemGroup.value.credit_amount;
       const type = creditAmount > 0;
       const amount = type ? creditAmount : debitAmount;
-  
+
       return {
         ...itemGroup.value,
         type,

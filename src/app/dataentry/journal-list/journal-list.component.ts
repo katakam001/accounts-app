@@ -3,7 +3,7 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
 import { JournalService } from '../../services/journal.service';
 import { JournalEntry } from '../../models/journal-entry.interface';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { EditJournalEntryDialogComponent } from '../../dialogbox/edit-journal-entry-dialog/edit-journal-entry-dialog.component';
@@ -17,11 +17,16 @@ import { Subscription } from 'rxjs'; // Import Subscription
 import { GroupService } from '../../services/group.service';
 import { CachedPage } from '../../models/cache-key.interface';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-journal-list',
   standalone: true,
-  imports: [MatTableModule, MatToolbarModule, MatCardModule, CommonModule],
+  imports: [MatTableModule, MatToolbarModule, MatCardModule, CommonModule, MatDatepickerModule, MatNativeDateModule, ReactiveFormsModule, MatInputModule, MatIconModule],
   templateUrl: './journal-list.component.html',
   styleUrls: ['./journal-list.component.css']
 })
@@ -29,13 +34,17 @@ export class JournalListComponent implements OnInit, OnDestroy {
   private subscription: Subscription = new Subscription(); // Initialize the subscription
   journalEntries = new MatTableDataSource<JournalEntry>();
   displayedColumns: string[] = ['journal_date', 'user_name', 'actions'];
-  nestedDisplayedColumns: string[] = ['account_name', 'group_name', 'debit_amount', 'credit_amount','narration'];
+  nestedDisplayedColumns: string[] = ['account_name', 'group_name', 'debit_amount', 'credit_amount', 'narration'];
   expandedElement: JournalEntry | null;
   financialYear: string;
   accountId: number;
   groupId: number;
   accountMap: { [key: number]: string } = {};
   groupMap: { [key: number]: string } = {};
+  fromDate = new FormControl();
+  toDate = new FormControl();
+  financialYearstartDate: Date;
+  financialYearendDate: Date;
   cache = new Map<number, CachedPage>(); // Cache for pages
   currentPage = 1;
   pageSize = 400;
@@ -48,6 +57,7 @@ export class JournalListComponent implements OnInit, OnDestroy {
     private storageService: StorageService,
     private financialYearService: FinancialYearService,
     private accountService: AccountService,
+    private datePipe: DatePipe,
     private groupService: GroupService,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar, // Inject MatSnackBar
@@ -70,9 +80,14 @@ export class JournalListComponent implements OnInit, OnDestroy {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
       this.financialYear = storedFinancialYear;
+      const [startYear, endYear] = this.financialYear.split('-').map(Number);
+      this.financialYearstartDate = new Date(startYear, 3, 1); // April 1st of start year
+      this.financialYearendDate = new Date(endYear, 2, 31); // March 31st of end year
+      this.fromDate.patchValue(this.financialYearstartDate);
+      this.toDate.patchValue(this.financialYearendDate);
       this.fetchAccountAndGroup().then(() => {
         console.log("test1");
-        this.fetchJournalEntries();
+        this.applyDateFilter();
       });
     }
   }
@@ -114,46 +129,46 @@ export class JournalListComponent implements OnInit, OnDestroy {
           item.account_name = this.accountMap[item.account_id];
           item.group_name = this.groupMap[item.group_id];
           item.debit_amount = item.type ? 0 : item.amount,
-          item.credit_amount = item.type ? item.amount : 0
+            item.credit_amount = item.type ? item.amount : 0
           item.showFullNarration = false // Initialize showFullNarration to false
         });
     });
     this.journalEntries.data = data.sort((a, b) => new Date(a.journal_date).getTime() - new Date(b.journal_date).getTime());
   }
 
-  fetchJournalEntries(): void {
-    const userId = this.storageService.getUser().id;
-    if (this.groupId) {
-      this.journalService.getJournalEntriesByGroup(this.groupId, userId, this.financialYear, this.nextStartRow, this.pageSize).subscribe(data => {
-        this.updateJournalEntiresWithgroupAndAccountMap(data.journalEntries);
-        this.hasMore = data.hasMore;
-        this.nextStartRow = data.nextStartRow;
-        this.cache.set(this.currentPage, {
-          dataRange: this.getDataRange(data.journalEntries), // Calculate data range based on entries
-          data: data.journalEntries
-        });
-      });
-    } else if (this.accountId) {
-      this.journalService.getJournalEntriesByAccount(this.accountId, userId, this.financialYear, this.nextStartRow, this.pageSize).subscribe(data => {
-        this.updateJournalEntiresWithgroupAndAccountMap(data.journalEntries);
-        this.hasMore = data.hasMore;
-        this.nextStartRow = data.nextStartRow;
-        this.cache.set(this.currentPage, {
-          dataRange: this.getDataRange(data.journalEntries), // Calculate data range based on entries
-          data: data.journalEntries
-        });
-      });
-    } else {
-      this.journalService.getJournalEntriesByUserIdAndFinancialYear(userId, this.financialYear, this.nextStartRow, this.pageSize).subscribe(data => {
-        this.updateJournalEntiresWithgroupAndAccountMap(data.journalEntries);
-        this.hasMore = data.hasMore;
-        this.nextStartRow = data.nextStartRow;
-        this.cache.set(this.currentPage, {
-          dataRange: this.getDataRange(data.journalEntries), // Calculate data range based on entries
-          data: data.journalEntries
-        });
-      });
+  dateFilter = (date: Date | null): boolean => {
+    if (!date) {
+      return false; // Ignore null dates
     }
+
+    // Return whether the date falls within the financial year range
+    return date >= this.financialYearstartDate && date <= this.financialYearendDate;
+  };
+
+  applyDateFilter(): void {
+    if (this.fromDate && this.toDate) {
+      // Clear cache and reset pagination
+      this.hasMore = true;
+      this.nextStartRow = 1;
+      this.currentPage = 1;
+      this.cache.clear();
+      this.fetchJournalEntries();
+    }
+  }
+
+  fetchJournalEntries(): void {
+    const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format
+    const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format  
+    const userId = this.storageService.getUser().id;
+    this.journalService.getJournalEntriesByUserIdAndFinancialYear(userId, this.financialYear, this.nextStartRow, this.pageSize, fromDateStr, toDateStr).subscribe(data => {
+      this.updateJournalEntiresWithgroupAndAccountMap(data.journalEntries);
+      this.hasMore = data.hasMore;
+      this.nextStartRow = data.nextStartRow;
+      this.cache.set(this.currentPage, {
+        dataRange: this.getDataRange(data.journalEntries), // Calculate data range based on entries
+        data: data.journalEntries
+      });
+    });
   }
 
   onNextPage() {
@@ -177,39 +192,19 @@ export class JournalListComponent implements OnInit, OnDestroy {
       // Use cached data if available
       this.journalEntries.data = this.cache.get(this.currentPage)?.data || []; // Provide default empty array if data is not present
     } else {
+      const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format
+      const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format  
       // Fetch from the backend if not in cache
-      if (this.groupId) {
-        this.journalService.getJournalEntriesByGroup(this.groupId, userId, this.financialYear, this.nextStartRow, this.pageSize).subscribe(data => {
-          this.updateJournalEntiresWithgroupAndAccountMap(data.journalEntries);
-          this.hasMore = data.hasMore;
-          this.nextStartRow = data.nextStartRow;
-          this.cache.set(this.currentPage, {
-            dataRange: this.getDataRange(data.journalEntries), // Calculate data range based on entries
-            data: data.journalEntries
-          }); // Cache the fetched data
-        });
-      } else if (this.accountId) {
-        this.journalService.getJournalEntriesByAccount(this.accountId, userId, this.financialYear, this.nextStartRow, this.pageSize).subscribe(data => {
-          this.updateJournalEntiresWithgroupAndAccountMap(data.journalEntries);
-          this.hasMore = data.hasMore;
-          this.nextStartRow = data.nextStartRow;
-          this.cache.set(this.currentPage, {
-            dataRange: this.getDataRange(data.journalEntries), // Calculate data range based on entries
-            data: data.journalEntries
-          }); // Cache the fetched data
-        });
-      } else {
-        this.journalService.getJournalEntriesByUserIdAndFinancialYear(userId, this.financialYear, this.nextStartRow, this.pageSize).subscribe(data => {
-          this.updateJournalEntiresWithgroupAndAccountMap(data.journalEntries);
-          this.hasMore = data.hasMore;
-          this.nextStartRow = data.nextStartRow;
-          this.cache.set(this.currentPage, {
-            dataRange: this.getDataRange(data.journalEntries), // Calculate data range based on entries
-            data: data.journalEntries
-          }); // Cache the fetched data
-          console.log(this.cache);
-        });
-      }
+      this.journalService.getJournalEntriesByUserIdAndFinancialYear(userId, this.financialYear, this.nextStartRow, this.pageSize, fromDateStr, toDateStr).subscribe(data => {
+        this.updateJournalEntiresWithgroupAndAccountMap(data.journalEntries);
+        this.hasMore = data.hasMore;
+        this.nextStartRow = data.nextStartRow;
+        this.cache.set(this.currentPage, {
+          dataRange: this.getDataRange(data.journalEntries), // Calculate data range based on entries
+          data: data.journalEntries
+        }); // Cache the fetched data
+        console.log(this.cache);
+      });
     }
   }
   getDataRange(entries: JournalEntry[]): { start: number, end: number } {
@@ -232,7 +227,7 @@ export class JournalListComponent implements OnInit, OnDestroy {
       if (result) {
         this.journalService.addJournalEntry(result).subscribe({
           next: () => {
-            this.snackBar.open(`Journal entries addition is successfully.`,'Close',{ duration: 3000 });
+            this.snackBar.open(`Journal entries addition is successfully.`, 'Close', { duration: 3000 });
           }
         });
       }
@@ -249,7 +244,7 @@ export class JournalListComponent implements OnInit, OnDestroy {
       if (result) {
         this.journalService.updateJournalEntry(result).subscribe({
           next: () => {
-            this.snackBar.open(`Journal entries updation is successfully.`,'Close',{ duration: 3000 });
+            this.snackBar.open(`Journal entries updation is successfully.`, 'Close', { duration: 3000 });
           }
         });
       }
@@ -259,7 +254,7 @@ export class JournalListComponent implements OnInit, OnDestroy {
   deleteJournalEntry(id: number): void {
     this.journalService.deleteJournalEntry(id).subscribe({
       next: () => {
-        this.snackBar.open(`Journal entries deletion is successfully.`,'Close',{ duration: 3000 });
+        this.snackBar.open(`Journal entries deletion is successfully.`, 'Close', { duration: 3000 });
       },
       error: (error) => {
         this.snackBar.open(error.message, 'Close', { duration: 10000 });
@@ -363,7 +358,7 @@ export class JournalListComponent implements OnInit, OnDestroy {
         console.log(page);
         if ((
           new Date(convertedObjectInsert.journal_date).getTime() >= page.dataRange.start &&
-          new Date(convertedObjectInsert.journal_date).getTime() <= page.dataRange.end) || (page.dataRange.start > new Date(convertedObjectInsert.journal_date).getTime() && !this.cache.has(pageNumber-1))
+          new Date(convertedObjectInsert.journal_date).getTime() <= page.dataRange.end) || (page.dataRange.start > new Date(convertedObjectInsert.journal_date).getTime() && !this.cache.has(pageNumber - 1))
         ) {
           updateCache(page, 'INSERT', convertedObjectInsert);
           if (Number(pageNumber) === this.currentPage) {  // Convert pageNumber to a number before comparison

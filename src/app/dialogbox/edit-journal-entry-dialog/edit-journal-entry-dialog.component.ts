@@ -17,11 +17,12 @@ import { StorageService } from '../../services/storage.service';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { SupplierFilterPipe } from '../../pipe/supplier-filter.pipe';
 import { GroupFilterPipe } from '../../pipe/group-filter.pipe';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-edit-journal-entry-dialog',
   standalone: true,
-  imports: [MatInputModule, ReactiveFormsModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule,MatAutocompleteModule, SupplierFilterPipe,GroupFilterPipe],
+  imports: [MatInputModule, ReactiveFormsModule, MatIconModule, CommonModule, MatSelectModule, MatDialogModule, MatDatepickerModule, MatAutocompleteModule, SupplierFilterPipe, GroupFilterPipe],
   templateUrl: './edit-journal-entry-dialog.component.html',
   styleUrls: ['./edit-journal-entry-dialog.component.css']
 })
@@ -38,6 +39,7 @@ export class EditJournalEntryDialogComponent implements OnInit {
     private datePipe: DatePipe, // Inject DatePipe
     private groupService: GroupService,
     private journalService: JournalService,
+    private snackBar: MatSnackBar,
     private storageService: StorageService,
   ) {
     this.initializeForm(); // Initialize the form with default values
@@ -109,7 +111,7 @@ export class EditJournalEntryDialogComponent implements OnInit {
       group_id: [item.group_id],
       amount: [item.amount],
       type: [item.type],
-      narration:[item.narration],
+      narration: [item.narration],
       account_name: [item.account_name],
       group_name: [item.group_name],
       debit_amount: [item.debit_amount],
@@ -124,7 +126,7 @@ export class EditJournalEntryDialogComponent implements OnInit {
       debit_amount: 0,
       credit_amount: 0,
       journal_id: this.editJournalEntryForm.value.id,
-      narration:'',
+      narration: '',
       account_id: 0,
       group_id: 0,
       amount: 0,
@@ -140,7 +142,9 @@ export class EditJournalEntryDialogComponent implements OnInit {
     this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id, this.editJournalEntryForm.get('financial_year')?.value).subscribe((accounts: Account[]) => {
       this.accountList = accounts.map(account => ({
         id: account.id,
-        name: account.name
+        name: account.name,
+        group_id: account.group.id,
+        group_name: account.group.name
       }));
     });
   }
@@ -156,25 +160,44 @@ export class EditJournalEntryDialogComponent implements OnInit {
 
   onAccountSelectionChange(event: any, index: number): void {
     const itemGroup = this.items.at(index) as FormGroup;
-      itemGroup.patchValue({
-        account_id: event.id,
-        account_name: event.name
-      });
+    itemGroup.patchValue({
+      account_id: event.id,
+      account_name: event.name,
+      group_id: event.group_id,
+      group_name: event.group_name
+    });
   }
 
   onGroupSelectionChange(event: any, index: number): void {
     const itemGroup = this.items.at(index) as FormGroup;
-      itemGroup.patchValue({
-        group_id: event.id,
-        group_name:event.name
-      });
+    itemGroup.patchValue({
+      group_id: event.id,
+      group_name: event.name
+    });
   }
 
   onCancel(): void {
     this.dialogRef.close();
   }
 
+  get totalDebit(): number {
+    return this.items.controls.reduce((sum, control) => sum + Number(control.value.debit_amount || 0), 0);
+  }
+
+  get totalCredit(): number {
+    return this.items.controls.reduce((sum, control) => sum + Number(control.value.credit_amount || 0), 0);
+  }
+
   onSave(): void {
+
+    if (this.totalDebit !== this.totalCredit) {
+      this.snackBar.open('Total Debit and Credit must be equal to save the entry.', 'Close', {
+        duration: 3000,
+        panelClass: ['snackbar-error']
+      });
+      return;
+    }
+
     const items = this.items.controls.map((control: AbstractControl) => {
       const itemGroup = control as FormGroup;
       const debitAmount = itemGroup.value.debit_amount;

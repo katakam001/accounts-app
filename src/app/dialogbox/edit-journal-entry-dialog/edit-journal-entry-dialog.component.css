@@ -21,55 +21,60 @@
 .mat-form-field {
   display: block;
 }
-  
-  mat-dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-  }
 
-  .remove-button {
-    margin-left: 10px;
-    background-color: #ff5252;
-    color: white;
-    border-radius: 50%;
-    transition: background-color 0.3s ease;
-  }
-   
-  .add-item-button {
-    align-self: flex-start;
-    margin-top: 10px;
-    background-color: #4caf50;
-    color: white;
-    border-radius: 20px;
-    padding: 10px 20px;
-    transition: background-color 0.3s ease;
-  }
-  
-  .add-item-button:hover {
-    background-color: #388e3c;
-  }
-  
-  .cancel-button {
-    background-color: #f44336;
-    color: white;
-    margin-right: 10px;
-    border-radius: 20px;
-    padding: 10px 20px;
-    transition: background-color 0.3s ease;
-  }
-  
-  .cancel-button:hover {
-    background-color: #d32f2f;
-  }
-  
-  .save-button {
-    background-color: #2196f3;
-    color: white;
-    border-radius: 20px;
-    padding: 10px 20px;
-    transition: background-color 0.3s ease;
-  }
-  
-  .save-button:hover {
-    background-color: #1976d2;
-  }
+mat-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.remove-button {
+  margin-left: 10px;
+  background-color: #ff5252;
+  color: white;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.add-item-button {
+  align-self: flex-start;
+  margin-top: 10px;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 20px;
+  padding: 10px 20px;
+  transition: background-color 0.3s ease;
+}
+
+.add-item-button:hover {
+  background-color: #388e3c;
+}
+
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+  margin-right: 10px;
+  border-radius: 20px;
+  padding: 10px 20px;
+  transition: background-color 0.3s ease;
+}
+
+.cancel-button:hover {
+  background-color: #d32f2f;
+}
+
+.save-button {
+  background-color: #2196f3;
+  color: white;
+  border-radius: 20px;
+  padding: 10px 20px;
+  transition: background-color 0.3s ease;
+}
+
+.save-button:hover {
+  background-color: #1976d2;
+}
+
+.mismatch {
+  color: red;
+  font-weight: bold;
+}

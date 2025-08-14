@@ -73,3 +73,9 @@ mat-dialog-actions {
 .save-button:hover {
   background-color: #1976d2;
 }
+
+.mismatch {
+  color: red;
+  font-weight: bold;
+}
+
