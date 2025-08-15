@@ -26,7 +26,7 @@ export class FinancialYearDialogComponent {
   onSave() {
     const selectedDate = this.dateControl.value;
     if (selectedDate) {
-      const financialYear = this.generateFinancialYear(selectedDate);
+      const financialYear = this.generateFinancialYear(selectedDate.toDate());
       const userId = this.storageService.getUser().id;
       this.financialYearService.setFinancialYear(financialYear, userId);
       this.dialogRef.close();
