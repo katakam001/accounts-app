@@ -18,6 +18,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-closing-stock-valuation',
@@ -36,7 +37,8 @@ import { MatInputModule } from '@angular/material/input';
     MatDatepickerModule,
     MatFormFieldModule,
     MatInputModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatProgressSpinnerModule
   ]
 })
 export class ClosingStockValuationComponent implements OnInit, AfterViewInit {
@@ -48,6 +50,7 @@ export class ClosingStockValuationComponent implements OnInit, AfterViewInit {
   toDate = new FormControl();
   financialYearstartDate: Date;
   financialYearendDate: Date;
+    isLoading = false;
 
   @ViewChild(MatSort) sort: MatSort;
 
@@ -61,7 +64,7 @@ export class ClosingStockValuationComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.getFinancialYear();
-    this.loadClosingStockValuation();
+    this.applyFilter();
   }
 
   ngAfterViewInit() {
@@ -76,6 +79,8 @@ export class ClosingStockValuationComponent implements OnInit, AfterViewInit {
       const [startYear, endYear] = this.financialYear.split('-').map(Number);
       this.financialYearstartDate = new Date(startYear, 3, 1); // April 1st of start year
       this.financialYearendDate = new Date(endYear, 2, 31); // March 31st of end year
+      this.fromDate.patchValue(this.financialYearstartDate);
+      this.toDate.patchValue(this.financialYearendDate);
     }
   }
   dateFilter = (date: Date | null): boolean => {
@@ -87,22 +92,22 @@ export class ClosingStockValuationComponent implements OnInit, AfterViewInit {
     return date >= this.financialYearstartDate && date <= this.financialYearendDate;
   };
 
-  loadClosingStockValuation(): void {
-    const fromDateStr = this.datePipe.transform(this.financialYearstartDate, 'yyyy-MM-dd', 'en-IN') as string;
-    const toDateStr = this.datePipe.transform(this.financialYearendDate, 'yyyy-MM-dd', 'en-IN') as string;
-    this.closingStockValuationService.getClosingStockByUserAndYear(this.userId, this.financialYear, fromDateStr, toDateStr).subscribe((data: any[]) => {
-      this.dataSource.data = data;
-    });
-  }
-
   applyFilter(): void {
     const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string;
     const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string;
 
     if (fromDateStr && toDateStr) {
-      this.closingStockValuationService.generateClosingStock(this.userId, this.financialYear, fromDateStr, toDateStr).subscribe((data: any[]) => {
-        this.dataSource.data = data;
-      });
+            this.isLoading = true;
+             this.closingStockValuationService.generateClosingStock(this.userId, this.financialYear, fromDateStr, toDateStr)
+        .subscribe({
+          next: (data: any[]) => {
+            this.dataSource.data = data;
+            this.isLoading = false;
+          },
+          error: () => {
+            this.isLoading = false;
+          }
+        });
     }
   }
 

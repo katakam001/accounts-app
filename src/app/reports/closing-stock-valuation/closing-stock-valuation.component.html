@@ -1,32 +1,30 @@
 <div class="closing-stock-container">
-    <mat-toolbar color="primary">
-        <span>Closing Stock Valuation</span>
+    <mat-toolbar color="primary" class="toolbar">
+        <span class="title">Closing Stock Valuation</span>
+        <mat-form-field appearance="outline" class="date-field">
+            <mat-label>From Date</mat-label>
+            <input matInput [matDatepicker]="fromPicker" [formControl]="fromDate" [matDatepickerFilter]="dateFilter">
+            <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+            <mat-datepicker #fromPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-field">
+            <mat-label>To Date</mat-label>
+            <input matInput [matDatepicker]="toPicker" [formControl]="toDate" [matDatepickerFilter]="dateFilter">
+            <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+            <mat-datepicker #toPicker></mat-datepicker>
+        </mat-form-field>
+        <div class="apply-filter-container">
+            <mat-icon class="apply-filter-icon" (click)="applyFilter()" aria-label="Apply Filter">filter_alt</mat-icon>
+            <span class="apply-filter-label">Date Filter</span>
+        </div>
         <span class="spacer"></span>
     </mat-toolbar>
 
-    <mat-card class="closing-stock-card">
+    <mat-spinner *ngIf="isLoading"></mat-spinner>
+
+    <mat-card class="closing-stock-card" *ngIf="!isLoading">
         <mat-card-content>
-            <div class="filter-container">
-                <mat-form-field appearance="fill" class="filter-field">
-                    <mat-label>From Date</mat-label>
-                    <input matInput [matDatepicker]="fromPicker" [formControl]="fromDate"
-                        [matDatepickerFilter]="dateFilter">
-                    <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
-                    <mat-datepicker #fromPicker></mat-datepicker>
-                </mat-form-field>
-
-                <mat-form-field appearance="fill" class="filter-field">
-                    <mat-label>To Date</mat-label>
-                    <input matInput [matDatepicker]="toPicker" [formControl]="toDate"
-                        [matDatepickerFilter]="dateFilter">
-                    <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
-                    <mat-datepicker #toPicker></mat-datepicker>
-                </mat-form-field>
-
-                <button mat-raised-button color="primary" (click)="applyFilter()">Apply</button>
-            </div>
-
-
             <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
                 <!-- Columns same as before -->
                 <ng-container matColumnDef="itemName">
