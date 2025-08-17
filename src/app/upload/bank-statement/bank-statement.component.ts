@@ -12,6 +12,8 @@ import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { Account } from '../../models/account.interface';
 import { AccountService } from '../../services/account.service';
+import { GroupMappingService } from '../../services/group-mapping.service';
+import { GroupNode } from '../../models/group-node.interface';
 
 @Component({
   selector: 'app-bank-statement',
@@ -29,7 +31,10 @@ export class BankStatementComponent {
   isUploading: boolean = false; // To track the upload process
   financialYear: string;
   userId: number;
-  bankAccounts: Account[] = []; // Add fields array
+  securedLoanAccounts: Account[] = []; // Add fields array
+  unSecuredLoanAccounts: Account[] = []; // Add fields array
+  accounts: Account[] = [];
+  groupMapping: any[] = []; // Add fields array
 
   // Dropdown Data
   selectedStatementType: string = 'bank';
@@ -39,14 +44,14 @@ export class BankStatementComponent {
   bankNames: string[] = [];
   accountNames: Account[] = [];
 
-  banks: string[] = ['UNION BANK OF INDIA', 'CANARA BANK', 'ICICI BANK', 'INDIAN BANK', 'SBI', 'CITY UNION BANK', 'HDFC BANK','AXIS BANK','BANK OF INDIA','IDFC FIRST BANK'];
+  banks: string[] = ['UNION BANK OF INDIA', 'CANARA BANK', 'ICICI BANK', 'INDIAN BANK', 'SBI', 'CITY UNION BANK', 'HDFC BANK', 'AXIS BANK', 'BANK OF INDIA', 'IDFC FIRST BANK'];
   creditCards: string[] = ['Credit Card X', 'Credit Card Y', 'Credit Card Z'];
-  creditCardAccounts: Account[] = [];
 
   constructor(private uploadService: UploadService,
     private storageService: StorageService,
     private accountService: AccountService,
     private financialYearService: FinancialYearService,
+    private groupMappingService: GroupMappingService, // Inject FieldMappingService
   ) { }
 
   ngOnInit(): void {
@@ -135,10 +140,10 @@ export class BankStatementComponent {
   onStatementTypeChange(): void {
     if (this.selectedStatementType === 'bank') {
       this.bankNames = this.banks;
-      this.accountNames = this.bankAccounts;
+      this.accountNames = this.securedLoanAccounts;
     } else if (this.selectedStatementType === 'creditCard') {
       this.bankNames = this.creditCards;
-      this.accountNames = this.creditCardAccounts;
+      this.accountNames = this.unSecuredLoanAccounts;
     } else {
       // Disable dropdowns for Trial Balance
       this.bankNames = [];
@@ -156,10 +161,78 @@ export class BankStatementComponent {
       this.fetchAccounts();
     }
   }
+
   fetchAccounts(): void {
-    this.accountService.getAccountsByUserIdAndFinancialYear(this.userId, this.financialYear, ['Bank Account']).subscribe((accounts: Account[]) => {
-      this.bankAccounts = accounts;
-      this.onStatementTypeChange();
+    this.accountService.getAccountsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((accounts: Account[]) => {
+      this.accounts = accounts;
+      this.groupMappingService.getGroupMappingTree(this.userId, this.financialYear).subscribe(data => {
+        this.groupMapping = data;
+        const securedLoanAccountIds = this.getAccountIdsFromNodeByName('Secured Loans');
+        const bankAccountIds = this.getAccountIdsFromNodeByName('Bank Account');
+
+        // Merge and deduplicate
+        const mergedAccountIds = Array.from(new Set([...securedLoanAccountIds, ...bankAccountIds]));
+
+        // Filter accounts
+        this.securedLoanAccounts = this.accounts.filter(account => mergedAccountIds.includes(account.id));
+
+        const unSecuredLoanAccountIds = this.getAccountIdsFromNodeByName('Unsecured Loans');
+        this.unSecuredLoanAccounts = this.accounts.filter(account => unSecuredLoanAccountIds.includes(account.id));
+        this.onStatementTypeChange(); // ✅ Safe to invoke here
+      });
     });
   }
+
+  // Function to find a node by its name
+  findNodeByName(node: GroupNode, name: string): GroupNode | null {
+    if (node.name === name) {
+      return node;
+    }
+
+    if (node.children && node.children.length) {
+      for (const child of node.children) {
+        const result = this.findNodeByName(child, name);
+        if (result) {
+          return result;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  // Function to extract account IDs from a node and return a set of unique IDs
+  extractAccountIds(node: GroupNode, result = new Set<number>()): number[] {
+    if (!node.children || node.children.length === 0) {
+      // This is an account node
+      result.add(Number(node.id));
+    } else {
+      // This is a group node, traverse its children
+      node.children.forEach(child => this.extractAccountIds(child, result));
+    }
+    // Convert the set to an array for the final output
+    return Array.from(result);
+  }
+
+  getNodeByName(nodeName: string): GroupNode | null {
+    for (const node of this.groupMapping) {
+      const result = this.findNodeByName(node, nodeName);
+      if (result) {
+        return result;
+      }
+    }
+    return null;
+  }
+
+  // Function to get account IDs from a specific node by its name
+  getAccountIdsFromNodeByName(nodeName: string): number[] {
+    const node = this.getNodeByName(nodeName);
+    if (node) {
+      return this.extractAccountIds(node);
+    } else {
+      console.error('Node not found');
+      return [];
+    }
+  }
+
 }
