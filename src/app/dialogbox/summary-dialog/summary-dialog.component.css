@@ -1,8 +1,30 @@
 /* Title Styles */
 .dialog-title {
-    font-size: 24px;
-    font-weight: bold;
-    color: #3F51B5; /* Deep blue */
+  margin-top: 15px;
+  margin-bottom: 10px;
+}
+
+.title-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 2px solid #3F51B5;
+  padding-bottom: 5px;
+}
+
+.title-icon {
+  font-size: 32px;
+  color: #3F51B5;
+  margin-right: 10px;
+}
+
+.title-text {
+  font-size: 28px;
+  font-weight: bold;
+  color: #3F51B5;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
 }
 
 /* Toggle Button Group */
@@ -84,4 +106,19 @@ canvas {
     margin-top: 10px;
     padding-bottom: 10px;
     background-color: #f9f9f9; /* Light grey */
+}
+
+.dialog-actions button {
+  font-weight: bold;
+  padding: 8px 20px;
+  font-size: 16px;
+  border-radius: 4px;
+  background-color: #f44336; /* Material red */
+  color: white;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.dialog-actions button:hover {
+  background-color: #d32f2f; /* Darker red on hover */
 }

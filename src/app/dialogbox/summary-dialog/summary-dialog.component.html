@@ -1,5 +1,8 @@
 <div mat-dialog-title class="dialog-title">
-  <h2>Summary Overview</h2>
+  <div class="title-container">
+    <mat-icon class="title-icon">bar_chart</mat-icon>
+    <h2 class="title-text">Summary Overview</h2>
+  </div>
 </div>
 
 <div mat-dialog-content class="dialog-content">
@@ -18,21 +21,21 @@
         <tr>
           <th>Category</th>
           <th>Total Value</th>
-          <th>Total Amount</th>
           <th>Taxes</th>
+          <th>Total Amount</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let summary of totalSummary">
           <td>{{ summary.category_account_name }}</td>
-          <td>₹{{ summary.total_value }}</td>
-          <td>₹{{ summary.total_amount }}</td>
+          <td>{{ summary.total_value | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
           <td>
             <span *ngFor="let tax of summary.tax_details; let i = index">
-              {{ tax.field_name }}: ₹{{ tax.total_field_value }}
+              {{ tax.field_name }}: {{ tax.total_field_value | currency:'INR':'symbol':'1.2-2':'en-IN'}}
               <span *ngIf="i < summary.tax_details.length - 1"> | </span>
             </span>
           </td>
+          <td>{{ summary.total_amount | currency:'INR':'symbol':'1.2-2':'en-IN'}}</td>
         </tr>
       </tbody>
     </table>
@@ -45,37 +48,33 @@
         <tr>
           <th>Category</th>
           <th>Total Value</th>
-          <th>Total Amount</th>
           <th>Taxes</th>
+          <th>Total Amount</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let category of pageSummary | keyvalue">
           <td>{{ category.value.categoryAccountName }}</td>
-          <td>₹{{ category.value.totalValue }}</td>
-          <td>₹{{ category.value.totalAmount }}</td>
+          <td>{{ category.value.totalValue | currency:'INR':'symbol':'1.2-2':'en-IN'}}</td>
           <td>
             <span *ngFor="let tax of category.value.taxes | keyvalue; let i = index">
-              {{ tax.key }}: ₹{{ tax.value }}
+              {{ tax.key }}: {{ formatCurrency(tax.value)}}
               <span *ngIf="i < (category.value.taxes | keyvalue).length - 1"> | </span>
             </span>
           </td>
+          <td>{{ category.value.totalAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
         </tr>
       </tbody>
     </table>
   </div>
 
-    <!-- Stacked Bar Graph -->
-    <div class="graph-main-container">
-      <div style="width: 80%; height: 400px;">
-        <canvas baseChart
-          [data]="stackedChartData"
-          [options]="stackedChartOptions"
-          [type]="'bar'"
-          [legend]="true">
-        </canvas>
-      </div>
+  <!-- Stacked Bar Graph -->
+  <div class="graph-main-container">
+    <div style="width: 80%; height: 400px;">
+      <canvas baseChart [data]="stackedChartData" [options]="stackedChartOptions" [type]="'bar'" [legend]="true">
+      </canvas>
     </div>
+  </div>
 </div>
 
 <div mat-dialog-actions class="dialog-actions">

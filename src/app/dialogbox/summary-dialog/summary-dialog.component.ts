@@ -4,10 +4,11 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { MatButtonToggleModule } from '@angular/material/button-toggle'; // Import MatButtonToggleModule
+import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-summary-dialog',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective, MatButtonToggleModule],
+  imports: [CommonModule, BaseChartDirective, MatButtonToggleModule, MatIconModule],
   templateUrl: './summary-dialog.component.html',
   styleUrls: ['./summary-dialog.component.css'],
 })
@@ -65,11 +66,6 @@ export class SummaryDialogComponent implements OnInit {
         label: 'Total Value',
         backgroundColor: 'rgba(75, 192, 192, 0.6)', // Fixed color
         data: this.totalSummary.map((item) => parseFloat(item.total_value) || 0)
-      },
-      {
-        label: 'Total Amount',
-        backgroundColor: 'rgba(153, 102, 255, 0.6)', // Fixed color
-        data: this.totalSummary.map((item) => parseFloat(item.total_amount) || 0)
       }
     ];
 
@@ -135,8 +131,8 @@ export class SummaryDialogComponent implements OnInit {
           },
         },
       },
-    };    
-}
+    };
+  }
 
   getRandomColor(): string {
     const letters = '0123456789ABCDEF';
@@ -150,4 +146,17 @@ export class SummaryDialogComponent implements OnInit {
   closeDialog(): void {
     this.dialogRef.close();
   }
+
+  formatCurrency(value: any): string {
+    const num = parseFloat(value);
+    return isNaN(num)
+      ? ''
+      : new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(num);
+  }
+
 }
