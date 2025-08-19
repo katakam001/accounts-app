@@ -5,7 +5,7 @@ import { TrailBalanceService } from '../../services/trail-balance.service';
 import { StorageService } from '../../services/storage.service';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { CommonModule, DatePipe } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -39,11 +39,19 @@ export class TrailBalanceComponent implements OnInit {
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
     private datePipe: DatePipe,
+    private route: ActivatedRoute,
     private router: Router // Inject Router
   ) { }
 
   ngOnInit(): void {
     this.getFinancialYear();
+    this.route.queryParams.subscribe(params => {
+      if (params['fromDate']) {
+        this.fromDate.patchValue(new Date(params['fromDate']));
+        this.toDate.patchValue(new Date(params['toDate']));
+        this.getTrailBalanceReport(); // 💫 Re-populates main report
+      }
+    });
   }
 
   getFinancialYear() {

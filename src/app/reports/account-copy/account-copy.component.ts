@@ -16,7 +16,7 @@ import { NgxIndexedDBService } from 'ngx-indexed-db';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-account-copy',
@@ -44,6 +44,7 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
   toDate: Date | null = null;
   financialYearstartDate: Date;
   financialYearendDate: Date;
+  isTrailBalanceDrilldownActive: boolean = false;
   searchName: FormControl = new FormControl(''); // FormControl for input field
   private subscription: Subscription = new Subscription(); // Initialize the subscription
   constructor(
@@ -55,6 +56,7 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
     private datePipe: DatePipe,
     private route: ActivatedRoute,
     private financialYearService: FinancialYearService,
+    private router: Router, // Inject Router
     private snackBar: MatSnackBar // Inject MatSnackBar
   ) { }
 
@@ -85,6 +87,7 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
           this.selectedAccountId = Number(params['accountId']);
           this.fromDate = new Date(params['fromDate']);
           this.toDate = new Date(params['toDate']);
+          this.isTrailBalanceDrilldownActive = true;
         }
         // console.log(typeof this.selectedAccountId); // Should match stored key type
         // console.log(this.fromDate instanceof Date); // ✅ true if it's a Date object
@@ -120,6 +123,15 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
       saveAs(response, `ledger_${this.userId}_${this.financialYear}.xlsx`);
     }, error => {
       console.error('Error exporting Excel:', error);
+    });
+  }
+
+  navigateToTrailBalance(): void {
+    this.router.navigate(['/trailBalance'], {
+      queryParams: {
+        fromDate: this.fromDate,
+        toDate: this.toDate
+      }
     });
   }
 
@@ -739,4 +751,3 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
     }
   }
 }
-
