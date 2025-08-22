@@ -41,7 +41,7 @@
   </div>
 </div>
 
-<div *ngFor="let day of filteredEntries">
+<div *ngFor="let day of groupedDayBookEntries">
   <div class="date">{{ day.date | date: 'dd-MM-yyyy (EEEE)' }}</div>
   <table>
     <thead class="bold-border">

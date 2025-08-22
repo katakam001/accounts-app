@@ -45,15 +45,25 @@ export class JournalService {
     userId: number,
     financialYear: string,
     limit: number,
-    rowCursor?: number
+    selectedTypes: number[], // Pass selected types explicitly
+    rowCursor?: number,
+    fromDate?: string, toDate?: string,
   ): Observable<{ entries: any[], nextRowCursor: number | null, hasNextPage: boolean }> {
     let params = new HttpParams()
       .set('userId', userId.toString())
       .set('financialYear', financialYear)
-      .set('limit', limit.toString());
+      .set('limit', limit.toString())
+      .set('selectedTypes', selectedTypes.join(',')); // Convert array to comma-separated string
 
     if (rowCursor !== undefined) {
       params = params.set('rowCursor', rowCursor.toString());
+    }
+    // Add fromDate and toDate to the params if they are provided
+    if (fromDate) {
+      params = params.set('fromDate', fromDate); // Use ISO string format
+    }
+    if (toDate) {
+      params = params.set('toDate', toDate); // Use ISO string format
     }
 
     return this.http.get<{ entries: any[], nextRowCursor: number | null, hasNextPage: boolean }>(`${this.apiUrl}/daybook`, { params });

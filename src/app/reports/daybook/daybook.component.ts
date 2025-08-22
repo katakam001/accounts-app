@@ -4,8 +4,6 @@ import { JournalService } from '../../services/journal.service';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { AccountService } from '../../services/account.service'; // Import AccountService
-import { Subject } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
 import { NgxIndexedDBService } from 'ngx-indexed-db';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -54,8 +52,6 @@ export class DayBookComponent implements OnInit, OnDestroy {
   cacheKeys: string[] = [];
   currentPage: number = 1;
   pageSize: number = 400; // Number of records per page
-  dataFetchCounter: number = 0; // Counter to track data fetching
-  fetchEntriesSubject: Subject<void> = new Subject<void>(); // Subject for debouncing
   inMemoryCache: Map<string, any[]> = new Map(); // In-memory cache with LRU eviction
   balanceCarryForwardCache: Map<string, number> = new Map(); // In-memory cache with LRU eviction
   maxCacheSize: number = 5; // Maximum number of pages to store in memory
@@ -72,7 +68,8 @@ export class DayBookComponent implements OnInit, OnDestroy {
   selectedTypes: number[] = this.entryTypes.map(type => type.value); // Select all types by default
   startDate: Date;
   endDate: Date;
-  filteredEntries: any[] = [];
+  financialYearstartDate: Date;
+  financialYearendDate: Date;
   currentBalance: number = 0; // Initialize current balance
   openingBalance: number = 0; // Initialize opening balance
   // New properties for cursor-based pagination
@@ -95,9 +92,9 @@ export class DayBookComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.clearCache();
     this.getFinancialYear();
-    this.fetchEntriesSubject.pipe(debounceTime(300)).subscribe(() => {
-      this.fetchEntries();
-    });
+    this.fetchCurrentBalance();
+    this.fetchOpeningBalance(); // Fetch opening balance once
+    this.fetchEntries();
     this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
   ngOnDestroy() {
@@ -110,22 +107,20 @@ export class DayBookComponent implements OnInit, OnDestroy {
       this.financialYear = storedFinancialYear;
       this.userId = this.storageService.getUser().id; // Ensure userId is initialized
       const [startYear, endYear] = this.financialYear.split('-').map(Number);
-      this.startDate = new Date(startYear, 3, 1); // April 1st of start year
-      this.endDate = new Date(endYear, 2, 31); // March 31st of end year
-      this.fetchCurrentBalance();
-      this.fetchOpeningBalance(); // Fetch opening balance once
-      this.fetchEntries();
+      this.financialYearstartDate = new Date(startYear, 3, 1); // April 1st of start year
+      this.financialYearendDate = new Date(endYear, 2, 31); // March 31st of end year
+      this.startDate = this.financialYearstartDate; // April 1st of start year
+      this.endDate = this.financialYearendDate; // March 31st of end year
     }
   }
 
   dateFilter = (date: Date | null): boolean => {
-    if (!date || !this.financialYear) {
-      return false;
+    if (!date) {
+      return false; // Ignore null dates
     }
-    const [startYear, endYear] = this.financialYear.split('-').map(Number);
-    const startDate = new Date(startYear, 3, 1); // April 1st of start year
-    const endDate = new Date(endYear, 2, 31); // March 31st of end year
-    return date >= startDate && date <= endDate;
+
+    // Return whether the date falls within the financial year range
+    return date >= this.financialYearstartDate && date <= this.financialYearendDate;
   };
 
   clearCache(): void {
@@ -162,7 +157,9 @@ export class DayBookComponent implements OnInit, OnDestroy {
   }
 
   fetchCombinedEntries(): void {
-    this.journalService.getCombinedEntriesForDayBook(this.userId, this.financialYear, this.limit, this.rowCursor || 0 // Use rowCursor for pagination
+    const fromDateStr = this.datePipe.transform(this.startDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format
+    const toDateStr = this.datePipe.transform(this.endDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format
+    this.journalService.getCombinedEntriesForDayBook(this.userId, this.financialYear, this.limit, this.selectedTypes, this.rowCursor || 0, fromDateStr, toDateStr
     ).subscribe(data => {
       this.combinedEntries = data.entries;
       this.rowCursor = data.nextRowCursor; // Update rowCursor for the next batch  
@@ -217,30 +214,30 @@ export class DayBookComponent implements OnInit, OnDestroy {
 
     // Process combinedEntries to create dayBookEntries
     for (const entry of this.combinedEntries) {
-        const accountName = await this.getAccountName(entry.account_id);
-        const amount = parseFloat(entry.amount);
+      const accountName = await this.getAccountName(entry.account_id);
+      const amount = parseFloat(entry.amount);
 
-        const cashCredit = entry.entry_type === 7 && entry.type ? amount : 0;
-        const cashDebit = entry.entry_type === 7 && !entry.type ? amount : 0;
-        const journalCredit = entry.entry_type >= 0 && entry.entry_type <= 6 && entry.type ? amount : 0;
-        const journalDebit = entry.entry_type >= 0 && entry.entry_type <= 6 && !entry.type ? amount : 0;
+      const cashCredit = entry.entry_type === 7 && entry.type ? amount : 0;
+      const cashDebit = entry.entry_type === 7 && !entry.type ? amount : 0;
+      const journalCredit = entry.entry_type >= 0 && entry.entry_type <= 6 && entry.type ? amount : 0;
+      const journalDebit = entry.entry_type >= 0 && entry.entry_type <= 6 && !entry.type ? amount : 0;
 
-        totalCashCredit += cashCredit;
-        totalCashDebit += cashDebit;
-        totalJournalCredit += journalCredit;
-        totalJournalDebit += journalDebit;
+      totalCashCredit += cashCredit;
+      totalCashDebit += cashDebit;
+      totalJournalCredit += journalCredit;
+      totalJournalDebit += journalDebit;
 
-        this.dayBookEntries.push({
-            id: entry.entry_id, // Include id attribute based on entry_type
-            date: entry.date,
-            cashCredit,
-            journalCredit,
-            particular: accountName,
-            account_id: entry.account_id,
-            journalDebit,
-            cashDebit,
-            type: entry.entry_type
-        });
+      this.dayBookEntries.push({
+        id: entry.entry_id, // Include id attribute based on entry_type
+        date: entry.date,
+        cashCredit,
+        journalCredit,
+        particular: accountName,
+        account_id: entry.account_id,
+        journalDebit,
+        cashDebit,
+        type: entry.entry_type
+      });
     }
 
     // console.log(this.dayBookEntries);
@@ -264,72 +261,72 @@ export class DayBookComponent implements OnInit, OnDestroy {
     // Insert opening balance as the first record in the current page
     console.log(this.openingBalance);
     if (previousCarryForwardBalance && this.dayBookEntries.length > 0) {
-        const firstDate = Object.keys(groupedEntries)[0];
-        groupedEntries[firstDate].unshift({
-            date: firstDate,
-            cashCredit: previousCarryForwardBalance, // Use the carry-forward balance from the previous page
-            journalCredit: 0,
-            particular: 'Opening Balance',
-            journalDebit: 0,
-            cashDebit: 0
-        });
-    }
-    if(this.currentPage === 1 && this.openingBalance){
       const firstDate = Object.keys(groupedEntries)[0];
       groupedEntries[firstDate].unshift({
-          date: firstDate,
-          cashCredit: this.openingBalance, // Use the carry-forward balance from the previous page
-          journalCredit: 0,
-          particular: 'Opening Balance',
-          journalDebit: 0,
-          cashDebit: 0
+        date: firstDate,
+        cashCredit: previousCarryForwardBalance, // Use the carry-forward balance from the previous page
+        journalCredit: 0,
+        particular: 'Opening Balance',
+        journalDebit: 0,
+        cashDebit: 0
+      });
+    }
+    if (this.currentPage === 1 && this.openingBalance) {
+      const firstDate = Object.keys(groupedEntries)[0];
+      groupedEntries[firstDate].unshift({
+        date: firstDate,
+        cashCredit: this.openingBalance, // Use the carry-forward balance from the previous page
+        journalCredit: 0,
+        particular: 'Opening Balance',
+        journalDebit: 0,
+        cashDebit: 0
       });
     }
 
     // Calculate totals and balance carry forward for each day
     this.groupedDayBookEntries = Object.keys(groupedEntries).map((date, index, array) => {
-        const entries = groupedEntries[date];
+      const entries = groupedEntries[date];
 
-        const totalCashCredit = parseFloat(entries.reduce((sum: number, entry: any) => sum + entry.cashCredit, 0)).toFixed(2);
-        const totalJournalCredit = parseFloat(entries.reduce((sum: number, entry: any) => sum + entry.journalCredit, 0)).toFixed(2);
-        const totalJournalDebit = parseFloat(entries.reduce((sum: number, entry: any) => sum + entry.journalDebit, 0)).toFixed(2);
-        const totalCashDebit = parseFloat(entries.reduce((sum: number, entry: any) => sum + entry.cashDebit, 0)).toFixed(2);
-        const balanceCarryForward =  parseFloat((parseFloat(totalCashCredit) - parseFloat(totalCashDebit)).toFixed(2));
-        const journalBalanceCarryForward = parseFloat((parseFloat(totalJournalCredit) - parseFloat(totalJournalDebit)).toFixed(2));
-    
+      const totalCashCredit = parseFloat(entries.reduce((sum: number, entry: any) => sum + entry.cashCredit, 0)).toFixed(2);
+      const totalJournalCredit = parseFloat(entries.reduce((sum: number, entry: any) => sum + entry.journalCredit, 0)).toFixed(2);
+      const totalJournalDebit = parseFloat(entries.reduce((sum: number, entry: any) => sum + entry.journalDebit, 0)).toFixed(2);
+      const totalCashDebit = parseFloat(entries.reduce((sum: number, entry: any) => sum + entry.cashDebit, 0)).toFixed(2);
+      const balanceCarryForward = parseFloat((parseFloat(totalCashCredit) - parseFloat(totalCashDebit)).toFixed(2));
+      const journalBalanceCarryForward = parseFloat((parseFloat(totalJournalCredit) - parseFloat(totalJournalDebit)).toFixed(2));
 
-        // Add opening balance for the next day within the same page
-        if (index < array.length - 1) {
-            const nextDate = array[index + 1];
-            groupedEntries[nextDate].unshift({
-                date: nextDate,
-                cashCredit: balanceCarryForward, // Carry forward to the next day's opening balance
-                journalCredit: 0,
-                particular: 'Opening Balance',
-                journalDebit: 0,
-                cashDebit: 0
-            });
-        }
 
-        return {
-            date,
-            entries,
-            totalCashCredit,
-            totalJournalCredit,
-            totalJournalDebit,
-            totalCashDebit,
-            balanceCarryForward,
-            journalBalanceCarryForward
-        };
+      // Add opening balance for the next day within the same page
+      if (index < array.length - 1) {
+        const nextDate = array[index + 1];
+        groupedEntries[nextDate].unshift({
+          date: nextDate,
+          cashCredit: balanceCarryForward, // Carry forward to the next day's opening balance
+          journalCredit: 0,
+          particular: 'Opening Balance',
+          journalDebit: 0,
+          cashDebit: 0
+        });
+      }
+
+      return {
+        date,
+        entries,
+        totalCashCredit,
+        totalJournalCredit,
+        totalJournalDebit,
+        totalCashDebit,
+        balanceCarryForward,
+        journalBalanceCarryForward
+      };
     });
 
     // Store the current page's carry-forward balance in the cache
-    this.balanceCarryForwardCache.set(cacheKey,this.groupedDayBookEntries[this.groupedDayBookEntries.length - 1].balanceCarryForward);
+    this.balanceCarryForwardCache.set(cacheKey, this.groupedDayBookEntries[this.groupedDayBookEntries.length - 1].balanceCarryForward);
 
 
     // Apply initial filters
-    this.applyFilters();
-}
+    // this.applyFilters();
+  }
 
   toggleType(type: any): void {
     const index = this.selectedTypes.indexOf(type.value);
@@ -341,16 +338,32 @@ export class DayBookComponent implements OnInit, OnDestroy {
   }
 
   applyFilters(): void {
-    this.filteredEntries = this.groupedDayBookEntries.map(day => {
-      const dayDate = new Date(day.date);
-      const isWithinDateRange = (!this.startDate || dayDate >= this.startDate) && (!this.endDate || dayDate <= this.endDate);
-      const filteredEntries = day.entries.filter((entry: any) => this.selectedTypes.includes(entry.type));
-      return {
-        ...day,
-        entries: isWithinDateRange ? [day.entries[0], ...filteredEntries] : []
-      };
-    }).filter(day => day.entries.length > 0);
+    if (this.startDate && this.endDate) {
+
+      // Clear cache and reset pagination
+      this.clearCache();
+      this.inMemoryCache.clear();
+      this.balanceCarryForwardCache.clear();
+      this.cacheKeys = [];
+      this.totalPages = 0;
+      this.offset = 0;
+      this.dayBookEntries = []; // Clear existing entries
+      this.combinedEntries = [];
+      this.groupedDayBookEntries = [];
+      this.currentBalance = 0;
+      this.openingBalance = 0;
+      this.currentPage = 1;
+      this.rowCursor = 0;
+      this.hasNextPage = false;
+      this.dbHasNextPage = false;
+
+      // Trigger fetchEntries to load filtered data
+      this.fetchCurrentBalance();
+      this.fetchOpeningBalance(); // Fetch opening balance once
+      this.fetchEntries();
+    }
   }
+
 
   addToMemoryCache(key: string, value: any[]): void {
     if (this.inMemoryCache.size >= this.maxCacheSize) {
@@ -384,7 +397,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
     this.currentPage++;
     this.offset = (this.currentPage - 1) * this.limit;
     this.totalPages = Math.max(this.totalPages, this.currentPage);
-    this.fetchEntriesSubject.next();
+    // this.fetchEntriesSubject.next();
   }
 
   previousPage(): void {
@@ -393,7 +406,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
       this.offset = (this.currentPage - 1) * this.limit;
       this.hasNextPage = true; // Update hasNextPage to true when moving to the previous page
       // console.log(this.hasNextPage);
-      this.fetchEntriesSubject.next();
+      // this.fetchEntriesSubject.next();
     }
   }
   canMoveToNextPage(): boolean {
@@ -543,14 +556,14 @@ export class DayBookComponent implements OnInit, OnDestroy {
     const sameDateExistsInMemory = this.dayBookEntries.some(entry => entry.date === newEntry.date);
     if (currentPageIndex !== -1) {
       this.dayBookEntries = [
-        ...this.dayBookEntries.slice(0, currentPageIndex), 
-        newEntry, 
+        ...this.dayBookEntries.slice(0, currentPageIndex),
+        newEntry,
         ...this.dayBookEntries.slice(currentPageIndex)
       ];
       console.log("process1");
       this.processRealTimeUpdate();
-    }    
-    if (currentPageIndex ==-1 && sameDateExistsInMemory) {
+    }
+    if (currentPageIndex == -1 && sameDateExistsInMemory) {
       console.log("process2");
       this.dayBookEntries.push(newEntry);
       this.processRealTimeUpdate();
@@ -559,37 +572,37 @@ export class DayBookComponent implements OnInit, OnDestroy {
 
   processRealTimeUpdate(): void {
     // Group entries by date
-        // Retrieve carry-forward balance from cache for the current page
-        const previousPageOffset = (this.currentPage - 2) * this.limit;
-        const previousCacheKey = `${this.userId}-${this.financialYear}-${previousPageOffset}`;
-        const previousCarryForwardBalance = this.balanceCarryForwardCache.get(previousCacheKey) || 0;
-        console.log(previousCacheKey);
-        // Group entries by date
-        const groupedEntries = this.groupByDate(this.dayBookEntries);
-    
-        // Insert opening balance as the first record in the current page
-        if (previousCarryForwardBalance && this.dayBookEntries.length > 0) {
-            const firstDate = Object.keys(groupedEntries)[0];
-            groupedEntries[firstDate].unshift({
-                date: firstDate,
-                cashCredit: previousCarryForwardBalance, // Use the carry-forward balance from the previous page
-                journalCredit: 0,
-                particular: 'Opening Balance',
-                journalDebit: 0,
-                cashDebit: 0
-            });
-        }
-        if(this.currentPage === 1 && this.openingBalance){
-          const firstDate = Object.keys(groupedEntries)[0];
-          groupedEntries[firstDate].unshift({
-              date: firstDate,
-              cashCredit: this.openingBalance, // Use the carry-forward balance from the previous page
-              journalCredit: 0,
-              particular: 'Opening Balance',
-              journalDebit: 0,
-              cashDebit: 0
-          });
-        }
+    // Retrieve carry-forward balance from cache for the current page
+    const previousPageOffset = (this.currentPage - 2) * this.limit;
+    const previousCacheKey = `${this.userId}-${this.financialYear}-${previousPageOffset}`;
+    const previousCarryForwardBalance = this.balanceCarryForwardCache.get(previousCacheKey) || 0;
+    console.log(previousCacheKey);
+    // Group entries by date
+    const groupedEntries = this.groupByDate(this.dayBookEntries);
+
+    // Insert opening balance as the first record in the current page
+    if (previousCarryForwardBalance && this.dayBookEntries.length > 0) {
+      const firstDate = Object.keys(groupedEntries)[0];
+      groupedEntries[firstDate].unshift({
+        date: firstDate,
+        cashCredit: previousCarryForwardBalance, // Use the carry-forward balance from the previous page
+        journalCredit: 0,
+        particular: 'Opening Balance',
+        journalDebit: 0,
+        cashDebit: 0
+      });
+    }
+    if (this.currentPage === 1 && this.openingBalance) {
+      const firstDate = Object.keys(groupedEntries)[0];
+      groupedEntries[firstDate].unshift({
+        date: firstDate,
+        cashCredit: this.openingBalance, // Use the carry-forward balance from the previous page
+        journalCredit: 0,
+        particular: 'Opening Balance',
+        journalDebit: 0,
+        cashDebit: 0
+      });
+    }
 
     // Calculate totals and balance carry forward for each day
     this.groupedDayBookEntries = Object.keys(groupedEntries).map((date, index, array) => {
@@ -598,7 +611,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
       const totalJournalCredit = parseFloat(entries.reduce((sum: number, entry: any) => sum + entry.journalCredit, 0)).toFixed(2);
       const totalJournalDebit = parseFloat(entries.reduce((sum: number, entry: any) => sum + entry.journalDebit, 0)).toFixed(2);
       const totalCashDebit = parseFloat(entries.reduce((sum: number, entry: any) => sum + entry.cashDebit, 0)).toFixed(2);
-      const balanceCarryForward =  parseFloat((parseFloat(totalCashCredit) - parseFloat(totalCashDebit)).toFixed(2));
+      const balanceCarryForward = parseFloat((parseFloat(totalCashCredit) - parseFloat(totalCashDebit)).toFixed(2));
       const journalBalanceCarryForward = parseFloat((parseFloat(totalJournalCredit) - parseFloat(totalJournalDebit)).toFixed(2));
 
       // Add opening balance for the next day
@@ -626,10 +639,10 @@ export class DayBookComponent implements OnInit, OnDestroy {
       };
     });
     const cacheKey = `${this.userId}-${this.financialYear}-${this.offset}`;
-    this.balanceCarryForwardCache.set(cacheKey,this.groupedDayBookEntries[this.groupedDayBookEntries.length - 1].balanceCarryForward);
+    this.balanceCarryForwardCache.set(cacheKey, this.groupedDayBookEntries[this.groupedDayBookEntries.length - 1].balanceCarryForward);
 
     // Apply initial filters
-    this.applyFilters();
+    // this.applyFilters();
   }
   async handleUpdateEvent(data: any, type: string): Promise<void> {
     if (type === 'entry' || type === 'journal') {
@@ -735,7 +748,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
       }
     }
   }
-  
+
   async handleDeleteEvent(data: any, type: string): Promise<void> {
     if (type === 'entry' || type === 'journal') {
       const id = type === 'entry' ? data.group.invoice_seq_id : data.id.toString();
@@ -847,7 +860,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
   openAddEditEntryDialog(entryId: string, type: number): void {
     const dialogRef = this.dialog.open(AddEditEntryDialogComponent, {
       width: '1250px',
-      data: { invoice_seq_id:entryId, type, financialYear: this.financialYear, userId: this.userId }
+      data: { invoice_seq_id: entryId, type, financialYear: this.financialYear, userId: this.userId }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -864,7 +877,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(EditJournalEntryDialogComponent, {
       width: '1000px',
 
-      data: { journalId:convertJournalId, financialYear: this.financialYear }
+      data: { journalId: convertJournalId, financialYear: this.financialYear }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -878,7 +891,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
   openEditCashBookDialog(entryId: string, currentBalance: number): void {
     const dialogRef = this.dialog.open(EditCashBookDialogComponent, {
       width: '900px',
-      data: { entryId:entryId, currentBalance, financialYear: this.financialYear }
+      data: { entryId: entryId, currentBalance, financialYear: this.financialYear }
     });
 
     dialogRef.afterClosed().subscribe(result => {
