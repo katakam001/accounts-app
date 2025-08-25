@@ -12,8 +12,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
-import { Subscription } from 'rxjs'; // Import Subscription
+// import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
+// import { Subscription } from 'rxjs'; // Import Subscription
 
 @Component({
   selector: 'app-production-entry',
@@ -32,7 +32,7 @@ import { Subscription } from 'rxjs'; // Import Subscription
   styleUrls: ['./production-entry.component.css']
 })
 export class ProductionEntryComponent implements OnInit, OnDestroy {
-  private subscription: Subscription = new Subscription(); // Initialize the subscription
+  // private subscription: Subscription = new Subscription(); // Initialize the subscription
   entries: any[] = [];
   financialYear: string;
   expandedRows: { [key: number]: boolean } = {};
@@ -43,16 +43,16 @@ export class ProductionEntryComponent implements OnInit, OnDestroy {
     private storageService: StorageService,
     private financialYearService: FinancialYearService,
     private snackBar: MatSnackBar,
-    private webSocketService: WebSocketService // Inject WebSocket service
+    // private webSocketService: WebSocketService // Inject WebSocket service
   ) {}
 
   ngOnInit(): void {
     this.getFinancialYear();
-    this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
+    // this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
   ngOnDestroy() {
-    this.subscription.unsubscribe(); // Clean up the subscription
-    this.webSocketService.close();
+    // this.subscription.unsubscribe(); // Clean up the subscription
+    // this.webSocketService.close();
   }
   getFinancialYear() {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
@@ -140,9 +140,9 @@ subscribeToWebSocketEvents(): void {
     }
   };
 
-  this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
-  this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
-  this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
+  // this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
+  // this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
+  // this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
 
 }
 }

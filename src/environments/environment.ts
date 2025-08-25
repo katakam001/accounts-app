@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   apiUrl: 'https://localhost:8443',
-  websocketUrl: 'wss://localhost:8443', // Replace with your WebSocket server URL
+  websocketUrl: 'wss://localhost:8443', //  websocket is disabled in backend and frontend.
   cacheTTL: 86400000, // 1 day in milliseconds
   fieldMappingCacheCapacity: 2, // Number of records to keep in memory for FieldMappingService
   accountCacheCapacity: 5 // Number of records to keep in memory for AccountService

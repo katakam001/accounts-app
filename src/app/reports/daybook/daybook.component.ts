@@ -12,13 +12,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
+// import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
 import { BalanceService } from '../../services/balance.service';
 import { MatDialog } from '@angular/material/dialog';
 import { EditCashBookDialogComponent } from '../../dialogbox/edit-cash-book-dialog/edit-cash-book-dialog.component';
 import { EditJournalEntryDialogComponent } from '../../dialogbox/edit-journal-entry-dialog/edit-journal-entry-dialog.component';
 import { AddEditEntryDialogComponent } from '../../dialogbox/add-edit-entry-dialog/add-edit-entry-dialog.component';
-import { Subscription } from 'rxjs'; // Import Subscription
+// import { Subscription } from 'rxjs'; // Import Subscription
 import { DatePipe } from '@angular/common';
 import saveAs from 'file-saver';
 import { CashEntriesService } from '../../services/cash-entries.service';
@@ -40,7 +40,7 @@ import { CashEntriesService } from '../../services/cash-entries.service';
   styleUrls: ['./daybook.component.css']
 })
 export class DayBookComponent implements OnInit, OnDestroy {
-  private subscription: Subscription = new Subscription(); // Initialize the subscription
+  // private subscription: Subscription = new Subscription(); // Initialize the subscription
   combinedEntries: any[] = [];
   dayBookEntries: any[] = []; // Initialize as an empty array
   groupedDayBookEntries: any[] = [];
@@ -84,7 +84,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
     private balanceService: BalanceService,
     private accountService: AccountService, // Add AccountService to the constructor
     private dbService: NgxIndexedDBService,
-    private webSocketService: WebSocketService, // Inject WebSocket service
+    // private webSocketService: WebSocketService, // Inject WebSocket service
     public dialog: MatDialog,
     private datePipe: DatePipe, // Inject DatePipe
   ) { }
@@ -95,11 +95,11 @@ export class DayBookComponent implements OnInit, OnDestroy {
     this.fetchCurrentBalance();
     this.fetchOpeningBalance(); // Fetch opening balance once
     this.fetchEntries();
-    this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
+    // this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
   ngOnDestroy() {
-    this.subscription.unsubscribe(); // Clean up the subscription
-    this.webSocketService.close();
+    // this.subscription.unsubscribe(); // Clean up the subscription
+    // this.webSocketService.close();
   }
   getFinancialYear(): void {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
@@ -421,30 +421,30 @@ export class DayBookComponent implements OnInit, OnDestroy {
     const entryTypes = ['entry', 'journal', 'cash'];
 
     entryTypes.forEach(type => {
-      this.subscription.add(
-        this.webSocketService.onEvent('INSERT').subscribe(async (data: any) => {
-          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
-            console.log("first");
-            await this.handleInsertEvent(data.data, type);
-          }
-        })
-      );
-      this.subscription.add(
-        this.webSocketService.onEvent('UPDATE').subscribe(async (data: any) => {
-          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
-            console.log("second");
-            await this.handleUpdateEvent(data.data, type);
-          }
-        })
-      );
-      this.subscription.add(
-        this.webSocketService.onEvent('DELETE').subscribe(async (data: any) => {
-          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
-            console.log("third");
-            await this.handleDeleteEvent(data.data, type);
-          }
-        })
-      );
+      // this.subscription.add(
+      //   this.webSocketService.onEvent('INSERT').subscribe(async (data: any) => {
+      //     if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+      //       console.log("first");
+      //       await this.handleInsertEvent(data.data, type);
+      //     }
+      //   })
+      // );
+      // this.subscription.add(
+      //   this.webSocketService.onEvent('UPDATE').subscribe(async (data: any) => {
+      //     if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+      //       console.log("second");
+      //       await this.handleUpdateEvent(data.data, type);
+      //     }
+      //   })
+      // );
+      // this.subscription.add(
+      //   this.webSocketService.onEvent('DELETE').subscribe(async (data: any) => {
+      //     if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+      //       console.log("third");
+      //       await this.handleDeleteEvent(data.data, type);
+      //     }
+      //   })
+      // );
     });
   }
 

@@ -17,8 +17,8 @@ import { CategoryService } from '../../services/category.service';
 import { AccountService } from '../../services/account.service';
 import { ItemsService } from '../../services/items.service';
 import { FieldService } from '../../services/field.service';
-import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
-import { Subscription } from 'rxjs'; // Import Subscription
+// import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
+// import { Subscription } from 'rxjs'; // Import Subscription
 import { Account } from '../../models/account.interface';
 import { GroupMappingService } from '../../services/group-mapping.service';
 import { GroupNode } from '../../models/group-node.interface';
@@ -51,7 +51,7 @@ import { SummaryService } from '../../services/summary.service';
   styleUrls: ['./purchase-return.component.css']
 })
 export class PurchaseReturnComponent implements OnInit,OnDestroy {
-  private subscription: Subscription = new Subscription(); // Initialize the subscription
+  // private subscription: Subscription = new Subscription(); // Initialize the subscription
   entries: MatTableDataSource<any>;
   financialYear: string;
   expandedRows: { [key: number]: boolean } = {};
@@ -95,18 +95,18 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
     private fieldMappingService: FieldMappingService,
     private summaryService: SummaryService,
     private datePipe: DatePipe,
-    private webSocketService: WebSocketService // Inject WebSocket service
+    // private webSocketService: WebSocketService // Inject WebSocket service
   ) {
     this.entries = new MatTableDataSource<any>([]);
   }
 
   ngOnInit(): void {
     this.getFinancialYear();
-    this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
+    // this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
   ngOnDestroy() {
-    this.subscription.unsubscribe(); // Clean up the subscription
-    this.webSocketService.close();
+    // this.subscription.unsubscribe(); // Clean up the subscription
+    // this.webSocketService.close();
   }
   getFinancialYear() {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
@@ -561,9 +561,9 @@ updateEntriesWithDynamicFields(data: any[]): any[] {
       }
     };
 
-    this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
-    this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
-    this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
+    // this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
+    // this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
+    // this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
 
 
     const updateCache = (page: EntryCachedPage, action: 'INSERT' | 'UPDATE' | 'DELETE', group: any) => {

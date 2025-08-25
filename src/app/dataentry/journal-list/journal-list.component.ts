@@ -12,8 +12,8 @@ import { AddJournalEntryDialogComponent } from '../../dialogbox/add-journal-entr
 import { FinancialYearService } from '../../services/financial-year.service';
 import { AccountService } from '../../services/account.service';
 import { ActivatedRoute } from '@angular/router';
-import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
-import { Subscription } from 'rxjs'; // Import Subscription
+// import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
+// import { Subscription } from 'rxjs'; // Import Subscription
 import { GroupService } from '../../services/group.service';
 import { CachedPage } from '../../models/cache-key.interface';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -31,7 +31,7 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrls: ['./journal-list.component.css']
 })
 export class JournalListComponent implements OnInit, OnDestroy {
-  private subscription: Subscription = new Subscription(); // Initialize the subscription
+  // private subscription: Subscription = new Subscription(); // Initialize the subscription
   journalEntries = new MatTableDataSource<JournalEntry>();
   displayedColumns: string[] = ['journal_date', 'user_name', 'actions'];
   nestedDisplayedColumns: string[] = ['account_name', 'group_name', 'debit_amount', 'credit_amount', 'narration'];
@@ -61,7 +61,7 @@ export class JournalListComponent implements OnInit, OnDestroy {
     private groupService: GroupService,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar, // Inject MatSnackBar
-    private webSocketService: WebSocketService // Inject WebSocket service
+    // private webSocketService: WebSocketService // Inject WebSocket service
   ) { }
 
   ngOnInit(): void {
@@ -70,11 +70,11 @@ export class JournalListComponent implements OnInit, OnDestroy {
       this.groupId = params['groupId'] || null;
       this.getFinancialYear();
     });
-    this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
+    // this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
   ngOnDestroy() {
-    this.subscription.unsubscribe(); // Clean up the subscription
-    this.webSocketService.close();
+    // this.subscription.unsubscribe(); // Clean up the subscription
+    // this.webSocketService.close();
   }
   getFinancialYear() {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
@@ -285,9 +285,9 @@ export class JournalListComponent implements OnInit, OnDestroy {
       }
     };
 
-    this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
-    this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
-    this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
+    // this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
+    // this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
+    // this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
 
 
     const updateCache = (page: CachedPage, action: 'INSERT' | 'UPDATE' | 'DELETE', entry: JournalEntry) => {
