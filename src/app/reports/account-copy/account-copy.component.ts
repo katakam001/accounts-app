@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
-import { Subscription } from 'rxjs';
+// import { Subscription } from 'rxjs';
 import { LedgerService } from '../../services/ledger.service';
-import { WebSocketService } from '../../services/websocket.service';
+// import { WebSocketService } from '../../services/websocket.service';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
@@ -46,11 +46,11 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
   financialYearendDate: Date;
   isTrailBalanceDrilldownActive: boolean = false;
   searchName: FormControl = new FormControl(''); // FormControl for input field
-  private subscription: Subscription = new Subscription(); // Initialize the subscription
+  // private subscription: Subscription = new Subscription(); // Initialize the subscription
   constructor(
     private ledgerService: LedgerService,
     private dbService: NgxIndexedDBService,
-    private webSocketService: WebSocketService,
+    // private webSocketService: WebSocketService,
     private accountService: AccountService,
     private storageService: StorageService,
     private datePipe: DatePipe,
@@ -67,12 +67,12 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
     this.getFinancialYear();
     this.userId = this.storageService.getUser().id;
     this.fetchAccountList();
-    this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
+    // this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe(); // Clean up the subscription
-    this.webSocketService.close();
+    // this.subscription.unsubscribe(); // Clean up the subscription
+    // this.webSocketService.close();
   }
 
   fetchAccountList(): void {
@@ -433,45 +433,45 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
     const entryTypes = ['entry', 'journal', 'cash'];
 
     entryTypes.forEach(type => {
-      this.subscription.add(
-        this.webSocketService.onEvent('INSERT').subscribe(async (data: any) => {
-          const entryDate = data.entryType === 'cash' ? new Date(data.cash_date).getTime() : new Date(data.journal_date).getTime();
-          const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(), this.fromDate.getMonth(), this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
-          const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(), this.toDate.getMonth(), this.toDate.getDate())).getTime() : null; // Convert toDate to timestamp      
-          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear &&
-            (!fromDateTimestamp || entryDate >= fromDateTimestamp) && // Check if entryDate is on or after fromDate
-            (!toDateTimestamp || entryDate <= toDateTimestamp)) {
-            console.log("first");
-            await this.handleInsertEvent(data.data, type);
-          }
-        })
-      );
-      this.subscription.add(
-        this.webSocketService.onEvent('UPDATE').subscribe(async (data: any) => {
-          const entryDate = data.entryType === 'cash' ? new Date(data.cash_date).getTime() : new Date(data.journal_date).getTime();
-          const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(), this.fromDate.getMonth(), this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
-          const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(), this.toDate.getMonth(), this.toDate.getDate())).getTime() : null; // Convert toDate to timestamp      
-          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear &&
-            (!fromDateTimestamp || entryDate >= fromDateTimestamp) && // Check if entryDate is on or after fromDate
-            (!toDateTimestamp || entryDate <= toDateTimestamp)) {
-            console.log("second");
-            await this.handleUpdateEvent(data.data, type);
-          }
-        })
-      );
-      this.subscription.add(
-        this.webSocketService.onEvent('DELETE').subscribe(async (data: any) => {
-          const entryDate = data.entryType === 'cash' ? new Date(data.cash_date).getTime() : new Date(data.journal_date).getTime();
-          const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(), this.fromDate.getMonth(), this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
-          const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(), this.toDate.getMonth(), this.toDate.getDate())).getTime() : null; // Convert toDate to timestamp      
-          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear &&
-            (!fromDateTimestamp || entryDate >= fromDateTimestamp) && // Check if entryDate is on or after fromDate
-            (!toDateTimestamp || entryDate <= toDateTimestamp)) {
-            console.log("third");
-            await this.handleDeleteEvent(data.data, type);
-          }
-        })
-      );
+      // this.subscription.add(
+      //   this.webSocketService.onEvent('INSERT').subscribe(async (data: any) => {
+      //     const entryDate = data.entryType === 'cash' ? new Date(data.cash_date).getTime() : new Date(data.journal_date).getTime();
+      //     const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(), this.fromDate.getMonth(), this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
+      //     const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(), this.toDate.getMonth(), this.toDate.getDate())).getTime() : null; // Convert toDate to timestamp      
+      //     if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear &&
+      //       (!fromDateTimestamp || entryDate >= fromDateTimestamp) && // Check if entryDate is on or after fromDate
+      //       (!toDateTimestamp || entryDate <= toDateTimestamp)) {
+      //       console.log("first");
+      //       await this.handleInsertEvent(data.data, type);
+      //     }
+      //   })
+      // );
+      // this.subscription.add(
+      //   this.webSocketService.onEvent('UPDATE').subscribe(async (data: any) => {
+      //     const entryDate = data.entryType === 'cash' ? new Date(data.cash_date).getTime() : new Date(data.journal_date).getTime();
+      //     const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(), this.fromDate.getMonth(), this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
+      //     const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(), this.toDate.getMonth(), this.toDate.getDate())).getTime() : null; // Convert toDate to timestamp      
+      //     if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear &&
+      //       (!fromDateTimestamp || entryDate >= fromDateTimestamp) && // Check if entryDate is on or after fromDate
+      //       (!toDateTimestamp || entryDate <= toDateTimestamp)) {
+      //       console.log("second");
+      //       await this.handleUpdateEvent(data.data, type);
+      //     }
+      //   })
+      // );
+      // this.subscription.add(
+      //   this.webSocketService.onEvent('DELETE').subscribe(async (data: any) => {
+      //     const entryDate = data.entryType === 'cash' ? new Date(data.cash_date).getTime() : new Date(data.journal_date).getTime();
+      //     const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(), this.fromDate.getMonth(), this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
+      //     const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(), this.toDate.getMonth(), this.toDate.getDate())).getTime() : null; // Convert toDate to timestamp      
+      //     if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear &&
+      //       (!fromDateTimestamp || entryDate >= fromDateTimestamp) && // Check if entryDate is on or after fromDate
+      //       (!toDateTimestamp || entryDate <= toDateTimestamp)) {
+      //       console.log("third");
+      //       await this.handleDeleteEvent(data.data, type);
+      //     }
+      //   })
+      // );
     });
   }
 

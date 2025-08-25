@@ -12,8 +12,8 @@ import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { CashEntriesService } from '../../services/cash-entries.service';
 import { AccountService } from '../../services/account.service';
-import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
-import { Subscription } from 'rxjs'; // Import Subscription
+// import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
+// import { Subscription } from 'rxjs'; // Import Subscription
 
 @Component({
   selector: 'app-cash-book',
@@ -23,7 +23,7 @@ import { Subscription } from 'rxjs'; // Import Subscription
   styleUrls: ['./cash-book.component.css']
 })
 export class CashBookComponent implements OnInit, OnDestroy {
-  private subscription: Subscription = new Subscription(); // Initialize the subscription
+  // private subscription: Subscription = new Subscription(); // Initialize the subscription
   transactions: MatTableDataSource<CashEntry>;
   displayedColumns: string[] = ['cash_credit', 'cash_entry_date', 'account_name', 'narration_description', 'cash_debit', 'balance', 'actions'];
   dateDisplayedColumns: string[] = ['cash_credit', 'account_name', 'narration_description', 'cash_debit', 'balance', 'actions'];
@@ -37,7 +37,7 @@ export class CashBookComponent implements OnInit, OnDestroy {
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
     private cashEntriesService: CashEntriesService,
-    private webSocketService: WebSocketService, // Inject WebSocket service
+    // private webSocketService: WebSocketService, // Inject WebSocket service
     private accountService: AccountService,
   ) {
     this.transactions = new MatTableDataSource<CashEntry>([]);
@@ -45,12 +45,12 @@ export class CashBookComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.getFinancialYear();
-    this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
+    // this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe(); // Clean up the subscription
-    this.webSocketService.close();
+    // this.subscription.unsubscribe(); // Clean up the subscription
+    // this.webSocketService.close();
   }
 
   getFinancialYear() {
@@ -134,9 +134,9 @@ export class CashBookComponent implements OnInit, OnDestroy {
       }
     };
   
-    this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
-    this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
-    this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
+    // this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
+    // this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
+    // this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
   }
 
   groupEntriesByDate(entries: CashEntry[]): { date: Date, transactions: CashEntry[], runningBalance: number }[] {
