@@ -21,6 +21,8 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { GroupNode } from '../../models/group-node.interface';
 import { GroupMappingService } from '../../services/group-mapping.service';
 import { SupplierFilterPipe } from "../../pipe/supplier-filter.pipe";
+import { notZeroValidator } from '../..//validators';
+import { minArrayLengthValidator } from '../..//validators';
 
 @Component({
   selector: 'app-add-edit-entry-dialog',
@@ -68,7 +70,7 @@ export class AddEditEntryDialogComponent implements OnInit {
       entry_date: ['', Validators.required],
       account_id: ['', Validators.required],
       customerName: ['', Validators.required],
-      entries: this.fb.array([this.createEntry()]), // Use FormArray for multiple entries
+      entries: this.fb.array([this.createEntry()], [minArrayLengthValidator(1)]),
       groupEntryValue: [{ value: '', disabled: true }], // Update the form control name if needed
       groupTotalAmount: [{ value: '', disabled: true }]
     });
@@ -110,8 +112,8 @@ export class AddEditEntryDialogComponent implements OnInit {
       item_id: ['', Validators.required],
       quantity: ['', [Validators.required, Validators.min(1)]],
       unit_id: ['', Validators.required],
-      unit_price: ['', Validators.required],
-      value: [{ value: '', disabled: true }],
+      unit_price: ['', [Validators.required,notZeroValidator]],
+      value: [{ value: '', disabled: true }, [Validators.required,notZeroValidator]],
       total_amount: [{ value: '', disabled: true }],
       category_account_id: ['', Validators.required],
       journal_id: [''],
@@ -132,7 +134,8 @@ export class AddEditEntryDialogComponent implements OnInit {
       const categoryType = (this.data.type === 1 || this.data.type === 3 || this.data.type === 5) ? 1 : 2;
       this.fetchInitialData(categoryType).then(() => {
         if (this.data.group) {
-          const entriesArray = this.fb.array([]);
+          const entriesArray = this.fb.array([], [minArrayLengthValidator(1)]);
+
           const categoryIds = new Set<number>();
 
           this.data.group.entries.forEach((e: any) => {
@@ -184,7 +187,7 @@ export class AddEditEntryDialogComponent implements OnInit {
         account_id: entry.account_id,
       });
 
-      const entriesArray = this.fb.array([]);
+      const entriesArray = this.fb.array([], [minArrayLengthValidator(1)]);
       const categoryIds = new Set<number>();
 
       entry.entries.forEach((e: any) => {
@@ -563,7 +566,7 @@ export class AddEditEntryDialogComponent implements OnInit {
     }
   }
 
-  identifyInvalidFields(form: FormGroup): void {
+  identifyInvalidFields(form: FormGroup | FormArray): void {
     Object.keys(form.controls).forEach(field => {
       const control = form.get(field);
       if (control instanceof FormControl) {
@@ -571,13 +574,21 @@ export class AddEditEntryDialogComponent implements OnInit {
           console.log(`Invalid Field: ${field}, Error: ${JSON.stringify(control.errors)}`);
         }
       } else if (control instanceof FormGroup || control instanceof FormArray) {
-        this.identifyInvalidFields(control as FormGroup);
+        if (control.invalid) {
+          console.log(`Invalid Group/Array: ${field}, Error: ${JSON.stringify(control.errors)}`);
+        }
+        this.identifyInvalidFields(control); // recurse into children
       }
     });
   }
   
 
   onSave(): void {
+    this.entries.controls.map(entry => {
+      // Temporarily enable the disabled fields
+      entry.get('value')?.enable({ emitEvent: false });
+    });
+
     if (this.entryForm.valid) {
       this.isSaving = true;
       const formValues = this.entryForm.getRawValue();
@@ -614,25 +625,29 @@ export class AddEditEntryDialogComponent implements OnInit {
       // Logic to handle adding/updating multiple entries
       if (this.data.group && (this.data.isPurchaseReturn || this.data.isSaleReturn)) {
         // Add new entries for Purchase Return (type 3) and Sale Return (type 4)
-        this.entryService.addEntries(entriesData).subscribe(() => {
+        this.entryService.addEntries(entriesData).subscribe((response) => {
           this.isSaving = false;
-          this.dialogRef.close(true);
+          this.dialogRef.close(response);
         });
       } else if (this.data.group) {
         // Update existing entries for Purchase Entry (type 1), Sale Entry (type 2), Purchase Return (type 3), Sale Return (type 4), Credit Note (type 5), and Debit Note (type 6)
-        this.entryService.updateEntries(entriesData).subscribe(() => {
+        this.entryService.updateEntries(entriesData).subscribe((response) => {
           this.isSaving = false;
-          this.dialogRef.close(true);
+          this.dialogRef.close(response);
         });
       } else {
         // Add new entries for Purchase Entry (type 1), Sale Entry (type 2), Purchase Return (type 3), Sale Return (type 4), Credit Note (type 5), and Debit Note (type 6)
-        this.entryService.addEntries(entriesData).subscribe(() => {
+        this.entryService.addEntries(entriesData).subscribe((response) => {
           this.isSaving = false;
-          this.dialogRef.close(true);
+          this.dialogRef.close(response);
         });
       }
     } else {
       this.identifyInvalidFields(this.entryForm);
+      this.entries.controls.map(entry => {
+        // Temporarily enable the disabled fields
+        entry.get('value')?.disable({ emitEvent: false });
+      });
       this.snackBar.open('Please fill all required fields.', 'Close', {
         duration: 3000,
       });

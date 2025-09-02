@@ -50,7 +50,7 @@ import { SummaryService } from '../../services/summary.service';
   templateUrl: './purchase-return.component.html',
   styleUrls: ['./purchase-return.component.css']
 })
-export class PurchaseReturnComponent implements OnInit,OnDestroy {
+export class PurchaseReturnComponent implements OnInit, OnDestroy {
   // private subscription: Subscription = new Subscription(); // Initialize the subscription
   entries: MatTableDataSource<any>;
   financialYear: string;
@@ -67,18 +67,18 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
   taxAccountMap: Map<number, string> = new Map();
   groupMapping: any[] = []; // Add fields array
   groupedEntries: any[] = [];
-   cache = new Map<number, EntryCachedPage>(); // Cache for pages
-   currentPage = 1;
-   pageSize = 300;
-   totalPages = 0;
-   hasMore = true;
-   nextStartRow = 1;
-   fromDate: Date | null = null; // Store the 'from' date
-   toDate: Date | null = null;   
-   financialYearstartDate: Date;
-   financialYearendDate: Date;
-   totalSummary:any;
-   pageSummary: any;
+  cache = new Map<number, EntryCachedPage>(); // Cache for pages
+  currentPage = 1;
+  pageSize = 300;
+  totalPages = 0;
+  hasMore = true;
+  nextStartRow = 1;
+  fromDate: Date | null = null; // Store the 'from' date
+  toDate: Date | null = null;
+  financialYearstartDate: Date;
+  financialYearendDate: Date;
+  totalSummary: any;
+  pageSummary: any;
   constructor(
     private entryService: EntryService,
     public dialog: MatDialog,
@@ -104,10 +104,12 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
     this.getFinancialYear();
     // this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
+
   ngOnDestroy() {
     // this.subscription.unsubscribe(); // Clean up the subscription
     // this.webSocketService.close();
   }
+
   getFinancialYear() {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
@@ -117,11 +119,12 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
         this.financialYearstartDate = new Date(startYear, 3, 1); // April 1st of start year
         this.financialYearendDate = new Date(endYear, 2, 31); // March 31st of end year
         this.fromDate = this.financialYearstartDate;
-        this.toDate= this.financialYearendDate;
+        this.toDate = this.financialYearendDate;
         this.applyDateFilter();
       });
     }
   }
+
   applyDateFilter(): void {
     if (this.fromDate && this.toDate) {
 
@@ -135,43 +138,48 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
       this.fetchEntries();
       this.fetchSummary();
     }
-  } 
+  }
+
   dateFilter = (date: Date | null): boolean => {
     if (!date) {
       return false; // Ignore null dates
     }
-  
+
     // Return whether the date falls within the financial year range
     return date >= this.financialYearstartDate && date <= this.financialYearendDate;
   };
+
   async fetchBrokersAndAreas(): Promise<void> {
-    await Promise.all([this.fetchBrokers(), this.fetchAreas(), this.fetchCategories(1), this.fetchSuppliers(), this.fetchItems(), this.fetchUnits(), this.fetchFields(),this.fetchGroupMapping(),this.fetchPurchaseReturnAccounts(),this.fetchDynamicFields()]);
+    await Promise.all([this.fetchBrokers(), this.fetchAreas(), this.fetchCategories(1), this.fetchSuppliers(), this.fetchItems(), this.fetchUnits(), this.fetchFields(), this.fetchGroupMapping(), this.fetchPurchaseReturnAccounts(), this.fetchDynamicFields()]);
   }
+
   fetchSummary(): void {
     const userId = this.storageService.getUser().id;
     const fromDateStr = this.datePipe.transform(this.fromDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format
     const toDateStr = this.datePipe.transform(this.toDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format
-    this.entryService.getTaxSummary(userId,this.financialYear, 3,fromDateStr || undefined, toDateStr || undefined).subscribe(data => {
-    this.totalSummary=this.updateSummaryWithAccountName(data);
+    this.entryService.getTaxSummary(userId, this.financialYear, 3, fromDateStr || undefined, toDateStr || undefined).subscribe(data => {
+      this.totalSummary = this.updateSummaryWithAccountName(data);
     });
   }
+
   updateSummaryWithAccountName(data: any[]): any[] {
     data.forEach(entry => {
-      entry.category_account_name= this.taxAccountMap.get(entry.category_account_id) || '';
+      entry.category_account_name = this.taxAccountMap.get(entry.category_account_id) || '';
     });
     return data;
   }
+
   fetchEntries(): void {
     const userId = this.storageService.getUser().id;
     console.log(this.taxAccountMap);
     const fromDateStr = this.datePipe.transform(this.fromDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format
     const toDateStr = this.datePipe.transform(this.toDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format  
-    this.entryService.getEntriesByUserIdAndFinancialYearAndType(userId, this.financialYear, 3, this.nextStartRow, this.pageSize,fromDateStr || undefined,toDateStr || undefined).subscribe(data => {
-        const entries = this.updateEntriesWithDynamicFields(data.entries);
-        this.groupedEntries = this.groupEntriesByInvoiceSeqId(entries);
-        this.pageSummary=this.summaryService.calculatePageSummary(this.groupedEntries);
-        console.log(this.pageSummary);
-        console.log(this.groupedEntries);
+    this.entryService.getEntriesByUserIdAndFinancialYearAndType(userId, this.financialYear, 3, this.nextStartRow, this.pageSize, fromDateStr || undefined, toDateStr || undefined).subscribe(data => {
+      const entries = this.updateEntriesWithDynamicFields(data.entries);
+      this.groupedEntries = this.groupEntriesByInvoiceSeqId(entries);
+      this.pageSummary = this.summaryService.calculatePageSummary(this.groupedEntries);
+      console.log(this.pageSummary);
+      console.log(this.groupedEntries);
       this.hasMore = data.hasMore;
       this.nextStartRow = data.nextStartRow;
       this.cache.set(this.currentPage, {
@@ -180,19 +188,20 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
       });
     });
   }
-    getDataRange(group: any[]): { start: number, end: number } {
-      if (group.length === 0) {
-        return { start: 0, end: 0 };
-      }
-  
-      const start = new Date(group[0].entry_date).getTime();
-      const end = new Date(group[group.length - 1].entry_date).getTime();
-      return { start, end };
+
+  getDataRange(group: any[]): { start: number, end: number } {
+    if (group.length === 0) {
+      return { start: 0, end: 0 };
     }
+
+    const start = new Date(group[0].entry_date).getTime();
+    const end = new Date(group[group.length - 1].entry_date).getTime();
+    return { start, end };
+  }
 
   groupEntriesByInvoiceSeqId(entries: any[]): any[] {
     const groupedEntries: { [key: string]: any } = {};
-    
+
     // Group entries by invoice number
     entries.forEach(entry => {
       const invoice_seq_id = entry.invoice_seq_id;
@@ -200,7 +209,7 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
         groupedEntries[invoice_seq_id] = {
           invoiceNumber: entry.invoiceNumber,
           invoice_seq_id: invoice_seq_id,
-          sNo:entry.sNo,
+          sNo: entry.sNo,
           entry_date: entry.entry_date,
           account_id: entry.account_id,
           customerName: entry.account_name,
@@ -214,12 +223,12 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
       groupedEntries[invoice_seq_id].groupTotalAmount += Number(entry.total_amount);
       groupedEntries[invoice_seq_id].entries.push(entry);
     });
-  
+
     // Convert groupedEntries to an array and sort by saleDate in ascending order
     return Object.values(groupedEntries).sort((a, b) => new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime());
   }
 
-    onNextPage() {
+  onNextPage() {
     const userId = this.storageService.getUser().id;
     if (this.cache.has(this.currentPage + 1) || this.hasMore) {
       this.currentPage += 1;
@@ -239,15 +248,15 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
     if (this.cache.has(this.currentPage)) {
       // Use cached data if available
       this.groupedEntries = this.cache.get(this.currentPage)?.data || []; // Provide default empty array if data is not present
-      this.pageSummary=this.summaryService.calculatePageSummary(this.groupedEntries);
+      this.pageSummary = this.summaryService.calculatePageSummary(this.groupedEntries);
     } else {
       const fromDateStr = this.datePipe.transform(this.fromDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format
       const toDateStr = this.datePipe.transform(this.toDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format  
       // Fetch from the backend if not in cache
-      this.entryService.getEntriesByUserIdAndFinancialYearAndType(userId, this.financialYear, 3, this.nextStartRow, this.pageSize,fromDateStr || undefined,toDateStr || undefined).subscribe(data => {
+      this.entryService.getEntriesByUserIdAndFinancialYearAndType(userId, this.financialYear, 3, this.nextStartRow, this.pageSize, fromDateStr || undefined, toDateStr || undefined).subscribe(data => {
         const entries = this.updateEntriesWithDynamicFields(data.entries);
         this.groupedEntries = this.groupEntriesByInvoiceSeqId(entries);
-        this.pageSummary=this.summaryService.calculatePageSummary(this.groupedEntries);
+        this.pageSummary = this.summaryService.calculatePageSummary(this.groupedEntries);
         console.log(this.pageSummary);
         console.log(this.groupedEntries);
         this.hasMore = data.hasMore;
@@ -305,7 +314,7 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
       this.accountService.getAccountsByUserIdAndFinancialYear(userId, this.financialYear, ['Sundry Creditors', 'Sundry Debtors']).subscribe((accounts: any[]) => {
         accounts.forEach(account => {
           this.accountMap[account.id] = account.name;
-          this.gstNoMap[account.id]=account.gst_no;
+          this.gstNoMap[account.id] = account.gst_no;
         });
         resolve();
       });
@@ -328,9 +337,9 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
     return new Promise((resolve) => {
       const userId = this.storageService.getUser().id;
       this.accountService.getAccountsByUserIdAndFinancialYear(userId, this.financialYear, ['Purchase Return Account']).subscribe((accounts: any[]) => {
-          accounts.forEach(account => {
-            this.taxAccountMap.set(account.id, account.name);
-          });
+        accounts.forEach(account => {
+          this.taxAccountMap.set(account.id, account.name);
+        });
         resolve();
       });
     });
@@ -347,6 +356,7 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
       });
     });
   }
+
   fetchFields(): Promise<void> {
     return new Promise((resolve) => {
       const userId = this.storageService.getUser().id;
@@ -361,36 +371,38 @@ export class PurchaseReturnComponent implements OnInit,OnDestroy {
 
   fetchDynamicFields(): Promise<void> {
     return new Promise((resolve) => {
-    const userId = this.storageService.getUser().id;
-    this.fieldMappingService.getFieldMappingsByUserIdAndFinancialYear(userId, this.financialYear).subscribe((data: any[]) => {
-      data.forEach(field => {
-        this.fieldMapping[this.createCompositeKey(field.category_id,field.field_id)] = field;
+      const userId = this.storageService.getUser().id;
+      this.fieldMappingService.getFieldMappingsByUserIdAndFinancialYear(userId, this.financialYear).subscribe((data: any[]) => {
+        data.forEach(field => {
+          this.fieldMapping[this.createCompositeKey(field.category_id, field.field_id)] = field;
+        });
+        resolve();
       });
-      resolve();
     });
-  });
-}
- createCompositeKey(key1: number, key2: number): string {
-  return `${key1}-${key2}`;
-}
-updateEntriesWithDynamicFields(data: any[]): any[] {
-  data.forEach(entry => {
-    entry.category_name = this.categoryMap[entry.category_id];
-    entry.account_name = this.accountMap[entry.account_id];
-    entry.item_name = this.itemMap[entry.item_id];
-    entry.unit_name = this.unitMap[entry.unit_id];
-    entry.category_account_name= this.taxAccountMap.get(entry.category_account_id) || '';
-    entry.gstNo=this.gstNoMap[entry.account_id] || '';
-    entry.fields.forEach((field:any) => {
-      field.field_name=this.fieldMap[field.field_id]
-      const fieldMapping = this.fieldMapping[this.createCompositeKey(entry.category_id,field.field_id)]
-      field.field_category=fieldMapping.field_category
-      field.tax_account_id=fieldMapping.account_id
+  }
+
+  createCompositeKey(key1: number, key2: number): string {
+    return `${key1}-${key2}`;
+  }
+
+  updateEntriesWithDynamicFields(data: any[]): any[] {
+    data.forEach(entry => {
+      entry.category_name = this.categoryMap[entry.category_id];
+      entry.account_name = this.accountMap[entry.account_id];
+      entry.item_name = this.itemMap[entry.item_id];
+      entry.unit_name = this.unitMap[entry.unit_id];
+      entry.category_account_name = this.taxAccountMap.get(entry.category_account_id) || '';
+      entry.gstNo = this.gstNoMap[entry.account_id] || '';
+      entry.fields.forEach((field: any) => {
+        field.field_name = this.fieldMap[field.field_id]
+        const fieldMapping = this.fieldMapping[this.createCompositeKey(entry.category_id, field.field_id)]
+        field.field_category = fieldMapping.field_category
+        field.tax_account_id = fieldMapping.account_id
+      });
+      entry.dynamicFields = entry.fields;
     });
-    entry.dynamicFields = entry.fields;
-  });
-  return data;
-}
+    return data;
+  }
 
   // Function to find a node by its name
   findNodeByName(node: GroupNode, name: string): GroupNode | null {
@@ -456,6 +468,7 @@ updateEntriesWithDynamicFields(data: any[]): any[] {
       });
     });
   }
+
   fetchAccounts(accountIds: number[]): void {
     this.accountService.getAccountsByUserIdAndFinancialYear(this.storageService.getUser().id, this.financialYear).subscribe((accounts: Account[]) => {
       const filteredAccounts = accounts.filter(account => accountIds.includes(account.id));
@@ -474,12 +487,13 @@ updateEntriesWithDynamicFields(data: any[]): any[] {
       }
     });
   }
+
   performAction(action: string, data: any): void {
     if (action === 'add') {
-     this.openAddEntryDialog();
+      this.openAddEntryDialog();
       console.log('Adding:', data);
     } else if (action === 'edit') {
-     this.openEditGroupDialog(data);
+      this.openEditGroupDialog(data);
       console.log('Editing:', data);
     } else if (action === 'delete') {
       this.deleteGroup(data);
@@ -493,7 +507,11 @@ updateEntriesWithDynamicFields(data: any[]): any[] {
       data: { userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 3 }
     });
 
-    dialogRef.afterClosed().subscribe();
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.handleInsert(result);
+      }
+    });
   }
 
   openEditGroupDialog(group: any): void {
@@ -502,15 +520,23 @@ updateEntriesWithDynamicFields(data: any[]): any[] {
       data: { group, userId: this.storageService.getUser().id, financialYear: this.financialYear, type: 3 }
     });
 
-    dialogRef.afterClosed().subscribe();
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.handleUpdate(result);
+      }
+    });
   }
 
   deleteGroup(invoice_seq_id: number): void {
-    this.entryService.deleteEntries(invoice_seq_id,3).subscribe();
+    this.entryService.deleteEntries(invoice_seq_id, 3).subscribe((result) => {
+      if (result) {
+        this.handleDelete(result);
+      }
+    });
   }
 
-   // Methods to call the dialog with different actions
-   addEntry(): void {
+  // Methods to call the dialog with different actions
+  addEntry(): void {
     this.openConfirmationDialog('add', null);
   }
 
@@ -525,6 +551,7 @@ updateEntriesWithDynamicFields(data: any[]): any[] {
   expand(entry: any): void {
     this.expandedRows[entry.id] = !this.expandedRows[entry.id];
   }
+
   openSummaryDialog(): void {
     this.dialog.open(SummaryDialogComponent, {
       width: '90%',
@@ -534,6 +561,7 @@ updateEntriesWithDynamicFields(data: any[]): any[] {
       },
     });
   }
+
   subscribeToWebSocketEvents(): void {
     console.log("hello");
     const currentUserId = this.storageService.getUser().id;
@@ -542,20 +570,20 @@ updateEntriesWithDynamicFields(data: any[]): any[] {
     const handleEvent = (data: any, action: 'INSERT' | 'UPDATE' | 'DELETE') => {
       console.log(`Handling event: ${action}`, data);
       const entryDate = new Date(data.journal_date).getTime(); // Convert journal_date to timestamp for comparison
-      const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(),this.fromDate.getMonth(),this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
-      const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(),this.toDate.getMonth(),this.toDate.getDate())).getTime(): null; // Convert toDate to timestamp
+      const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(), this.fromDate.getMonth(), this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
+      const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(), this.toDate.getMonth(), this.toDate.getDate())).getTime() : null; // Convert toDate to timestamp
       if (data.entryType === 'entry' && data.data.group.type === 3 && data.user_id === currentUserId && data.financial_year === currentFinancialYear &&
         (!fromDateTimestamp || entryDate >= fromDateTimestamp) && // Check if entryDate is on or after fromDate
         (!toDateTimestamp || entryDate <= toDateTimestamp)) {
         switch (action) {
           case 'INSERT':
-            handleInsert(data);
+            this.handleInsert(data);
             break;
           case 'UPDATE':
-            handleUpdate(data);
+            this.handleUpdate(data);
             break;
           case 'DELETE':
-            handleDelete(data);
+            this.handleDelete(data);
             break;
         }
       }
@@ -565,191 +593,206 @@ updateEntriesWithDynamicFields(data: any[]): any[] {
     // this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
     // this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
 
+  }
 
-    const updateCache = (page: EntryCachedPage, action: 'INSERT' | 'UPDATE' | 'DELETE', group: any) => {
-      switch (action) {
-        case 'INSERT':
-          page.data.push(group);
-          page.data.sort((a, b) => new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime());
+  updateCache(page: EntryCachedPage, action: 'INSERT' | 'UPDATE' | 'DELETE', group: any): void {
+    switch (action) {
+      case 'INSERT':
+        page.data.push(group);
+        page.data.sort((a, b) => new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime());
+        if (this.hasMore) {
+          this.nextStartRow += group.entries?.length || 0;
+        }
+        break;
+      case 'UPDATE':
+        const updateIndex = page.data.findIndex(e => e.invoice_seq_id === group.invoice_seq_id);
+        console.log(updateIndex);
+        console.log(page.data[updateIndex]);
+        console.log(group);
+        if (updateIndex !== -1) {
           if (this.hasMore) {
+            this.nextStartRow -= page.data[updateIndex].entries?.length || 0;
             this.nextStartRow += group.entries?.length || 0;
           }
-          break;
-        case 'UPDATE':
-          const updateIndex = page.data.findIndex(e => e.invoice_seq_id === group.invoice_seq_id);
-          console.log(updateIndex);
-          console.log(page.data[updateIndex]);
-          console.log(group);
-          if (updateIndex !== -1) {
-            if (this.hasMore) {
-              this.nextStartRow -= page.data[updateIndex].entries?.length || 0;
-              this.nextStartRow += group.entries?.length || 0;
-            }
-            page.data[updateIndex] = { ...page.data[updateIndex], ...group };
+          page.data[updateIndex] = { ...page.data[updateIndex], ...group };
+          page.data.sort((a, b) => new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime());
+        }
+        break;
+      case 'DELETE':
+        const deleteIndex = page.data.findIndex(e => e.invoice_seq_id === group.invoice_seq_id);
+        if (deleteIndex !== -1) {
+          page.data.splice(deleteIndex, 1);
+          if (this.hasMore) {
+            this.nextStartRow -= group.entries?.length || 0;
           }
-          break;
-        case 'DELETE':
-          const deleteIndex = page.data.findIndex(e => e.invoice_seq_id === group.invoice_seq_id);
-          if (deleteIndex !== -1) {
-            page.data.splice(deleteIndex, 1);
-            if (this.hasMore) {
-              this.nextStartRow -= group.entries?.length || 0;
-            }
-          }
-          break;
-      }
-    };
+        }
+        break;
+    }
+  };
 
-    const handleInsert = (data: any) => {
-      // Extract items based on the entry 
-      let group: any;
+  handleInsert(data: any): void {
+    // Extract items based on the entry 
+    let group: any;
 
-      
-      data.data.entries.forEach((entry: any) => {
 
-        const convertedObjectInsert = {
-          ...entry,
-          category_name: [this.categoryMap[entry.category_id]],
-          item_name: this.itemMap[entry.item_id],
-          unit_name: this.unitMap[entry.unit_id],
-          category_account_name: this.taxAccountMap.get(entry.category_account_id) || ''
+    data.data.entries.forEach((entry: any) => {
+
+      const convertedObjectInsert = {
+        ...entry,
+        category_name: [this.categoryMap[entry.category_id]],
+        item_name: this.itemMap[entry.item_id],
+        unit_name: this.unitMap[entry.unit_id],
+        category_account_name: this.taxAccountMap.get(entry.category_account_id) || ''
+      };
+
+      // Check if the invoice number already exists
+      if (!group) {
+        group = {
+          invoiceNumber: entry.invoiceNumber,
+          invoice_seq_id: entry.invoice_seq_id,
+          entry_date: entry.entry_date,
+          sNo: entry.sNo,
+          customerName: this.accountMap[entry.account_id],
+          gstNo: this.gstNoMap[entry.account_id] || '',
+          account_id: entry.account_id,
+          groupEntryValue: 0,
+          groupTotalAmount: 0,
+          entries: []
         };
-
-        // Check if the invoice number already exists
-        if (!group) {
-          group = {
-            invoiceNumber: entry.invoiceNumber,
-            invoice_seq_id: entry.invoice_seq_id,
-            entry_date: entry.entry_date,
-            sNo:entry.sNo,
-            customerName: this.accountMap[entry.account_id],
-            gstNo:this.gstNoMap[entry.account_id] || '',
-            account_id: entry.account_id,
-            groupEntryValue: 0,
-            groupTotalAmount: 0,
-            entries: []
-          };
-        }
-        group.groupEntryValue += Number(entry.value);
-        group.groupTotalAmount += Number(entry.total_amount);
-        group.entries.push(convertedObjectInsert);
-      });  
-   
-       console.log(this.cache.entries())
-      // Update cache if the date range fits within existing pages
-      for (const [pageNumber, page] of this.cache.entries()) {
-        console.log(pageNumber);
-        console.log(page);
-        if (
-          (new Date(group.entry_date).getTime() >= page.dataRange.start &&
-          new Date(group.entry_date).getTime() <= page.dataRange.end) || (page.data.length < this.pageSize && !this.cache.has(pageNumber+1))
-        ) {
-          updateCache(page, 'INSERT', group);
-          if (Number(pageNumber) === this.currentPage) {  // Convert pageNumber to a number before comparison
-            this.groupedEntries = page.data;
-          }
-          return;
-        }
       }
+      group.groupEntryValue += Number(entry.value);
+      group.groupTotalAmount += Number(entry.total_amount);
+      group.entries.push(convertedObjectInsert);
+    });
 
-      // Handle new page creation for future-dated records
-      if (!this.hasMore) {
-        const keys = Array.from(this.cache.keys());
-        const lastPage = keys.length ? Math.max(...keys) : 0; // Default to 1 if empty
-      
-        const lastPageEntry = this.cache.get(lastPage);
-        if (lastPage === 0  || (lastPageEntry && new Date(group.entry_date).getTime() > lastPageEntry.dataRange.end)) {
-          this.cache.set(lastPage + 1, {
-            data: [group],
-            dataRange: {
-              start: new Date(group.entry_date).getTime(),
-              end: new Date(group.entry_date).getTime()
-            }
+    console.log(this.cache.entries())
+    // Update cache if the date range fits within existing pages
+    for (const [pageNumber, page] of this.cache.entries()) {
+      console.log(pageNumber);
+      console.log(page);
+      if (
+        (new Date(group.entry_date).getTime() >= page.dataRange.start &&
+          new Date(group.entry_date).getTime() <= page.dataRange.end) || (page.data.length < this.pageSize && !this.cache.has(pageNumber + 1))
+      ) {
+        this.updateCache(page, 'INSERT', group);
+        if (Number(pageNumber) === this.currentPage) {  // Convert pageNumber to a number before comparison
+          this.groupedEntries = page.data;
+        }
+        if (!(new Date(group.entry_date).getTime() >= page.dataRange.start &&
+          new Date(group.entry_date).getTime() <= page.dataRange.end)) {
+          this.cache.set(pageNumber, {
+            dataRange: this.getDataRange(page.data), // Calculate data range based on entries
+            data: page.data
           });
-          if(lastPage === 0)
-            this.groupedEntries.push(group);
         }
+        return;
       }
+    }
 
-      // If the entry doesn't fit in any existing pages, handle new page creation logic here
-      console.log('Inserted data:', this.groupedEntries);
-    };
+    // Handle new page creation for future-dated records
+    if (!this.hasMore) {
+      const keys = Array.from(this.cache.keys());
+      const lastPage = keys.length ? Math.max(...keys) : 0; // Default to 1 if empty
 
-    const handleUpdate = (data: any) => {
-      console.log('Processing UPDATE event');
-      // Filter items based on accountId or groupId
+      const lastPageEntry = this.cache.get(lastPage);
+      if (lastPage === 0 || (lastPageEntry && new Date(group.entry_date).getTime() > lastPageEntry.dataRange.end)) {
+        this.cache.set(lastPage + 1, {
+          data: [group],
+          dataRange: {
+            start: new Date(group.entry_date).getTime(),
+            end: new Date(group.entry_date).getTime()
+          }
+        });
+        if (lastPage === 0)
+          this.groupedEntries.push(group);
+      }
+    }
 
-      let group:any;
-      
-      data.data.entries.forEach((entry: any) => {
+    // If the entry doesn't fit in any existing pages, handle new page creation logic here
+    console.log('Inserted data:', this.groupedEntries);
+  };
 
-        const convertedObjectUpdate = {
-          ...entry,
-          category_name: [this.categoryMap[entry.category_id]],
-          item_name: this.itemMap[entry.item_id],
-          unit_name: this.unitMap[entry.unit_id],
-          category_account_name: this.taxAccountMap.get(entry.category_account_id) || ''
+  handleUpdate(data: any): void {
+    console.log('Processing UPDATE event');
+    // Filter items based on accountId or groupId
+
+    let group: any;
+
+    data.data.entries.forEach((entry: any) => {
+
+      const convertedObjectUpdate = {
+        ...entry,
+        category_name: [this.categoryMap[entry.category_id]],
+        item_name: this.itemMap[entry.item_id],
+        unit_name: this.unitMap[entry.unit_id],
+        category_account_name: this.taxAccountMap.get(entry.category_account_id) || ''
+      };
+
+      // Check if the invoice number already exists
+      if (!group) {
+        group = {
+          invoiceNumber: entry.invoiceNumber,
+          invoice_seq_id: data.data.invoice_seq_id,
+          entry_date: entry.entry_date,
+          sNo: entry.sNo,
+          customerName: this.accountMap[entry.account_id],
+          gstNo: this.gstNoMap[entry.account_id] || '',
+          account_id: entry.account_id,
+          groupEntryValue: 0,
+          groupTotalAmount: 0,
+          entries: []
         };
+      }
+      group.groupEntryValue += Number(entry.value);
+      group.groupTotalAmount += Number(entry.total_amount);
+      group.entries.push(convertedObjectUpdate);
+    });
+    console.log('Updated data:', group);
 
-        // Check if the invoice number already exists
-        if (!group) {
-          group = {
-            invoiceNumber: entry.invoiceNumber,
-            invoice_seq_id:data.data.invoice_seq_id,
-            entry_date: entry.entry_date,
-            sNo:entry.sNo,
-            customerName: this.accountMap[entry.account_id],
-            gstNo:this.gstNoMap[entry.account_id] || '',
-            account_id: entry.account_id,
-            groupEntryValue: 0,
-            groupTotalAmount: 0,
-            entries: []
-          };
-        }
-        group.groupEntryValue += Number(entry.value);
-        group.groupTotalAmount += Number(entry.total_amount);
-        group.entries.push(convertedObjectUpdate);
-      });
-        console.log('Updated data:', group);
-
-      for (const [pageNumber, page] of this.cache.entries()) {
-        if ((new Date(group.entry_date).getTime() >= page.dataRange.start
+    for (const [pageNumber, page] of this.cache.entries()) {
+      if ((new Date(group.entry_date).getTime() >= page.dataRange.start
         && new Date(group.entry_date).getTime() <= page.dataRange.end && page.data.some((entry: any) => entry.invoice_seq_id === group.invoice_seq_id)) || (page.data.length < this.pageSize && page.data.some((entry: any) => entry.invoice_seq_id === group.invoice_seq_id))) {
 
-          updateCache(page, 'UPDATE', group);
-          if (Number(pageNumber) === this.currentPage) {  // Convert pageNumber to a number before comparison
-            this.groupedEntries = page.data;
-          }
-          return;
+        this.updateCache(page, 'UPDATE', group);
+        if (Number(pageNumber) === this.currentPage) {  // Convert pageNumber to a number before comparison
+          this.groupedEntries = page.data;
         }
-      }
-
-      // If the entry doesn't fit in any existing pages, handle new page creation logic here
-      console.log('Updated data:', this.groupedEntries);
-    };
-
-    const handleDelete = (data: any) => {
-      console.log('Processing DELETE event');
-      const invoice_seq_id =  data.data.group.invoice_seq_id;
-      const entry_date =  data.data.group.journal_date;
-      console.log(invoice_seq_id);
-      console.log(entry_date);
-
-      for (const [pageNumber, page] of this.cache.entries()) {
-        if (new Date(entry_date).getTime() >= page.dataRange.start
-          && new Date(entry_date).getTime() <= page.dataRange.end && page.data.some((entry: any) => entry.invoice_seq_id === invoice_seq_id)) {
-            console.log(pageNumber);
-            console.log(page);
-          updateCache(page, 'DELETE', { invoice_seq_id: invoice_seq_id });
-          if (Number(pageNumber) === this.currentPage) {  // Convert pageNumber to a number before comparison
-            this.groupedEntries = page.data;
-          }
-          return;
+        if (!(new Date(group.entry_date).getTime() >= page.dataRange.start &&
+          new Date(group.entry_date).getTime() <= page.dataRange.end)) {
+          this.cache.set(pageNumber, {
+            dataRange: this.getDataRange(page.data), // Calculate data range based on entries
+            data: page.data
+          });
         }
+        return;
       }
+    }
 
-      // If the entry doesn't fit in any existing pages, handle new page creation logic here
-      console.log('Deleted data:', this.groupedEntries);
-    };
-  }
+    // If the entry doesn't fit in any existing pages, handle new page creation logic here
+    console.log('Updated data:', this.groupedEntries);
+  };
+
+  handleDelete(data: any): void {
+    console.log('Processing DELETE event');
+    const invoice_seq_id = data.data.group.invoice_seq_id;
+    const entry_date = data.data.group.journal_date;
+    console.log(invoice_seq_id);
+    console.log(entry_date);
+
+    for (const [pageNumber, page] of this.cache.entries()) {
+      if (new Date(entry_date).getTime() >= page.dataRange.start
+        && new Date(entry_date).getTime() <= page.dataRange.end && page.data.some((entry: any) => entry.invoice_seq_id === invoice_seq_id)) {
+        console.log(pageNumber);
+        console.log(page);
+        this.updateCache(page, 'DELETE', { invoice_seq_id: invoice_seq_id });
+        if (Number(pageNumber) === this.currentPage) {  // Convert pageNumber to a number before comparison
+          this.groupedEntries = page.data;
+        }
+        return;
+      }
+    }
+
+    // If the entry doesn't fit in any existing pages, handle new page creation logic here
+    console.log('Deleted data:', this.groupedEntries);
+  };
 }
