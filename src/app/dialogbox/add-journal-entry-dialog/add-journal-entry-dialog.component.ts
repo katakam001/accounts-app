@@ -15,6 +15,10 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { SupplierFilterPipe } from '../../pipe/supplier-filter.pipe';
 import { GroupFilterPipe } from '../../pipe/group-filter.pipe';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { JournalService } from '../../services/journal.service';
+import { minArrayLengthValidator } from '../../validators';
+import { notZeroValidator } from '../../validators';
+import { exclusiveAmountValidator } from '../../validators';
 
 @Component({
   selector: 'app-add-journal-entry-dialog',
@@ -32,6 +36,7 @@ export class AddJournalEntryDialogComponent implements OnInit {
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<AddJournalEntryDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: string,
+    private journalService: JournalService,
     private accountService: AccountService,
     private groupService: GroupService,
     private datePipe: DatePipe, // Inject DatePipe
@@ -45,7 +50,7 @@ export class AddJournalEntryDialogComponent implements OnInit {
       user_id: [this.storageService.getUser().id],
       user_name: [this.storageService.getUser().username],
       financial_year: [this.data],
-      items: this.fb.array([this.createItem()])
+      items: this.fb.array([this.createItem()], [minArrayLengthValidator(2)])
     });
     this.fetchAccountList();
     this.fetchGroupList();
@@ -55,12 +60,12 @@ export class AddJournalEntryDialogComponent implements OnInit {
     return this.fb.group({
       account_name: ['', Validators.required],
       group_name: ['', Validators.required],
-      account_id: [0],
-      group_id: [0],
+      account_id: [0, [Validators.required, notZeroValidator]],
+      group_id: [0, [Validators.required, notZeroValidator]],
       debit_amount: [0, Validators.required],
       credit_amount: [0, Validators.required],
       narration: ['', Validators.required]
-    });
+    }, { validators: exclusiveAmountValidator });
   }
 
   dateFilter = (date: Date | null): boolean => {
@@ -92,7 +97,7 @@ export class AddJournalEntryDialogComponent implements OnInit {
         id: account.id,
         name: account.name,
         group_id: account.group.id,
-        group_name: account.group.name 
+        group_name: account.group.name
       }));
     });
   }
@@ -139,34 +144,64 @@ export class AddJournalEntryDialogComponent implements OnInit {
     return this.items.controls.reduce((sum, control) => sum + Number(control.value.credit_amount || 0), 0);
   }
 
-  onSave(): void {
-    if (this.totalDebit !== this.totalCredit) {
-      this.snackBar.open('Total Debit and Credit must be equal to save the entry.', 'Close', {
-        duration: 3000,
-        panelClass: ['snackbar-error']
-      });
-      return;
+  identifyInvalidFields(form: FormGroup | FormArray): void {
+    if (form instanceof FormGroup || form instanceof FormArray) {
+      if (form.errors) {
+        console.log(`Group-level error: ${JSON.stringify(form.errors)}`);
+      }
     }
-    const items = this.items.controls.map((control: AbstractControl) => {
-      const itemGroup = control as FormGroup;
-      const debitAmount = itemGroup.value.debit_amount;
-      const creditAmount = itemGroup.value.credit_amount;
-      const type = creditAmount > 0;
-      const amount = type ? creditAmount : debitAmount;
+    Object.keys(form.controls).forEach(field => {
+      const control = form.get(field);
+      if (control instanceof FormControl) {
+        if (control.invalid) {
+          console.log(`Invalid Field: ${field}, Error: ${JSON.stringify(control.errors)}`);
+        }
+      } else if (control instanceof FormGroup || control instanceof FormArray) {
+        if (control.invalid) {
+          console.log(`Invalid Group/Array: ${field}, Error: ${JSON.stringify(control.errors)}`);
+        }
+        this.identifyInvalidFields(control); // recurse into children
+      }
+    });
+  }
 
-      return {
-        ...itemGroup.value,
-        type,
-        amount
+  onSave(): void {
+    if (this.addJournalEntryForm.valid) {
+      if (this.totalDebit !== this.totalCredit) {
+        this.snackBar.open('Total Debit and Credit must be equal to save the entry.', 'Close', {
+          duration: 3000,
+          panelClass: ['snackbar-error']
+        });
+        return;
+      }
+      const items = this.items.controls.map((control: AbstractControl) => {
+        const itemGroup = control as FormGroup;
+        const debitAmount = itemGroup.value.debit_amount;
+        const creditAmount = itemGroup.value.credit_amount;
+        const type = creditAmount > 0;
+        const amount = type ? creditAmount : debitAmount;
+
+        return {
+          ...itemGroup.value,
+          type,
+          amount
+        };
+      });
+      const journalEntry = {
+        ...this.addJournalEntryForm.value,
+        journal_date: this.datePipe.transform(this.addJournalEntryForm.get('journal_date')?.value, 'yyyy-MM-dd', 'en-IN') // Transform the date
       };
-    });
-    const journalEntry = {
-      ...this.addJournalEntryForm.value,
-      journal_date: this.datePipe.transform(this.addJournalEntryForm.get('journal_date')?.value, 'yyyy-MM-dd', 'en-IN') // Transform the date
-    };
-    this.dialogRef.close({
-      ...journalEntry,
-      items
-    });
+      this.journalService.addJournalEntry({
+        ...journalEntry,
+        items
+      }).subscribe((response) => {
+        this.dialogRef.close(response);
+      });
+    } else {
+      this.identifyInvalidFields(this.addJournalEntryForm);
+      this.snackBar.open('Please fill all required fields.', 'Close', {
+        duration: 3000,
+      });
+    }
   }
 }
