@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { AccountService } from '../../services/account.service';
 import { StorageService } from '../../services/storage.service';
@@ -12,6 +12,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { CashEntry } from '../../models/cash-entry.interface';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { SupplierFilterPipe } from '../../pipe/supplier-filter.pipe';
+import { notZeroValidator } from '../..//validators';
+import { exclusiveCashAmountValidator } from '../../validators';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-edit-cash-book-dialog',
@@ -35,6 +38,7 @@ export class EditCashBookDialogComponent implements OnInit {
     private accountService: AccountService,
     private datePipe: DatePipe,
     private storageService: StorageService,
+    private snackBar: MatSnackBar,
     private cashEntriesService: CashEntriesService
   ) {
     this.initializeForm(); // Initialize the form with default values
@@ -52,20 +56,20 @@ export class EditCashBookDialogComponent implements OnInit {
   initializeForm(): void {
     this.cashBookForm = this.fb.group({
       id: [null, Validators.required],
-      unique_entry_id: [null, Validators.required],
+      unique_entry_id: [null, [Validators.required, notZeroValidator]],
       cash_entry_date: [null, Validators.required],
-      account_id: [null, Validators.required],
-      group_id: [null, Validators.required],
+      account_id: [null, [Validators.required, notZeroValidator]],
+      group_id: [null, [Validators.required, notZeroValidator]],
       account_name: [null, Validators.required],
       narration: [null, Validators.required],
       narration_description: [{ value: null, disabled: !this.isCustomNarration }, Validators.required],
       cash_debit: [null, Validators.required],
       cash_credit: [null, Validators.required],
-      amount: [null, Validators.required],
+      amount: [null, [Validators.required, notZeroValidator]],
       type: [null, Validators.required],
-      cash_account_id: [0], // New field
-      cash_group_id: [0]    // New field
-    });
+      cash_account_id: [0, [Validators.required, notZeroValidator]], // New field
+      cash_group_id: [0, [Validators.required, notZeroValidator]]    // New field
+    }, { validators: exclusiveCashAmountValidator });
   }
 
   patchFormValues(entry: CashEntry): void {
@@ -177,6 +181,27 @@ export class EditCashBookDialogComponent implements OnInit {
     console.log(this.runningBalance);
   }
 
+  identifyInvalidFields(form: FormGroup | FormArray): void {
+    if (form.errors) {
+      console.log(`Group-level error: ${JSON.stringify(form.errors)}`);
+    }
+
+    Object.keys(form.controls).forEach(field => {
+      const control = form.get(field);
+      if (control instanceof FormControl) {
+        if (control.invalid) {
+          console.log(`Invalid Field: ${field}, Error: ${JSON.stringify(control.errors)}`);
+        }
+      } else if (control instanceof FormGroup || control instanceof FormArray) {
+        if (control.errors) {
+          console.log(`Invalid Group/Array: ${field}, Error: ${JSON.stringify(control.errors)}`);
+        }
+        this.identifyInvalidFields(control); // recurse into children
+      }
+    });
+  }
+
+
   onSave(): void {
     this.cashBookForm.controls['narration_description'].enable();
     if (this.cashBookForm.valid) {
@@ -185,9 +210,19 @@ export class EditCashBookDialogComponent implements OnInit {
         amount: this.cashBookForm.get('cash_debit')?.value > 0 ? this.cashBookForm.get('cash_debit')?.value : this.cashBookForm.get('cash_credit')?.value,
         user_id: this.storageService.getUser().id,
         financial_year: this.data.financialYear,
+        type: this.cashBookForm.get('cash_debit')?.value > 0 ? false : true,
         cash_entry_date: this.datePipe.transform(this.cashBookForm.get('cash_entry_date')?.value, 'yyyy-MM-dd', 'en-IN') // Transform the date
       };
-      this.dialogRef.close(cashEntry);
+
+      this.cashEntriesService.updateCashEntry(cashEntry.unique_entry_id, cashEntry).subscribe((response) => {
+        this.dialogRef.close(response);
+      });
+    } else {
+      this.identifyInvalidFields(this.cashBookForm);
+      this.cashBookForm.controls['narration_description'].disable();
+      this.snackBar.open('Please fill all required fields.', 'Close', {
+        duration: 3000,
+      });
     }
   }
 

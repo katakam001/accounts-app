@@ -27,6 +27,11 @@ export class CashEntriesService {
     return this.http.post<CashEntry>(this.apiUrl, cashEntry);
   }
 
+  addBulkCashEntries(payload: any): Observable<any> {
+    const url = `${this.apiUrl}/bulk`;
+    return this.http.post<any>(url, payload);
+  }
+
   updateCashEntry(id: string, cashEntry: CashEntry): Observable<CashEntry> {
     return this.http.put<CashEntry>(`${this.apiUrl}/${id}`, cashEntry);
   }

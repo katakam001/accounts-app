@@ -3,35 +3,37 @@
   flex-direction: column;
 }
 
-.form-row {
+.entries-section {
+  margin-top: 16px;
+}
+
+.entry-group {
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.dialog-actions {
+  margin-top: 16px;
+}
+
+.mat-form-field {
+  display: block;
+}
+
+mat-dialog-actions {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
+  justify-content: flex-end;
 }
 
-.form-field {
-  flex: 1;
-  margin-right: 10px;
-}
-
-.form-field:last-child {
-  margin-right: 0;
-}
-
-.full-width {
-  width: 100%;
-}
-
-.responsive-row {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap; /* Allow wrapping for small screens */
-}
-
-.responsive-field {
-  flex: 1;
-  min-width: 200px; /* Set a minimum width for Cash Debit, Cash Credit, and Running Balance */
-  max-width: 300px; /* Set a maximum width */
+.remove-button {
+  margin-left: 10px;
+  background-color: #ff5252;
+  color: white;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
 }
 
 .running-balance {
@@ -43,32 +45,41 @@
   overflow: hidden; /* Handle overflow by hiding text */
 }
 
+.add-entry-button {
+  align-self: flex-start;
+  margin-top: 10px;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 20px;
+  padding: 10px 20px;
+  transition: background-color 0.3s ease;
+}
+
+.add-entry-button:hover {
+  background-color: #388e3c;
+}
+
 .cancel-button {
   background-color: #f44336;
   color: white;
-  font-size: 16px;
-  padding: 12px 24px;
-  border-radius: 25px;
   margin-right: 10px;
-  transition: background-color 0.3s, box-shadow 0.3s;
+  border-radius: 20px;
+  padding: 10px 20px;
+  transition: background-color 0.3s ease;
 }
 
 .cancel-button:hover {
   background-color: #d32f2f;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .save-button {
-  background-color: #4caf50;
+  background-color: #2196f3;
   color: white;
-  font-size: 16px;
-  padding: 12px 24px;
-  border-radius: 25px;
-  margin-left: 10px;
-  transition: background-color 0.3s, box-shadow 0.3s;
+  border-radius: 20px;
+  padding: 10px 20px;
+  transition: background-color 0.3s ease;
 }
 
 .save-button:hover {
-  background-color: #388e3c;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #1976d2;
 }
