@@ -44,7 +44,7 @@ export class ProductionEntryComponent implements OnInit, OnDestroy {
     private financialYearService: FinancialYearService,
     private snackBar: MatSnackBar,
     // private webSocketService: WebSocketService // Inject WebSocket service
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.getFinancialYear();
@@ -54,6 +54,7 @@ export class ProductionEntryComponent implements OnInit, OnDestroy {
     // this.subscription.unsubscribe(); // Clean up the subscription
     // this.webSocketService.close();
   }
+
   getFinancialYear() {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
@@ -68,6 +69,7 @@ export class ProductionEntryComponent implements OnInit, OnDestroy {
       this.entries = data;
     });
   }
+
   openAddEntryDialog(): void {
     const dialogRef = this.dialog.open(AddEditProductionEntryDialogComponent, {
       width: '1000px',
@@ -76,7 +78,8 @@ export class ProductionEntryComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.productionService.addEntry(result).subscribe();
+        console.log(result);
+        this.handleProductionInsert(result);
       }
     });
   }
@@ -89,60 +92,81 @@ export class ProductionEntryComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.productionService.updateEntry(entry.id, result).subscribe();
+        this.handleProductionUpdate(result);
       }
     });
   }
 
   deleteEntry(entryId: number): void {
-    this.productionService.deleteEntry(entryId).subscribe();
+    this.productionService.deleteEntry(entryId).subscribe((result) => {
+      if (result) {
+        this.handleProductionDelete(result);
+      }
+    });
   }
 
   expand(entry: any): void {
     this.expandedRows[entry.id] = !this.expandedRows[entry.id];
   }
 
-subscribeToWebSocketEvents(): void {
-  console.log("hello");
-  const currentUserId = this.storageService.getUser().id;
-  const currentFinancialYear = this.financialYear;
+  subscribeToWebSocketEvents(): void {
+    console.log("hello");
 
-  const handleEvent = (data: any, action: 'INSERT' | 'UPDATE' | 'DELETE') => {
-    console.log(`Handling event: ${action}`, data);
-    if (data.entryType === 'productionEntry' && data.user_id === currentUserId && data.financial_year === currentFinancialYear) { // Corrected entryType
-      switch (action) {
-        case 'INSERT':
-          console.log('Processing INSERT event');
-          this.entries = [...this.entries, data.data];
-          console.log('Inserted data:', this.entries);
-          break;
-        case 'UPDATE':
-          console.log('Processing UPDATE event');
-          const updateIndex = this.entries.findIndex(entry => entry.id === data.data.id);
-          if (updateIndex !== -1) {
-            this.entries[updateIndex] = {
-              ...this.entries[updateIndex],
-              ...data.data,
-            };
-            this.entries = [...this.entries];
-            console.log('Updated data:', this.entries);
-          }
-          break;
-        case 'DELETE':
-          console.log('Processing DELETE event');
-          const deleteIndex = this.entries.findIndex(entry => entry.id === data.data.id);
-          if (deleteIndex !== -1) {
-            this.entries.splice(deleteIndex, 1);
-            this.entries = [...this.entries];
-          }
-          break;
+    const currentUserId = this.storageService.getUser().id;
+    const currentFinancialYear = this.financialYear;
+
+    const handleEvent = (data: any, action: 'INSERT' | 'UPDATE' | 'DELETE') => {
+      console.log(`Handling event: ${action}`, data);
+
+      if (data.entryType === 'productionEntry' &&
+        data.user_id === currentUserId &&
+        data.financial_year === currentFinancialYear) {
+        switch (action) {
+          case 'INSERT':
+            this.handleProductionInsert(data);
+            break;
+          case 'UPDATE':
+            this.handleProductionUpdate(data);
+            break;
+          case 'DELETE':
+            this.handleProductionDelete(data);
+            break;
+        }
       }
+    };
+
+    // this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
+    // this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
+    // this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
+  }
+
+  handleProductionInsert(data: any): void {
+    console.log('Processing INSERT event');
+    this.entries = [...this.entries, data.data];
+    console.log('Inserted data:', this.entries);
+  }
+
+  handleProductionUpdate(data: any): void {
+    console.log('Processing UPDATE event');
+    const updateIndex = this.entries.findIndex(e => e.id === data.data.id);
+    if (updateIndex !== -1) {
+      this.entries[updateIndex] = {
+        ...this.entries[updateIndex],
+        ...data.data,
+      };
+      this.entries = [...this.entries];
+      console.log('Updated data:', this.entries);
     }
-  };
+  }
 
-  // this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
-  // this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
-  // this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
+  handleProductionDelete(data: any): void {
+    console.log('Processing DELETE event');
+    const deleteIndex = this.entries.findIndex(e => e.id === data.data.id);
+    if (deleteIndex !== -1) {
+      this.entries.splice(deleteIndex, 1);
+      this.entries = [...this.entries];
+      console.log('Deleted data:', this.entries);
+    }
+  }
 
-}
 }

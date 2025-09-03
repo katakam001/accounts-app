@@ -39,7 +39,7 @@ export class AddEditProductionEntryDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<AddEditProductionEntryDialogComponent>,
     private datePipe: DatePipe, // Inject DatePipe
     @Inject(MAT_DIALOG_DATA) public data: any
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.productionEntryForm = this.fb.group({
@@ -116,7 +116,7 @@ export class AddEditProductionEntryDialogComponent implements OnInit {
 
     if (yieldData) {
       this.processedItems.clear();
-      yieldData.processedItems.forEach((processedItem : any)=> {
+      yieldData.processedItems.forEach((processedItem: any) => {
         let quantity;
         if (processedItem.conversion) {
           quantity = this.productionEntryForm.get('quantity')?.value * processedItem.conversion.rate;
@@ -158,7 +158,16 @@ export class AddEditProductionEntryDialogComponent implements OnInit {
         production_date: this.datePipe.transform(this.productionEntryForm.get('production_date')?.value, 'yyyy-MM-dd', 'en-IN') // Transform the date
       };
 
-      this.dialogRef.close(productionEntry);
+      if (this.data.entry) {
+        console.log(productionEntry);
+        this.productionService.updateEntry(this.data.entry.id, productionEntry).subscribe((response) => {
+          this.dialogRef.close(response);
+        });
+      } else {
+        this.productionService.addEntry(productionEntry).subscribe((response) => {
+          this.dialogRef.close(response);
+        });
+      }
     }
   }
 
