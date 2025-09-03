@@ -866,6 +866,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         // Handle the result from the dialog
+        this.handleUpdateEvent(result.data, result.entryType);
         console.log('Dialog result:', result);
       }
     });
@@ -882,8 +883,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.journalService.updateJournalEntry(result).subscribe();
-        console.log('Dialog result:', result);
+        this.handleUpdateEvent(result.data, result.entryType);
       }
     });
   }
@@ -897,8 +897,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         // Handle the result from the dialog
-        this.cashEntriesService.updateCashEntry(result.unique_entry_id, result).subscribe();
-        console.log('Dialog result:', result);
+        this.handleUpdateEvent(result.data, result.entryType);
       }
     });
   }
