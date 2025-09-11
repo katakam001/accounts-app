@@ -163,3 +163,93 @@
   color: #607d8b;/* stale gray */
   font-weight: bold;
 }
+
+.report-title {
+  font-size: 2.5em;/* Larger font size */
+  font-weight: bold;/* Bold text */
+  color: #009879;/* Eye-catching color */
+  text-align: center;/* Center alignment */
+  margin-bottom: 20px;/* Space below the title */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);/* Subtle shadow for depth */
+}
+
+.top-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;/* allows full usage of ledger-container width */
+}
+
+.filter-button {
+  background-color: #ffc107;
+  color: white;
+  height: 56px;/* Match mat-form-field */
+  padding: 0 20px;/* Only horizontal padding */
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.filter-button:hover {
+  background-color: #ffca28;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+}
+
+.filter-button:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: scale(0.98);
+}
+
+
+.filter-button mat-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.pdf-button {
+  background-color: #dc3545;
+  color: white;
+  height: 56px;/* Match mat-form-field */
+  padding: 0 20px;/* Only horizontal padding */
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.pdf-button mat-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.pdf-button:hover {
+  background-color: #c82333;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+}
+
+.pdf-button:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: scale(0.98);
+}

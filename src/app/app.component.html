@@ -2,12 +2,14 @@
   <button *ngIf="storageService.isLoggedIn()" mat-icon-button (click)="snav.toggle()" class="menu-icon">
     <mat-icon>menu</mat-icon>
   </button>
-  <button *ngIf="!storageService.isLoggedIn()" mat-button routerLink="/home" routerLinkActive="active">Home</button>
   <button
-    *ngIf="storageService.isLoggedIn() && storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')"
+    *ngIf="!storageService.isLoggedIn() || (!storageService.isAdminLoggedIn() && !storageService.isUserProfileCompleted())"
+    mat-button routerLink="/home" routerLinkActive="active">Home</button>
+  <button
+    *ngIf="storageService.isLoggedIn() && storageService.isUserProfileCompleted() && storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')"
     mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</button>
   <button
-    *ngIf="storageService.isLoggedIn() && storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_ADMIN')"
+    *ngIf="(storageService.isLoggedIn() && storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_ADMIN'))  || (storageService.isAdminProfileCompleted() && !storageService.isUserProfileCompleted())"
     mat-button routerLink="/admin-dashboard" routerLinkActive="active">Admin Dashboard</button>
   <span class="spacer"></span>
   <ng-container *ngIf="storageService.isLoggedIn()">
@@ -36,7 +38,8 @@
 
 <mat-sidenav-container class="example-sidenav-container" *ngIf="storageService.isLoggedIn()">
   <mat-sidenav #snav mode="side">
-    <mat-nav-list *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_ADMIN')">
+    <mat-nav-list
+      *ngIf="(storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_ADMIN')) || (storageService.isAdminLoggedIn() && !storageService.isUserProfileCompleted())">
       <h3 class="section-heading">Configuration</h3>
       <a mat-list-item routerLink="/user-list" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">
@@ -45,7 +48,8 @@
         </div>
       </a>
     </mat-nav-list>
-    <mat-nav-list *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')">
+    <mat-nav-list
+      *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER') && storageService.isUserProfileCompleted()">
       <h3 class="section-heading">Configuration</h3>
       <a mat-list-item routerLink="/groupList" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">
@@ -132,7 +136,8 @@
         </div>
       </a>
     </mat-nav-list>
-    <mat-nav-list *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')">
+    <mat-nav-list
+      *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')  && storageService.isUserProfileCompleted()">
       <h3 class="section-heading">Data Entry</h3>
       <a mat-list-item routerLink="/journalEntries" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">
@@ -189,7 +194,8 @@
         </div>
       </a>
     </mat-nav-list>
-    <mat-nav-list *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')">
+    <mat-nav-list
+      *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')  && storageService.isUserProfileCompleted()">
       <h3 class="section-heading">Reports</h3>
       <a mat-list-item routerLink="/trailBalance" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">
@@ -208,7 +214,7 @@
           <mat-icon style="margin-right: 8px;">assignment</mat-icon>
           <span>Closing Stock</span>
         </div>
-      </a>      
+      </a>
       <a mat-list-item routerLink="/yieldStatement" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">
           <mat-icon style="margin-right: 8px;">trending_up</mat-icon>
@@ -234,7 +240,8 @@
         </div>
       </a>
     </mat-nav-list>
-    <mat-nav-list *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')">
+    <mat-nav-list
+      *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')  && storageService.isUserProfileCompleted()">
       <h3 class="section-heading">Uploads</h3>
       <a mat-list-item routerLink="/bankStatement" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">
@@ -246,6 +253,16 @@
         <div class="nav-item" style="display: flex; align-items: center;">
           <mat-icon style="margin-right: 8px;">publish</mat-icon>
           <span>Invoices Upload</span>
+        </div>
+      </a>
+    </mat-nav-list>
+    <mat-nav-list
+      *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')  && storageService.isUserProfileCompleted()">
+      <h3 class="section-heading">Downloads</h3>
+      <a mat-list-item routerLink="/export-history" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">cloud_download</mat-icon>
+          <span>Export History</span>
         </div>
       </a>
     </mat-nav-list>

@@ -14,6 +14,8 @@ import { FormsModule } from '@angular/forms';
 // import { WebSocketService } from '../../services/websocket.service';
 // import { Subscription } from 'rxjs';
 import { AccountService } from '../../services/account.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { UploadService } from '../../services/upload.service';
 
 @Component({
   selector: 'app-ledger',
@@ -33,6 +35,8 @@ export class LedgerComponent implements OnInit, OnDestroy {
   pageSize = 400; // Fixed page size
   nextStartRow = 1;
   financialYear: string;
+      companyName: string;
+  city: string;
   userId: number;
   hasMore = true;
   inMemomryforwardExist = false;
@@ -52,6 +56,8 @@ export class LedgerComponent implements OnInit, OnDestroy {
     private dbService: NgxIndexedDBService,
     private storageService: StorageService,
     private datePipe: DatePipe,
+    private snackBar: MatSnackBar,
+    private uploadService: UploadService,
     private accountService: AccountService, // Add AccountService to the constructor
     private financialYearService: FinancialYearService,
     // private webSocketService: WebSocketService // Inject WebSocket service
@@ -72,6 +78,8 @@ export class LedgerComponent implements OnInit, OnDestroy {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
       this.financialYear = storedFinancialYear;
+      this.companyName = this.storageService.getUser().user_details.company_name;
+      this.city = this.storageService.getUser().user_details.city;
       const [startYear, endYear] = this.financialYear.split('-').map(Number);
       this.financialYearstartDate = new Date(startYear, 3, 1); // April 1st of start year
       this.financialYearendDate = new Date(endYear, 2, 31); // March 31st of end year
@@ -136,6 +144,28 @@ export class LedgerComponent implements OnInit, OnDestroy {
             console.error('Error processing accounts:', error);
           });
       });
+  }
+
+    exportToPDF(): void {
+    const fromDateStr = this.datePipe.transform(this.fromDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format
+    const toDateStr = this.datePipe.transform(this.toDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format  
+
+    this.ledgerService.exportLedgerToPDF( this.userId, this.financialYear,this.companyName, this.city, fromDateStr, toDateStr).subscribe({
+      next: data => {
+        console.log(data);
+        this.snackBar.open('Pdf generation is started please check the status in Download screen.', 'Close', {
+          duration: 3000,
+        });
+        // Step 3: Call Start Monitoring API here
+        this.uploadService.startMonitoring().subscribe(
+          () => console.log('Monitoring started successfully!'),
+          error => console.error('Error starting monitoring:', error)
+        );
+      },
+      error: err => {
+        console.error('Error impersonating user:', err);
+      }
+    });
   }
 
 

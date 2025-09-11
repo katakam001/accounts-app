@@ -99,7 +99,13 @@ export class EntriesComponent {
       "Missing Dynamic Field",
       "Missing Tax Field",
       "Invalid 0% Tax Fields",
-      "Invalid 0% Fields"
+      "Invalid 0% Fields",
+
+      // Quantity issues
+      "Empty Quantity",
+      "Non-numeric Quantity",
+      "Invalid Quantity Value",
+      "Invalid Quantity Precision"
     ]
   };
 
@@ -152,23 +158,25 @@ export class EntriesComponent {
     const fileName = `${this.selectedInvoiceType}_${this.selectedTaxType}_invoice_template.csv`;
     saveAs(blob, fileName);
   }
+  
 
   getSampleRow(): string[] {
+    const formatAsText = (value: string) => `"=""${value}"""`;
     if (this.selectedTaxType === 'cgst') {
       return this.selectedInvoiceType === 'purchase'
-        ? ['purchase', '1', 'SR00001', '01-04-2024', 'RAMA STORES', '37ADEFS1234J1ZH', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
-        : ['sale', '1', 'SR00001', '01-04-2024', 'RAMA STORES', '37ADEFS1234J1ZH', 'FANCY ITEM', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920'];
+        ? ['purchase', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES','1.0000', '37ADEFS1234J1ZH', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
+        : ['sale', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES','1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920'];
     } else {
       return this.selectedInvoiceType === 'purchase'
-        ? ['purchase', '1', '2473', '08-10-2024', 'STORE1', 'ABC2342423423ZA', 'FERTIZER', '82200', '0', '0', '0', '0', '0', '0', '0', '0', '0', '82200']
-        : ['sale', '1', 'ABSD3534', '01-04-2024', 'STORE1', 'ABCD1324242424', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
+        ? ['purchase', '1', formatAsText('2473'), '08-10-2024', 'STORE1','1.0000', 'ABC2342423423ZA', 'FERTIZER', '82200', '0', '0', '0', '0', '0', '0', '0', '0', '0', '82200']
+        : ['sale', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1','1.0000', 'ABCD1324242424', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
     }
   }
 
   getTemplateHeaders(): string[] {
     if (this.selectedTaxType === 'cgst') {
       return [
-        "type", "sNo", "invoiceNo", "entryDate", "name", "gstNo", "itemName",
+        "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName",
         "gstValue0", "gstValue5", "gst5",
         "gstValue12", "gst12",
         "gstValue18", "gst18",
@@ -177,7 +185,7 @@ export class EntriesComponent {
       ];
     } else {
       return [
-        "type", "sNo", "invoiceNo", "entryDate", "name", "gstNo", "itemName",
+        "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName",
         "gstValue0", "gstValue5", "igst5",
         "gstValue12", "igst12",
         "gstValue18", "igst18",
@@ -325,6 +333,10 @@ export class EntriesComponent {
     // ✅ Basic validations
     const validationChecks = [
       { condition: !row["sNo"] || isNaN(row["sNo"]), errorType: "Missing sNo", message: `Row ${index + 1}` },
+      { condition: row["quantity"] === "", errorType: "Empty Quantity", message: `Row ${index + 1}: Quantity is empty please enter a valid number` },
+      { condition: isNaN(row["quantity"]), errorType: "Non-numeric Quantity", message: `Row ${index + 1}: Quantity must be a number found ${row["quantity"]}` },
+      { condition: Number(row["quantity"]) <= 0, errorType: "Invalid Quantity Value", message: `Row ${index + 1}: Quantity must be greater than zero` },
+      { condition: !/^\d+(\.\d{1,4})?$/.test(row["quantity"]), errorType: "Invalid Quantity Precision", message: `Row ${index + 1}: Quantity must have up to 4 decimal places` },
       { condition: sNoSet.has(row["sNo"]), errorType: "Duplicate sNo", message: `sNo ${row["sNo"]}` },
       { condition: row["entryDate"] && !this.validateDateFormat(row["entryDate"]), errorType: "Invalid Date Format", message: `Row ${index + 1}: ${row["entryDate"]}` },
       { condition: Number(row["sNo"]) !== expectedSNo, errorType: "Invalid sNo Sequence", message: `Row ${index + 1}: Expected ${expectedSNo} Found ${row["sNo"]}` },

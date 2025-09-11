@@ -7,11 +7,13 @@ import { PasswordResetComponent } from './password-reset/password-reset.componen
 import { AccountInformationComponent } from './account-information/account-information.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
+import { UserDetailsFormComponent } from './user-details-form/user-details-form.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'user-details', component: UserDetailsFormComponent },
   { path: 'accountInfo', component: AccountInformationComponent },
   { path: 'changePassword', component: ChangePasswordComponent },
   { path: 'password-reset/confirm', component: PasswordResetComponent },
@@ -51,4 +53,5 @@ export const routes: Routes = [
   { path: 'ledger', loadChildren: () => import('./reports/ledger/ledger.module').then(m => m.LedgerModule), title: 'Ledger page', canActivate: [AuthGuard] },
   { path: 'bankStatement', loadChildren: () => import('./upload/bank-statement/bank-statement.module').then(m => m.BankStatementModule), title: 'Bank Statement page', canActivate: [AuthGuard] },
   { path: 'entriesUpload', loadChildren: () => import('./upload/entries/entries.module').then(m => m.EntriesModule), title: 'Entries upload page', canActivate: [AuthGuard] },
+  { path: 'export-history', loadChildren: () => import('./download/export-history/export-history.module').then(m => m.ExportHistoryModule), title: 'Export history page', canActivate: [AuthGuard] },
 ];

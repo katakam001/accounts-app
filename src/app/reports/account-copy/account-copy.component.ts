@@ -17,6 +17,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
+import { UploadService } from '../../services/upload.service';
 
 @Component({
   selector: 'app-account-copy',
@@ -28,6 +29,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class AccountCopyComponent implements OnInit, OnDestroy {
   selectedAccountId: number;
   financialYear: string;
+  companyName: string;
+  city: string;
   accountList: any[] = [];
   userId: number;
   entries: any[] = [];
@@ -53,6 +56,7 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
     // private webSocketService: WebSocketService,
     private accountService: AccountService,
     private storageService: StorageService,
+    private uploadService: UploadService,
     private datePipe: DatePipe,
     private route: ActivatedRoute,
     private financialYearService: FinancialYearService,
@@ -66,6 +70,8 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
     this.clearCache();
     this.getFinancialYear();
     this.userId = this.storageService.getUser().id;
+    this.companyName = this.storageService.getUser().user_details.company_name;
+    this.city = this.storageService.getUser().user_details.city;
     this.fetchAccountList();
     // this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
@@ -111,10 +117,24 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
   }
 
   exportToPDF(): void {
-    this.ledgerService.exportToPDF(this.selectedAccountId, this.userId, this.financialYear).subscribe((response: Blob) => {
-      saveAs(response, `ledger_${this.userId}_${this.financialYear}.pdf`);
-    }, error => {
-      console.error('Error exporting PDF:', error);
+    const fromDateStr = this.datePipe.transform(this.fromDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format
+    const toDateStr = this.datePipe.transform(this.toDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format  
+
+    this.ledgerService.exportAccountCopyToPDF(this.selectedAccountId, this.userId, this.financialYear,this.companyName, this.city, fromDateStr, toDateStr).subscribe({
+      next: data => {
+        console.log(data);
+        this.snackBar.open('Pdf generation is started please check the status in Download screen.', 'Close', {
+          duration: 3000,
+        });
+        // Step 3: Call Start Monitoring API here
+        this.uploadService.startMonitoring().subscribe(
+          () => console.log('Monitoring started successfully!'),
+          error => console.error('Error starting monitoring:', error)
+        );
+      },
+      error: err => {
+        console.error('Error impersonating user:', err);
+      }
     });
   }
 

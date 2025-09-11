@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
-import { Observable,  throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { JournalEntry } from '../models/journal-entry.interface';
 import { environment } from '../../environments/environment';
@@ -24,13 +24,13 @@ export class JournalService {
 
   constructor(private http: HttpClient) { }
 
-  getJournalEntriesByUserIdAndFinancialYear(userId: number, financialYear: string,nextStartRow:number, pageSize:number, fromDate?: string, toDate?: string): Observable<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }> {
+  getJournalEntriesByUserIdAndFinancialYear(userId: number, financialYear: string, nextStartRow: number, pageSize: number, fromDate?: string, toDate?: string): Observable<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }> {
     let params = new HttpParams()
-    .set('userId', userId.toString())
-    .set('financialYear', financialYear)
-    .set('pageSize', pageSize.toString())
-    .set('nextStartRow', nextStartRow.toString());
-        // Add fromDate and toDate to the params if they are provided
+      .set('userId', userId.toString())
+      .set('financialYear', financialYear)
+      .set('pageSize', pageSize.toString())
+      .set('nextStartRow', nextStartRow.toString());
+    // Add fromDate and toDate to the params if they are provided
     if (fromDate) {
       params = params.set('fromDate', fromDate); // Use ISO string format
     }
@@ -69,23 +69,23 @@ export class JournalService {
     return this.http.get<{ entries: any[], nextRowCursor: number | null, hasNextPage: boolean }>(`${this.apiUrl}/daybook`, { params });
   }
 
-  getJournalEntriesByAccount(accountId: number, userId: number, financialYear: string,nextStartRow:number, pageSize:number): Observable<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }> {
+  getJournalEntriesByAccount(accountId: number, userId: number, financialYear: string, nextStartRow: number, pageSize: number): Observable<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }> {
     let params = new HttpParams()
-    .set('userId', userId.toString())
-    .set('financialYear', financialYear)
-    .set('accountId',accountId.toString())
-    .set('pageSize', pageSize.toString())
-    .set('nextStartRow', nextStartRow.toString());
+      .set('userId', userId.toString())
+      .set('financialYear', financialYear)
+      .set('accountId', accountId.toString())
+      .set('pageSize', pageSize.toString())
+      .set('nextStartRow', nextStartRow.toString());
     return this.http.get<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }>(`${this.apiUrl}`, { params });
   }
 
-  getJournalEntriesByGroup(groupId: number, userId: number, financialYear: string,nextStartRow:number, pageSize:number): Observable<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }> {
+  getJournalEntriesByGroup(groupId: number, userId: number, financialYear: string, nextStartRow: number, pageSize: number): Observable<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }> {
     let params = new HttpParams()
-    .set('userId', userId.toString())
-    .set('financialYear', financialYear)
-    .set('groupId',groupId.toString())
-    .set('pageSize', pageSize.toString())
-    .set('nextStartRow', nextStartRow.toString());
+      .set('userId', userId.toString())
+      .set('financialYear', financialYear)
+      .set('groupId', groupId.toString())
+      .set('pageSize', pageSize.toString())
+      .set('nextStartRow', nextStartRow.toString());
     return this.http.get<{ journalEntries: any[], nextStartRow: number, hasMore: boolean }>(`${this.apiUrl}`, { params });
   }
 
@@ -128,11 +128,14 @@ export class JournalService {
   }
 
   // New method to export daybook to PDF
-  exportToPDF(userId: number, financialYear: string): Observable<Blob> {
+  exportToPDF(userId: number, financialYear: string, companyName: string, city: string): Observable<any> {
     let params = new HttpParams()
       .set('userId', userId.toString())
-      .set('financialYear', financialYear);
+      .set('financialYear', financialYear)
+      .set('companyName', companyName)
+      .set('city', city);
 
-    return this.http.get(`${this.apiUrl}/exportDaybookToPDF`, { params, responseType: 'blob' });
+
+    return this.http.get(`${this.apiUrl}/exportDaybookToPDF`, { params });
   }
 }

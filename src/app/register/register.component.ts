@@ -24,18 +24,17 @@ export class RegisterComponent implements OnInit {
   errorMessage = '';
   adminId: number | null = null;
   isUserCreation: boolean = false;
+  isFreshUser: boolean = false;
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router, private route: ActivatedRoute) {}
+  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router, private route: ActivatedRoute) { }
 
   ngOnInit(): void {
     this.signupForm = this.fb.group({
-      firstname: ['', Validators.required],
-      middlename: [''],
-      lastname: ['', Validators.required],
       username: ['', Validators.required],
       password: ['', Validators.required],
       confirmPassword: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
+      contact_number: ['', Validators.required],
       role: ['user', Validators.required]
     });
 
@@ -43,8 +42,10 @@ export class RegisterComponent implements OnInit {
       this.adminId = params['adminId'] ? parseInt(params['adminId'], 10) : null; // Get the adminId from query params and ensure it's an integer
       if (params['role'] === 'user') {
         this.isUserCreation = true;
+        this.isFreshUser=false;
         this.signupForm.get('role')?.disable(); // Disable role selection for user creation
       } else {
+        this.isFreshUser=true;
         this.isUserCreation = false;
         this.signupForm.get('role')?.enable(); // Enable role selection for admin creation
       }
@@ -53,26 +54,27 @@ export class RegisterComponent implements OnInit {
 
   onSubmit(): void {
     if (this.signupForm.valid) {
-      const { firstname, middlename, lastname, username, email, password, confirmPassword,role } = this.signupForm.value;
+      const { username, email, password, confirmPassword, contact_number, role } = this.signupForm.value;
       const finalRole = this.isUserCreation ? 'user' : role;
 
       if (password === confirmPassword) {
-        this.authService.register(firstname, middlename, lastname, username, email, password, finalRole, this.adminId).subscribe({
+        this.authService.register(username, email, password, contact_number, finalRole, this.adminId).subscribe({
           next: data => {
             console.log(data);
             this.isSuccessful = true;
             this.isSignUpFailed = false;
             console.log('Registration successful', { username, email, password, role: finalRole });
             setTimeout(() => {
-              if (this.isUserCreation) {
-                this.router.navigate(['/user-list']);
-              } else {
-                this.router.navigate(['/home']);
-              }
-            }, 3000); // Redirect after 3 seconds
+              this.router.navigate(['/user-details'], {
+                queryParams: {
+                  isAdminFlow: this.isUserCreation,
+                  isFreshUser: this.isFreshUser
+                }
+              });
+            }, 2000);
           },
           error: err => {
-    this.errorMessage = err.message; // ✅ Extract message directly
+            this.errorMessage = err.message; // ✅ Extract message directly
             this.isSignUpFailed = true;
             this.isSuccessful = false;
           }

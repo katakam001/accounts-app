@@ -28,7 +28,7 @@ export class StorageService {
     private brokerService: BrokerService,
     private areaService: AreaService,
     private financialYearService: FinancialYearService
-  ) {}
+  ) { }
 
   clean(): void {
     if (typeof window !== 'undefined') {
@@ -89,6 +89,34 @@ export class StorageService {
     if (typeof window !== 'undefined') {
       const user = window.localStorage.getItem(USER_KEY);
       return !!user;
+    }
+    return false;
+  }
+
+    public isAdminLoggedIn(): boolean {
+    if (typeof window !== 'undefined') {
+      const admin = window.localStorage.getItem(ADMIN_KEY);
+      return !!admin;
+    }
+    return false;
+  }
+
+  public isUserProfileCompleted(): boolean {
+    if (typeof window !== 'undefined') {
+      const user = window.localStorage.getItem(USER_KEY);
+      if (user) {
+        return JSON.parse(user).profile_completed === true;
+      }
+    }
+    return false;
+  }
+
+    public isAdminProfileCompleted(): boolean {
+    if (typeof window !== 'undefined') {
+      const admin = window.localStorage.getItem(ADMIN_KEY);
+      if (admin) {
+        return JSON.parse(admin).profile_completed;
+      }
     }
     return false;
   }

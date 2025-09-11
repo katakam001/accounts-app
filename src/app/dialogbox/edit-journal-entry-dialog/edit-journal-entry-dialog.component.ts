@@ -112,7 +112,7 @@ export class EditJournalEntryDialogComponent implements OnInit {
       journal_id: [item.journal_id, [Validators.required,notZeroValidator]],
       account_id: [item.account_id, [Validators.required,notZeroValidator]],
       group_id: [item.group_id, [Validators.required,notZeroValidator]],
-      amount: [item.amount, [Validators.required,notZeroValidator]],
+      amount: [item.amount],
       type: [item.type, Validators.required],
       narration: [item.narration, Validators.required],
       account_name: [item.account_name],

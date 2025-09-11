@@ -11,12 +11,12 @@ import { MatIconModule } from '@angular/material/icon';
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [ MatIconModule, MatButtonModule, CommonModule,MatTableModule,MatSortModule],
+  imports: [MatIconModule, MatButtonModule, CommonModule, MatTableModule, MatSortModule],
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.css']
 })
 export class UserListComponent implements OnInit {
-  displayedColumns: string[] = ['username', 'email','role', 'actions'];
+  displayedColumns: string[] = ['username', 'email', 'role', 'actions'];
   dataSource = new MatTableDataSource<any>();
   adminId: number;
 
@@ -41,9 +41,19 @@ export class UserListComponent implements OnInit {
     this.storageService.saveAdminDetails(adminDetails);
 
     this.adminService.loginAsUser(user.id).subscribe({
-      next: () => {
-        this.storageService.saveUser(user);
-        this.router.navigate(['/dashboard']);
+      next: data => {
+        this.storageService.saveUser(data);
+        if (data.profile_completed) {
+          this.router.navigate(['/dashboard']);
+        } else {
+          this.router.navigate(['/user-details'], {
+            queryParams: {
+              fromLogin: true,
+              userId: data.id
+            }
+          });
+        }
+
       },
       error: err => {
         console.error('Error impersonating user:', err);

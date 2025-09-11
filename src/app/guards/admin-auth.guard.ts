@@ -8,15 +8,22 @@ import { StorageService } from '../services/storage.service'; // Make sure to im
   providedIn: 'root'
 })
 export class AdminAuthGuard implements CanActivate {
-  constructor(private storageService: StorageService, private router: Router) {}
+  constructor(private storageService: StorageService, private router: Router) { }
 
   canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean> | Promise<boolean> | boolean {
     const user = this.storageService.getUser(); // Get the user from storageService
+    console.log(user);
 
-    if (user && user.roles && user.roles.some((role:string) => role === 'ROLE_ADMIN')) {
+    if (user && user.roles && user.roles.some((role: string) => role === 'ROLE_ADMIN')) {
+      return true;
+    }
+    const adminDetails = this.storageService.getAdminDetails();
+
+    if (!user.profile_completed && adminDetails) {
+      this.storageService.saveUser(adminDetails);
       return true;
     }
 

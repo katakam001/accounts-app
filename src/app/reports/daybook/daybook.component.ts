@@ -21,7 +21,8 @@ import { AddEditEntryDialogComponent } from '../../dialogbox/add-edit-entry-dial
 // import { Subscription } from 'rxjs'; // Import Subscription
 import { DatePipe } from '@angular/common';
 import saveAs from 'file-saver';
-import { CashEntriesService } from '../../services/cash-entries.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { UploadService } from '../../services/upload.service';
 
 @Component({
   selector: 'app-daybook',
@@ -46,6 +47,8 @@ export class DayBookComponent implements OnInit, OnDestroy {
   groupedDayBookEntries: any[] = [];
   userId: number;
   financialYear: string;
+  companyName: string;
+  city: string;
   limit: number = 400; // Align limit with pageSize
   offset: number = 0; // Example offset
   totalPages: number = 0;
@@ -78,12 +81,13 @@ export class DayBookComponent implements OnInit, OnDestroy {
   dbHasNextPage: boolean = false; // Variable to keep track of hasNextPage state from the database
   constructor(
     private journalService: JournalService,
-    private cashEntriesService: CashEntriesService,
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
     private balanceService: BalanceService,
     private accountService: AccountService, // Add AccountService to the constructor
     private dbService: NgxIndexedDBService,
+    private uploadService: UploadService,
+    private snackBar: MatSnackBar,
     // private webSocketService: WebSocketService, // Inject WebSocket service
     public dialog: MatDialog,
     private datePipe: DatePipe, // Inject DatePipe
@@ -106,6 +110,8 @@ export class DayBookComponent implements OnInit, OnDestroy {
     if (storedFinancialYear) {
       this.financialYear = storedFinancialYear;
       this.userId = this.storageService.getUser().id; // Ensure userId is initialized
+      this.companyName = this.storageService.getUser().user_details.company_name;
+      this.city = this.storageService.getUser().user_details.city;
       const [startYear, endYear] = this.financialYear.split('-').map(Number);
       this.financialYearstartDate = new Date(startYear, 3, 1); // April 1st of start year
       this.financialYearendDate = new Date(endYear, 2, 31); // March 31st of end year
@@ -169,10 +175,21 @@ export class DayBookComponent implements OnInit, OnDestroy {
   }
 
   exportToPDF() {
-    this.journalService.exportToPDF(this.userId, this.financialYear).subscribe((response: Blob) => {
-      saveAs(response, `daybook_${this.userId}_${this.financialYear}.pdf`);
-    }, error => {
-      console.error('Error exporting PDF:', error);
+    this.journalService.exportToPDF(this.userId, this.financialYear, this.companyName, this.city).subscribe({
+      next: data => {
+        console.log(data);
+        this.snackBar.open('Pdf generation is started please check the status in Download screen.', 'Close', {
+          duration: 3000,
+        });
+        // Step 3: Call Start Monitoring API here
+        this.uploadService.startMonitoring().subscribe(
+          () => console.log('Monitoring started successfully!'),
+          error => console.error('Error starting monitoring:', error)
+        );
+      },
+      error: err => {
+        console.error('Error impersonating user:', err);
+      }
     });
   }
   exportToExcel() {
@@ -397,6 +414,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
     this.currentPage++;
     this.offset = (this.currentPage - 1) * this.limit;
     this.totalPages = Math.max(this.totalPages, this.currentPage);
+    this.fetchEntries();
     // this.fetchEntriesSubject.next();
   }
 
@@ -405,6 +423,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
       this.currentPage--;
       this.offset = (this.currentPage - 1) * this.limit;
       this.hasNextPage = true; // Update hasNextPage to true when moving to the previous page
+      this.fetchEntries();
       // console.log(this.hasNextPage);
       // this.fetchEntriesSubject.next();
     }
