@@ -35,7 +35,7 @@ export class LedgerComponent implements OnInit, OnDestroy {
   pageSize = 400; // Fixed page size
   nextStartRow = 1;
   financialYear: string;
-      companyName: string;
+  companyName: string;
   city: string;
   userId: number;
   hasMore = true;

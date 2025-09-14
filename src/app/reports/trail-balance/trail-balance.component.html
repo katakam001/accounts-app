@@ -16,9 +16,14 @@
       <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
       <mat-datepicker #toDatePicker></mat-datepicker>
     </mat-form-field>
+    <span class="spacer"></span>
     <button mat-raised-button color="primary" class="generate-report-button" (click)="getTrailBalanceReport()">Generate
       Report</button>
-    <button mat-raised-button color="accent" *ngIf="isGroupDrilldownActive" (click)="handleBackToMainReport()">← Back to
+    <!-- 📦 Export Section -->
+    <button mat-stroked-button class="pdf-button" (click)="exportToPDF()">
+      <mat-icon>picture_as_pdf</mat-icon> PDF
+    </button>
+    <button mat-raised-button class="back-button" *ngIf="isGroupDrilldownActive" (click)="handleBackToMainReport()">← Back to
       Trail Balance</button>
   </div>
 
