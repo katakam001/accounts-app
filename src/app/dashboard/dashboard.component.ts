@@ -28,6 +28,7 @@ export class DashboardComponent implements OnInit {
     4: 'Sale Return',
     5: 'Credit Note',
     6: 'Debit Note',
+    8: 'Cash Sale',
   };
 
   constructor(private dialog: MatDialog, private datePipe: DatePipe,

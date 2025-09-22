@@ -158,18 +158,18 @@ export class EntriesComponent {
     const fileName = `${this.selectedInvoiceType}_${this.selectedTaxType}_invoice_template.csv`;
     saveAs(blob, fileName);
   }
-  
+
 
   getSampleRow(): string[] {
     const formatAsText = (value: string) => `"=""${value}"""`;
     if (this.selectedTaxType === 'cgst') {
       return this.selectedInvoiceType === 'purchase'
-        ? ['purchase', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES','1.0000', '37ADEFS1234J1ZH', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
-        : ['sale', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES','1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920'];
+        ? ['purchase', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
+        : ['sale', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920'];
     } else {
       return this.selectedInvoiceType === 'purchase'
-        ? ['purchase', '1', formatAsText('2473'), '08-10-2024', 'STORE1','1.0000', 'ABC2342423423ZA', 'FERTIZER', '82200', '0', '0', '0', '0', '0', '0', '0', '0', '0', '82200']
-        : ['sale', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1','1.0000', 'ABCD1324242424', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
+        ? ['purchase', '1', formatAsText('2473'), '08-10-2024', 'STORE1', '1.0000', 'ABC2342423423ZA', 'FERTIZER', '82200', '0', '0', '0', '0', '0', '0', '0', '0', '0', '82200']
+        : ['sale', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
     }
   }
 
@@ -327,7 +327,7 @@ export class EntriesComponent {
         "gstValue28", "igst28", "totIgst"
       ].reduce((acc, key) => ({ ...acc, [key]: parseFloat(row[key] || "0") }), {});
 
-    const taxTolerance = 0.02;
+    const taxTolerance = 0.50;
     const expectedSNo = latestSNo;
 
     // ✅ Basic validations
@@ -368,7 +368,20 @@ export class EntriesComponent {
 
     taxFieldMap.forEach(({ value, rate, field }) => validateTax(extractedData[value], rate, field));
 
-    const tolerance = 0.05;
+
+    const baseTolerance = 0.50;
+    const totalTolerance = 0.01;
+
+    // Count how many GST slabs are non-zero and valid
+    const activeSlabs = [
+      extractedData["gstValue5"],
+      extractedData["gstValue12"],
+      extractedData["gstValue18"],
+      extractedData["gstValue28"]
+    ].filter(val => typeof val === 'number' && !isNaN(val) && val !== 0).length;
+
+    // Calculate dynamic tolerance
+    const tolerance = baseTolerance * activeSlabs;
 
     if (this.selectedTaxType === 'cgst') {
 
@@ -383,7 +396,7 @@ export class EntriesComponent {
       const totalGst = extractedData["totGst"];
 
       if (Math.abs(calculatedGstSum - totalGst) > tolerance ||
-        Math.abs(calculatedCgstSgstSum - totalGst) > tolerance) {
+        Math.abs(calculatedCgstSgstSum - totalGst) > totalTolerance) {
         this.addValidationError(
           validationErrorsMap,
           "Mismatch in total GST",

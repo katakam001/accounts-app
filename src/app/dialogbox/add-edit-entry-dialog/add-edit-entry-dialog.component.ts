@@ -27,7 +27,7 @@ import { minArrayLengthValidator } from '../..//validators';
 @Component({
   selector: 'app-add-edit-entry-dialog',
   standalone: true,
-  imports: [MatInputModule,ReactiveFormsModule, MatSelectModule, CommonModule, MatDialogModule, MatDatepickerModule, MatIconModule,MatAutocompleteModule, SupplierFilterPipe],
+  imports: [MatInputModule, ReactiveFormsModule, MatSelectModule, CommonModule, MatDialogModule, MatDatepickerModule, MatIconModule, MatAutocompleteModule, SupplierFilterPipe],
   templateUrl: './add-edit-entry-dialog.component.html',
   styleUrls: ['./add-edit-entry-dialog.component.css']
 })
@@ -68,8 +68,8 @@ export class AddEditEntryDialogComponent implements OnInit {
       invoice_seq_id: [''],
       gstNo: [''],
       entry_date: ['', Validators.required],
-      account_id: ['', Validators.required],
-      customerName: ['', Validators.required],
+      account_id: [null],
+      customerName: [''],
       entries: this.fb.array([this.createEntry()], [minArrayLengthValidator(1)]),
       groupEntryValue: [{ value: '', disabled: true }], // Update the form control name if needed
       groupTotalAmount: [{ value: '', disabled: true }]
@@ -83,6 +83,14 @@ export class AddEditEntryDialogComponent implements OnInit {
     this.entryForm.patchValue({ account_id: selectedData.id });
     this.entryForm.patchValue({ customerName: supplierName });
     this.entryForm.patchValue({ gstNo: gstNo });
+  }
+
+  clearCustomer(): void {
+    this.entryForm.patchValue({
+      customerName: '',
+      account_id: null,
+      gstNo: ''
+    });
   }
 
   get entries() {
@@ -112,8 +120,8 @@ export class AddEditEntryDialogComponent implements OnInit {
       item_id: ['', Validators.required],
       quantity: ['', [Validators.required, Validators.min(1)]],
       unit_id: ['', Validators.required],
-      unit_price: ['', [Validators.required,notZeroValidator]],
-      value: [{ value: '', disabled: true }, [Validators.required,notZeroValidator]],
+      unit_price: ['', [Validators.required, notZeroValidator]],
+      value: [{ value: '', disabled: true }, [Validators.required, notZeroValidator]],
       total_amount: [{ value: '', disabled: true }],
       category_account_id: ['', Validators.required],
       journal_id: [''],
@@ -127,7 +135,7 @@ export class AddEditEntryDialogComponent implements OnInit {
     if (this.data.invoice_seq_id) {
       // Component is activated via a route with an entryId parameter
       console.log("activated route");
-      this.fetchEntry(this.data.invoice_seq_id,this.data.type);
+      this.fetchEntry(this.data.invoice_seq_id, this.data.type);
     } else {
       console.log("edit flow");
       // Component is not activated via a route with an entryId parameter
@@ -167,7 +175,7 @@ export class AddEditEntryDialogComponent implements OnInit {
           this.entryForm.patchValue(this.data.group);
 
           categoryIds.forEach(categoryId => {
-            this.onCategoryChange(categoryId);   
+            this.onCategoryChange(categoryId);
           });
           this.updateGroupValues();
         }
@@ -175,10 +183,10 @@ export class AddEditEntryDialogComponent implements OnInit {
     }
   }
 
-  fetchEntry(invoice_seq_id: number,type:number): void {
-    this.entryService.getEntriesByInvoiceSeqId(invoice_seq_id,type).subscribe((entry: any) => {
+  fetchEntry(invoice_seq_id: number, type: number): void {
+    this.entryService.getEntriesByInvoiceSeqId(invoice_seq_id, type).subscribe((entry: any) => {
       console.log(entry);
-      this.data.group=entry;
+      this.data.group = entry;
       this.entryForm.patchValue({
         invoice_seq_id: entry.invoice_seq_id,
         invoiceNumber: entry.invoiceNumber,
@@ -221,7 +229,7 @@ export class AddEditEntryDialogComponent implements OnInit {
       const categoryType = (entry.type === 1 || entry.type === 3 || entry.type === 5) ? 1 : 2;
       this.fetchInitialData(categoryType).then(() => {
         categoryIds.forEach(categoryId => {
-          this.onCategoryChange(categoryId);   
+          this.onCategoryChange(categoryId);
         });
         console.log(this.gstNoMap);
         this.entryForm.patchValue({
@@ -242,6 +250,7 @@ export class AddEditEntryDialogComponent implements OnInit {
       case 4: return 'Return Value';
       case 5: return 'Credit Note Value';
       case 6: return 'Debit Note Value';
+      case 8: return 'Cash Sale Value';
       default: return 'Group Value';
     }
   }
@@ -281,7 +290,7 @@ export class AddEditEntryDialogComponent implements OnInit {
 
   fetchSuppliers(): Promise<void> {
     return new Promise((resolve) => {
-      this.accountService.getAccountsByUserIdAndFinancialYear(this.data.userId, this.data.financialYear, ['Sundry Creditors', 'Sundry Debtors','Suspense']).subscribe((accounts: Account[]) => {
+      this.accountService.getAccountsByUserIdAndFinancialYear(this.data.userId, this.data.financialYear, ['Sundry Creditors', 'Sundry Debtors', 'Suspense']).subscribe((accounts: Account[]) => {
         this.suppliers = accounts;
         this.gstNoMap = new Map(accounts.map(account => [account.id, account.gst_no || '']));
         resolve();
@@ -296,7 +305,8 @@ export class AddEditEntryDialogComponent implements OnInit {
       3: 'Purchase Return Account',
       4: 'Sale Return Account',
       5: 'Credit Note Account',
-      6: 'Debit Note Account'
+      6: 'Debit Note Account',
+      8: 'Sale Account',
     };
 
     // Get the group name based on this.data.type
@@ -364,8 +374,8 @@ export class AddEditEntryDialogComponent implements OnInit {
       const excludeFields = (field: any) => !(field.field_category === 1 && field.exclude_from_total);
       const filteredFields = data.filter(field => {
         if (this.data.type === 3 && (this.data.isPurchaseReturn === undefined || this.data.isPurchaseReturn === false)) {
-            return excludeFields(field);
-        } else if (this.data.type === 2 || this.data.type === 4 || this.data.type === 5 || this.data.type === 6) {
+          return excludeFields(field);
+        } else if (this.data.type === 2 || this.data.type === 4 || this.data.type === 5 || this.data.type === 6 || this.data.type === 8) {
           return excludeFields(field);
         }
         return true;
@@ -429,57 +439,79 @@ export class AddEditEntryDialogComponent implements OnInit {
   }
 
 
-  updateTotalAmount(entryGroup: FormGroup): void {
-    let quantity = entryGroup.get('quantity')?.value || 0;
-    let unit_price = entryGroup.get('unit_price')?.value || 0;
+updateTotalAmount(entryGroup: FormGroup): void {
+  let quantity = parseFloat(entryGroup.get('quantity')?.value || 0).toFixed(4);
+  let unit_price = parseFloat(entryGroup.get('unit_price')?.value || 0).toFixed(2);
 
-    // Ensure quantity has 4 decimals and unit_price has 2 decimals
-    quantity = parseFloat(quantity).toFixed(4);
-    unit_price = parseFloat(unit_price).toFixed(2);
+  entryGroup.get('quantity')?.setValue(quantity, { emitEvent: false });
+  entryGroup.get('unit_price')?.setValue(unit_price, { emitEvent: false });
 
-    // Update the FormGroup with rounded values
-    entryGroup.get('quantity')?.setValue(quantity, { emitEvent: false });
-    entryGroup.get('unit_price')?.setValue(unit_price, { emitEvent: false });
+  const type = this.data.type;
+  const gstFields = (entryGroup.get('dynamicFields') as FormArray).controls;
+  const gstRates: number[] = [];
 
-    let amount = quantity * unit_price;
-    amount = parseFloat((amount).toFixed(2));
-
-    entryGroup.get('value')?.setValue(amount, { emitEvent: false });
-
-    // Assuming GST and other calculations remain the same for each entry
-    let gstAmount = 0;
-    const gstValues: { [key: string]: number } = {};
-
-    const gstFields = (entryGroup.get('dynamicFields') as FormArray).controls;
-    gstFields.forEach((control: AbstractControl) => {
-      const fieldGroup = control as FormGroup;
+  gstFields.forEach((control: AbstractControl) => {
+    const fieldGroup = control as FormGroup;
+    const field_category = fieldGroup.get('field_category')?.value;
+    if (field_category === 1) {
       const field_name = fieldGroup.get('field_name')?.value;
-      const field_value = fieldGroup.get('field_value')?.value;
-      const field_category = fieldGroup.get('field_category')?.value;
-      const exclude_from_total = fieldGroup.get('exclude_from_total')?.value;
+      const gstRateMatch = field_name.match(/(\d+(\.\d+)?)/);
+      const gstRate = gstRateMatch ? parseFloat(gstRateMatch[1]) : 0;
+      gstRates.push(gstRate);
+    }
+  });
 
-      if (field_category === 1) {
-        const gstRateMatch = field_name.match(/(\d+(\.\d+)?)/);
-        const gstRate = gstRateMatch ? parseFloat(gstRateMatch[1]) : 0;
-        let gstValue = (amount * gstRate) / 100;
-        gstValue = parseFloat((gstValue).toFixed(2));
-        gstValues[field_name] = gstValue;
+  const totalGSTPercent = gstRates.reduce((sum, rate) => sum + rate, 0);
+  let totalAmount = parseFloat((parseFloat(quantity) * parseFloat(unit_price)).toFixed(2));
+  entryGroup.get('total_amount')?.setValue(totalAmount, { emitEvent: false });
 
-        if (!exclude_from_total) {
-          gstAmount += gstValue;
-        }
-        fieldGroup.get('field_value')?.setValue(gstValue, { emitEvent: false });
-      }
-    });
-
-    let totalAmount = amount + gstAmount;
-    totalAmount = parseFloat((totalAmount).toFixed(2));
-    entryGroup.get('total_amount')?.setValue(totalAmount, { emitEvent: false });
-
-    entryGroup.patchValue(gstValues, { emitEvent: false });
-
-    this.updateGroupValues(); // Call to update group totals whenever an entry total is updated
+  let value = 0;
+  if (type === 8) {
+    // Cash Sale: derive value from totalAmount
+    value = totalAmount / (1 + totalGSTPercent / 100);
+  } else {
+    // Regular Entry: derive totalAmount from value
+    value = parseFloat((parseFloat(quantity) * parseFloat(unit_price)).toFixed(2));
   }
+
+  value = parseFloat(value.toFixed(2));
+  entryGroup.get('value')?.setValue(value, { emitEvent: false });
+
+  // GST Calculations
+  let gstAmount = 0;
+  const gstValues: { [key: string]: number } = {};
+
+  gstFields.forEach((control: AbstractControl) => {
+    const fieldGroup = control as FormGroup;
+    const field_name = fieldGroup.get('field_name')?.value;
+    const field_category = fieldGroup.get('field_category')?.value;
+    const exclude_from_total = fieldGroup.get('exclude_from_total')?.value;
+
+    if (field_category === 1) {
+      const gstRateMatch = field_name.match(/(\d+(\.\d+)?)/);
+      const gstRate = gstRateMatch ? parseFloat(gstRateMatch[1]) : 0;
+      let gstValue = (value * gstRate) / 100;
+      gstValue = parseFloat(gstValue.toFixed(2));
+      gstValues[field_name] = gstValue;
+
+      if (!exclude_from_total) {
+        gstAmount += gstValue;
+      }
+
+      fieldGroup.get('field_value')?.setValue(gstValue, { emitEvent: false });
+    }
+  });
+
+  if (type !== 8) {
+    totalAmount = value + gstAmount;
+    totalAmount = parseFloat(totalAmount.toFixed(2));
+    entryGroup.get('total_amount')?.setValue(totalAmount, { emitEvent: false });
+  }
+
+  entryGroup.patchValue(gstValues, { emitEvent: false });
+
+  this.updateGroupValues();
+}
 
   updateGroupValues(): void {
     console.log("update group total amount");
@@ -487,32 +519,32 @@ export class AddEditEntryDialogComponent implements OnInit {
       // Temporarily enable the disabled fields
       entry.get('value')?.enable({ emitEvent: false });
       entry.get('total_amount')?.enable({ emitEvent: false });
-  
+
       // Retrieve the entry values
       const entryValue = entry.get('value')?.value || 0;
       const totalAmount = entry.get('total_amount')?.value || 0;
-  
+
       // Disable the fields again
       entry.get('value')?.disable({ emitEvent: false });
       entry.get('total_amount')?.disable({ emitEvent: false });
-  
+
       return { value: entryValue, total_amount: totalAmount };
     });
-  
+
     let groupEntryValue = 0;
     let groupTotalAmount = 0;
-  
+
     entries.forEach(entry => {
       groupEntryValue += parseFloat(entry.value);
       groupTotalAmount += parseFloat(entry.total_amount);
     });
-  
+
     this.entryForm.patchValue({
       groupEntryValue: parseFloat(groupEntryValue.toFixed(2)),
       groupTotalAmount: parseFloat(groupTotalAmount.toFixed(2))
     }, { emitEvent: false });
   }
-  
+
 
   // Function to find a node by its name
   findNodeByName(node: GroupNode, name: string): GroupNode | null {
@@ -581,7 +613,7 @@ export class AddEditEntryDialogComponent implements OnInit {
       }
     });
   }
-  
+
 
   onSave(): void {
     this.entries.controls.map(entry => {
@@ -612,10 +644,10 @@ export class AddEditEntryDialogComponent implements OnInit {
           ...e,
           entry_date: formValues.entry_date,
           user_id: this.data.userId,
-          customerName:formValues.customerName,
+          customerName: formValues.customerName,
           type: this.data.type,
           financial_year: this.data.financialYear,
-          invoice_seq_id:formValues.invoice_seq_id,
+          invoice_seq_id: formValues.invoice_seq_id,
           invoiceNumber: formValues.invoiceNumber, // Include invoiceNumber
           account_id: formValues.account_id,       // Include account_id
           dynamicFields: dynamicFields // Include dynamic fields for each entry
@@ -629,9 +661,21 @@ export class AddEditEntryDialogComponent implements OnInit {
           this.isSaving = false;
           this.dialogRef.close(response);
         });
+      } else if (this.data.group && this.data.type === 8) {
+        // Update existing cash entries for type 8
+        this.entryService.updateCashEntries(entriesData).subscribe((response) => {
+          this.isSaving = false;
+          this.dialogRef.close(response);
+        });
       } else if (this.data.group) {
         // Update existing entries for Purchase Entry (type 1), Sale Entry (type 2), Purchase Return (type 3), Sale Return (type 4), Credit Note (type 5), and Debit Note (type 6)
         this.entryService.updateEntries(entriesData).subscribe((response) => {
+          this.isSaving = false;
+          this.dialogRef.close(response);
+        });
+      } else if (this.data.type === 8) {
+        // Add existing entries for type 8
+        this.entryService.addCashEntries(entriesData).subscribe((response) => {
           this.isSaving = false;
           this.dialogRef.close(response);
         });

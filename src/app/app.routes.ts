@@ -37,6 +37,7 @@ export const routes: Routes = [
   { path: 'conversionList', loadChildren: () => import('./configuration/conversion/conversion.module').then(m => m.ConversionModule), title: 'Conversion List page', canActivate: [AuthGuard] },
   { path: 'journalEntries', loadChildren: () => import('./dataentry/journal-list/journal-list.module').then(m => m.JournalListModule), title: 'Journal Entry page', canActivate: [AuthGuard] },
   { path: 'cashBook', loadChildren: () => import('./dataentry/cash-book/cash-book.module').then(m => m.CashBookModule), title: 'Cash Book page', canActivate: [AuthGuard] },
+  { path: 'cashSaleEntry', loadChildren: () => import('./dataentry/cash-sale-entry/cash-sale-entry.module').then(m => m.CashSaleEntryModule), title: 'Cash Sale Entry page', canActivate: [AuthGuard] },
   { path: 'purchaseEntry', loadChildren: () => import('./dataentry/purchase-entry/purchase-entry.module').then(m => m.PurchaseEntryModule), title: 'Purchase Entry page', canActivate: [AuthGuard] },
   { path: 'saleEntry', loadChildren: () => import('./dataentry/sale-entry/sale-entry.module').then(m => m.SaleEntryModule), title: 'Sale Entry page', canActivate: [AuthGuard] },
   { path: 'purchaseReturn', loadChildren: () => import('./dataentry/purchase-return/purchase-return.module').then(m => m.PurchaseReturnModule), title: 'Purchase Return page', canActivate: [AuthGuard] },
