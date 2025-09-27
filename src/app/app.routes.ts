@@ -55,4 +55,6 @@ export const routes: Routes = [
   { path: 'bankStatement', loadChildren: () => import('./upload/bank-statement/bank-statement.module').then(m => m.BankStatementModule), title: 'Bank Statement page', canActivate: [AuthGuard] },
   { path: 'entriesUpload', loadChildren: () => import('./upload/entries/entries.module').then(m => m.EntriesModule), title: 'Entries upload page', canActivate: [AuthGuard] },
   { path: 'export-history', loadChildren: () => import('./download/export-history/export-history.module').then(m => m.ExportHistoryModule), title: 'Export history page', canActivate: [AuthGuard] },
+  { path: 'upload-history', loadChildren: () => import('./tracking/upload-history/upload-history.module').then(m => m.UploadHistoryModule), title: 'Upload history page', canActivate: [AuthGuard] },
+
 ];

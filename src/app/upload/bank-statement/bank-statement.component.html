@@ -11,14 +11,14 @@
       <mat-option value="creditCard">
         <mat-icon>credit_card</mat-icon> Credit Card Statement
       </mat-option>
-      <mat-option value="trialBalance">
-        <mat-icon>bar_chart</mat-icon> Trial Balance
+      <mat-option value="trailBalance">
+        <mat-icon>bar_chart</mat-icon> Trail Balance
       </mat-option>
     </mat-select>
   </mat-form-field>
 
   <!-- Second Dropdown: Bank/Credit Card Names -->
-  <mat-form-field class="full-width" appearance="fill" *ngIf="selectedStatementType !== 'trialBalance'">
+  <mat-form-field class="full-width" appearance="fill" *ngIf="selectedStatementType !== 'trailBalance'">
     <mat-label>Select Bank/Credit Card Name</mat-label>
     <mat-select [(value)]="selectedBankName">
       <mat-option *ngFor="let name of bankNames" [value]="name">
@@ -28,7 +28,7 @@
   </mat-form-field>
 
   <!-- Third Dropdown: Account Type -->
-  <mat-form-field class="full-width" appearance="fill" *ngIf="selectedStatementType !== 'trialBalance'">
+  <mat-form-field class="full-width" appearance="fill" *ngIf="selectedStatementType !== 'trailBalance'">
     <mat-label>Select Account Name</mat-label>
     <mat-select [(value)]="selectedAccountName">
       <mat-option *ngFor="let account of accountNames" [value]="account.id">

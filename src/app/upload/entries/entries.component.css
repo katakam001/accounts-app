@@ -270,3 +270,43 @@
   }
 }
 
+.sale-mode-section {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.select-sale-mode-title {
+  text-align: center;
+  font-size: 1.2rem; /* Match invoice title */
+  color: #0077b6;     /* Same accent color for consistency */
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+mat-button-toggle-group {
+  display: inline-flex;
+  justify-content: center;
+}
+
+mat-button-toggle {
+  font-weight: 600;
+  padding: 1px 4px;
+  min-width: 140px; /* Match invoice button width */
+  height: 40px;      /* Match invoice button height */
+  border-radius: 6px;
+  margin: 0 4px;
+  border: 1px solid #ccc;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+mat-button-toggle.mat-button-toggle-checked {
+  background-color: #1976d2;
+  color: #fff;
+  border-color: #1976d2;
+}
+
+mat-button-toggle mat-icon {
+  font-size: 12px;
+  margin-right: 3px;
+  vertical-align: middle;
+}

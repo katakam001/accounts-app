@@ -53,7 +53,6 @@ export class ExportHistoryComponent implements OnInit {
   }
 
   loadExports(): void {
-    const financialYear = '2025-26'; // Replace with dynamic value if needed
     this.exportService.getExportsByUserIdAndFinancialYear(this.storageService.getUser().id, this.financialYear).subscribe((data: ExportRecord[]) => {
       this.dataSource.data = data;
     });

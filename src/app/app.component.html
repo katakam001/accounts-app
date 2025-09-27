@@ -251,7 +251,7 @@
       <h3 class="section-heading">Uploads</h3>
       <a mat-list-item routerLink="/bankStatement" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">
-          <mat-icon style="margin-right: 8px;">cloud_upload</mat-icon>
+          <mat-icon style="margin-right: 8px;">currency_rupee</mat-icon>
           <span>Bank Statement</span>
         </div>
       </a>
@@ -269,6 +269,16 @@
         <div class="nav-item" style="display: flex; align-items: center;">
           <mat-icon style="margin-right: 8px;">cloud_download</mat-icon>
           <span>Export History</span>
+        </div>
+      </a>
+    </mat-nav-list>
+    <mat-nav-list
+      *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')  && storageService.isUserProfileCompleted()">
+      <h3 class="section-heading">Tracking</h3>
+      <a mat-list-item routerLink="/upload-history" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">cloud_upload</mat-icon>
+          <span>Upload History</span>
         </div>
       </a>
     </mat-nav-list>

@@ -44,7 +44,7 @@ export class BankStatementComponent {
   bankNames: string[] = [];
   accountNames: Account[] = [];
 
-  banks: string[] = ['UNION BANK OF INDIA', 'CANARA BANK', 'ICICI BANK', 'INDIAN BANK', 'SBI', 'CITY UNION BANK', 'HDFC BANK', 'AXIS BANK', 'BANK OF INDIA', 'IDFC FIRST BANK', 'CENTRAL BANK OF INDIA','ANDHRA PRAGATHI GRAMEENA BANK','BANK OF BARODA','KARUR VYSYA BANK'];
+  banks: string[] = ['UNION BANK OF INDIA', 'CANARA BANK', 'ICICI BANK', 'INDIAN BANK', 'SBI', 'CITY UNION BANK', 'HDFC BANK', 'AXIS BANK', 'BANK OF INDIA', 'IDFC FIRST BANK', 'CENTRAL BANK OF INDIA', 'ANDHRA PRAGATHI GRAMEENA BANK', 'BANK OF BARODA', 'KARUR VYSYA BANK'];
   creditCards: string[] = ['Credit Card X', 'Credit Card Y', 'Credit Card Z'];
 
   constructor(private uploadService: UploadService,
@@ -93,12 +93,13 @@ export class BankStatementComponent {
     this.uploadService.getPresignedUrl(this.selectedFile.name, metadata).subscribe(
       (response) => {
         const presignedUrl = response?.presignedUrl; // Safe check
+        const batchId = response?.batchId;
 
-        if (!presignedUrl) {
+        if (!presignedUrl || !batchId) {
           this.isUploading = false;
           this.uploadSuccess = false;
-          this.uploadMessage = 'Error: Presigned URL is missing!';
-          console.error('Error: Presigned URL is missing in backend response.');
+          this.uploadMessage = 'Error: Missing presigned URL or batch ID!';
+          console.error('Missing presigned URL or batch ID in backend response.');
           return;
         }
 
@@ -124,6 +125,12 @@ export class BankStatementComponent {
             this.uploadSuccess = false;
             this.uploadMessage = 'Error uploading file: ' + error.message;
             console.error('Error uploading file:', error);
+
+            // 🔹 Notify backend about upload failure
+            this.uploadService.markUploadFailure(batchId, error.message).subscribe(
+              () => console.log('Upload failure recorded'),
+              err => console.error('Error recording upload failure:', err)
+            );
           }
         );
       },

@@ -53,6 +53,7 @@ export class EntriesComponent {
   selectedFile: File | null = null;
   selectedInvoiceType: string | null = null;
   selectedTaxType: 'cgst' | 'igst' = 'cgst'; // default selection
+  selectedSaleMode: 'credit' | 'cash' = 'credit';
   taxAccountMap: Map<number, string> = new Map();
   unitsMap: { [key: number]: any[] } = {}; // Store units for each categoryId
   uploadMessage: string | null = null; // To show messages to the user
@@ -155,21 +156,33 @@ export class EntriesComponent {
     const blob = new Blob([csvContent], { type: 'text/csv' });
 
     // ✅ Include tax type in filename for clarity
-    const fileName = `${this.selectedInvoiceType}_${this.selectedTaxType}_invoice_template.csv`;
+    const type = this.selectedInvoiceType;
+    const tax = this.selectedTaxType;
+    const mode = this.selectedInvoiceType === 'sales' ? this.selectedSaleMode : 'credit';
+    const fileName = `${type}_${tax}_${mode}_invoice_template.csv`;
     saveAs(blob, fileName);
   }
 
 
   getSampleRow(): string[] {
     const formatAsText = (value: string) => `"=""${value}"""`;
+
     if (this.selectedTaxType === 'cgst') {
-      return this.selectedInvoiceType === 'purchase'
-        ? ['purchase', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
-        : ['sale', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920'];
+      if (this.selectedInvoiceType === 'purchase') {
+        return ['purchase', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920'];
+      } else if (this.selectedSaleMode === 'cash') {
+        return ['cashSale', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920'];
+      } else {
+        return ['saleCredit', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920'];
+      }
     } else {
-      return this.selectedInvoiceType === 'purchase'
-        ? ['purchase', '1', formatAsText('2473'), '08-10-2024', 'STORE1', '1.0000', 'ABC2342423423ZA', 'FERTIZER', '82200', '0', '0', '0', '0', '0', '0', '0', '0', '0', '82200']
-        : ['sale', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
+      if (this.selectedInvoiceType === 'purchase') {
+        return ['purchase', '1', formatAsText('2473'), '08-10-2024', 'STORE1', '1.0000', 'ABC2342423423ZA', 'FERTIZER', '82200', '0', '0', '0', '0', '0', '0', '0', '0', '0', '82200'];
+      } else if (this.selectedSaleMode === 'cash') {
+        return ['cashSale', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
+      } else {
+        return ['saleCredit', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
+      }
     }
   }
 
@@ -255,20 +268,22 @@ export class EntriesComponent {
       const metadata = {
         userId: this.userId.toString(),
         financialYear: this.financialYear,
-        type: this.selectedInvoiceType === 'purchase' ? '1' : this.selectedInvoiceType === 'sales' ? '2' : 'unknown',
+        type: this.selectedInvoiceType === 'purchase' ? '1' : this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'cash' ? '8' : this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'credit' ? '2' : 'unknown',
         taxType: this.selectedTaxType,
+        saleMode: this.selectedInvoiceType === 'sales' ? this.selectedSaleMode : 'credit',
         fileSize: this.selectedFile.size.toString() // in bytes
       };
       // Step 1: Get Presigned URL from Backend
       this.uploadService.getPresignedUrl(this.selectedFile.name, metadata).subscribe(
         (response) => {
           const presignedUrl = response?.presignedUrl; // Safe check
+          const batchId = response?.batchId;
 
-          if (!presignedUrl) {
+          if (!presignedUrl || !batchId) {
             this.isUploading = false;
             this.uploadSuccess = false;
-            this.uploadMessage = 'Error: Presigned URL is missing!';
-            console.error('Error: Presigned URL is missing in backend response.');
+            this.uploadMessage = 'Error: Missing presigned URL or batch ID!';
+            console.error('Missing presigned URL or batch ID in backend response.');
             return;
           }
 
@@ -294,6 +309,12 @@ export class EntriesComponent {
               this.uploadSuccess = false;
               this.uploadMessage = 'Error uploading file: ' + error.message;
               console.error('Error uploading file:', error);
+
+              // 🔹 Notify backend about upload failure
+              this.uploadService.markUploadFailure(batchId, error.message).subscribe(
+                () => console.log('Upload failure recorded'),
+                err => console.error('Error recording upload failure:', err)
+              );
             }
           );
         },
@@ -341,7 +362,7 @@ export class EntriesComponent {
       { condition: row["entryDate"] && !this.validateDateFormat(row["entryDate"]), errorType: "Invalid Date Format", message: `Row ${index + 1}: ${row["entryDate"]}` },
       { condition: Number(row["sNo"]) !== expectedSNo, errorType: "Invalid sNo Sequence", message: `Row ${index + 1}: Expected ${expectedSNo} Found ${row["sNo"]}` },
       { condition: !this.validAccounts.has(accountName), errorType: "Missing Accounts", message: `Row ${index + 1}: Account '${accountName}' not found` },
-      { condition: row["type"] !== (this.selectedInvoiceType === "purchase" ? "purchase" : "sale"), errorType: "Invalid Invoice Type", message: `Row ${index + 1}: Expected '${this.selectedInvoiceType}' Found '${row["type"]}'` }
+      { condition: row["type"] !== (this.selectedInvoiceType === "purchase" ? "purchase" : this.selectedSaleMode === "cash" ? "cashSale" : "saleCredit"), errorType: "Invalid Invoice Type", message: `Row ${index + 1}: Expected '${this.selectedInvoiceType === "purchase" ? "purchase" : this.selectedSaleMode === "cash" ? "cashSale" : "saleCredit"}' Found '${row["type"]}'` }
     ];
     validationChecks.forEach(({ condition, errorType, message }) => {
       if (condition) this.addValidationError(validationErrorsMap, errorType, message);
@@ -520,7 +541,8 @@ export class EntriesComponent {
       const validationErrorsMap = new Map<string, Map<string, number>>(); //  Store validation issues
 
       //  Invoke `getInvoicesNo()` from `SequenceNumberService`
-      this.sequenceNumberService.getInvoicesNo(this.userId, this.financialYear, this.selectedInvoiceType === 'purchase' ? 1 : 2).subscribe(
+
+      this.sequenceNumberService.getInvoicesNo(this.userId, this.financialYear, this.selectedInvoiceType === 'purchase' ? 1 : this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'cash' ? 8 : this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'credit' ? 2 : 0).subscribe(
         response => {
           latestSNo = response?.last_sNo;
           console.log(`Fetched latest sNo: ${latestSNo}`);
