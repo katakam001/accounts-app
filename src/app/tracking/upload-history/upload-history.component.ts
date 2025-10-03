@@ -11,6 +11,8 @@ import { UploadService } from '../../services/upload.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
+import { EntryService } from '../../services/entry.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-upload-history',
@@ -41,12 +43,15 @@ export class UploadHistoryComponent implements OnInit {
     'status',
     'started_at',
     'completed_at',
-    'error_message'
+    'error_message',
+    'action'
   ];
 
   constructor(private uploadService: UploadService,
     private financialYearService: FinancialYearService,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private entryService: EntryService,
+    private snackBar: MatSnackBar,
   ) { }
 
   ngOnInit(): void {
@@ -68,6 +73,27 @@ export class UploadHistoryComponent implements OnInit {
     });
   }
 
+  onTriggerLedger(uploadId: number) {
+    this.entryService.triggerLedgerJob(uploadId).subscribe({
+      next: (res: any) => {
+        const index = this.dataSource.data.findIndex(upload => upload.id === uploadId);
+        const newData = [...this.dataSource.data];
+        const updateObj = newData[index];
+        updateObj.status = 8;
+        newData[index] = updateObj;
+        this.dataSource.data = newData;
+        this.snackBar.open(res.message, 'Close', {
+          duration: 3000,
+        });
+      },
+      error: (err) => {
+        this.snackBar.open(err.error?.error || 'Failed to trigger ledger job', 'Close', {
+          duration: 3000,
+        });
+      }
+    });
+  }
+
   getStatusLabel(status: number): string {
     switch (status) {
       case 1: return 'Upload Initiated';
@@ -77,6 +103,7 @@ export class UploadHistoryComponent implements OnInit {
       case 5: return 'Summary Received';
       case 6: return 'Summary Error';
       case 7: return 'Completed';
+      case 8: return 'Ledger Job Processed';
       default: return 'Unknown';
     }
   }
