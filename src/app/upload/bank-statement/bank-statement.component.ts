@@ -44,7 +44,23 @@ export class BankStatementComponent {
   bankNames: string[] = [];
   accountNames: Account[] = [];
 
-  banks: string[] = ['UNION BANK OF INDIA', 'CANARA BANK', 'ICICI BANK', 'INDIAN BANK', 'SBI', 'CITY UNION BANK', 'HDFC BANK', 'AXIS BANK', 'BANK OF INDIA', 'IDFC FIRST BANK', 'CENTRAL BANK OF INDIA', 'ANDHRA PRAGATHI GRAMEENA BANK', 'BANK OF BARODA', 'KARUR VYSYA BANK', 'INDIAN OVERSEAS BANK'];
+  banks: string[] = [
+    'ANDHRA PRAGATHI GRAMEENA BANK',
+    'AXIS BANK',
+    'BANK OF BARODA',
+    'BANK OF INDIA',
+    'CANARA BANK',
+    'CENTRAL BANK OF INDIA',
+    'CITY UNION BANK',
+    'HDFC BANK',
+    'ICICI BANK',
+    'IDFC FIRST BANK',
+    'INDIAN BANK',
+    'INDIAN OVERSEAS BANK',
+    'KARUR VYSYA BANK',
+    'SBI',
+    'UNION BANK OF INDIA'
+  ];
   creditCards: string[] = ['Credit Card X', 'Credit Card Y', 'Credit Card Z'];
 
   constructor(private uploadService: UploadService,
