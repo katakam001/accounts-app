@@ -54,6 +54,12 @@ export class EntriesComponent {
   selectedInvoiceType: string | null = null;
   selectedTaxType: 'cgst' | 'igst' = 'cgst'; // default selection
   selectedSaleMode: 'credit' | 'cash' = 'credit';
+  invoiceTypeLabels: { [key: string]: string } = {
+    purchase: 'Purchase',
+    sales: 'Sales',
+    creditNote: 'Credit Note',
+    debitNote: 'Debit Note'
+  };
   taxAccountMap: Map<number, string> = new Map();
   unitsMap: { [key: number]: any[] } = {}; // Store units for each categoryId
   uploadMessage: string | null = null; // To show messages to the user
@@ -88,11 +94,16 @@ export class EntriesComponent {
       "Mismatch in igst18",
       "Mismatch in igst28",
 
+      // Mismatch in totAmt
+      "Mismatch in netAmt",
+
       // Invoice Type & Entity Mapping
       "Invalid Invoice Type",
       "Missing Item",
       "Missing Purchase Account",
       "Missing Sale Account",
+      "Missing Credit Note Account",
+      "Missing Debit Note Account",
       "Missing Category",
 
       // Category Configuration
@@ -163,48 +174,73 @@ export class EntriesComponent {
     saveAs(blob, fileName);
   }
 
-
   getSampleRow(): string[] {
     const formatAsText = (value: string) => `"=""${value}"""`;
 
-    if (this.selectedTaxType === 'cgst') {
-      if (this.selectedInvoiceType === 'purchase') {
-        return ['purchase', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920'];
-      } else if (this.selectedSaleMode === 'cash') {
-        return ['cashSale', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920'];
+    const type = this.selectedInvoiceType;
+    const isCGST = this.selectedTaxType === 'cgst';
+
+    if (type === 'purchase' || type === 'creditNote') {
+      return isCGST
+        ? [type, '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
+        : [type, '1', formatAsText('2473'), '08-10-2024', 'STORE1', '1.0000', 'ABC2342423423ZA', 'FERTIZER', '82200', '0', '0', '0', '0', '0', '0', '0', '0', '0', '82200'];
+    }
+
+    if (type === 'sales') {
+      if (this.selectedSaleMode === 'cash') {
+        return isCGST
+          ? ['cashSale', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '100.00', '105.00', '112.00', '118.00', '128.00', '563.00']
+          : ['cashSale', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', '100.00', '105.00', '112.00', '118.00', '128.00', '563.00'];
       } else {
-        return ['saleCredit', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920'];
-      }
-    } else {
-      if (this.selectedInvoiceType === 'purchase') {
-        return ['purchase', '1', formatAsText('2473'), '08-10-2024', 'STORE1', '1.0000', 'ABC2342423423ZA', 'FERTIZER', '82200', '0', '0', '0', '0', '0', '0', '0', '0', '0', '82200'];
-      } else if (this.selectedSaleMode === 'cash') {
-        return ['cashSale', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
-      } else {
-        return ['saleCredit', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
+        return isCGST
+          ? ['saleCredit', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
+          : ['saleCredit', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
       }
     }
+
+    if (type === 'debitNote') {
+      return isCGST
+        ? ['debitNote', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
+        : ['debitNote', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
+    }
+
+    return []; // fallback
   }
 
   getTemplateHeaders(): string[] {
+    const isCashSaleFormat = this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'cash';
     if (this.selectedTaxType === 'cgst') {
-      return [
-        "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName",
-        "gstValue0", "gstValue5", "gst5",
-        "gstValue12", "gst12",
-        "gstValue18", "gst18",
-        "gstValue28", "gst28",
-        "cgst", "sgst", "totGst", "netAmt"
-      ];
+      if (isCashSaleFormat) {
+        return [
+          "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName",
+          "totAmt0", "totAmt5", "totAmt12", "totAmt18", "totAmt28", "netAmt"
+        ];
+      } else {
+        return [
+          "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName",
+          "gstValue0", "gstValue5", "gst5",
+          "gstValue12", "gst12",
+          "gstValue18", "gst18",
+          "gstValue28", "gst28",
+          "cgst", "sgst", "totGst", "netAmt"
+        ];
+      }
     } else {
-      return [
-        "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName",
-        "gstValue0", "gstValue5", "igst5",
-        "gstValue12", "igst12",
-        "gstValue18", "igst18",
-        "gstValue28", "igst28",
-        "totIgst", "netAmt"
-      ];
+      if (isCashSaleFormat) {
+        return [
+          "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName",
+          "iTotAmt0", "iTotAmt5", "iTotAmt12", "iTotAmt18", "iTotAmt28", "netAmt"
+        ];
+      } else {
+        return [
+          "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName",
+          "gstValue0", "gstValue5", "igst5",
+          "gstValue12", "igst12",
+          "gstValue18", "igst18",
+          "gstValue28", "igst28",
+          "totIgst", "netAmt"
+        ];
+      }
     }
   }
 
@@ -268,7 +304,12 @@ export class EntriesComponent {
       const metadata = {
         userId: this.userId.toString(),
         financialYear: this.financialYear,
-        type: this.selectedInvoiceType === 'purchase' ? '1' : this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'cash' ? '8' : this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'credit' ? '2' : 'unknown',
+        type: this.selectedInvoiceType === 'purchase' ? '1' :
+          this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'cash' ? '8' :
+            this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'credit' ? '2' :
+              this.selectedInvoiceType === 'creditNote' ? '5' :
+                this.selectedInvoiceType === 'debitNote' ? '6' :
+                  'unknown',
         taxType: this.selectedTaxType,
         saleMode: this.selectedInvoiceType === 'sales' ? this.selectedSaleMode : 'credit',
         fileSize: this.selectedFile.size.toString() // in bytes
@@ -338,17 +379,6 @@ export class EntriesComponent {
     const accountName = row["name"]?.toLowerCase();
     const itemName = row["itemName"]?.trim().toUpperCase();
 
-    const extractedData: Record<string, number> = this.selectedTaxType === 'cgst'
-      ? [
-        "gstValue0", "gstValue5", "gst5", "gstValue12", "gst12", "gstValue18", "gst18",
-        "gstValue28", "gst28", "cgst", "sgst", "totGst"
-      ].reduce((acc, key) => ({ ...acc, [key]: parseFloat(row[key] || "0") }), {})
-      : [
-        "gstValue0", "gstValue5", "igst5", "gstValue12", "igst12", "gstValue18", "igst18",
-        "gstValue28", "igst28", "totIgst"
-      ].reduce((acc, key) => ({ ...acc, [key]: parseFloat(row[key] || "0") }), {});
-
-    const taxTolerance = 0.50;
     const expectedSNo = latestSNo;
 
     // ✅ Basic validations
@@ -362,94 +392,156 @@ export class EntriesComponent {
       { condition: row["entryDate"] && !this.validateDateFormat(row["entryDate"]), errorType: "Invalid Date Format", message: `Row ${index + 1}: ${row["entryDate"]}` },
       { condition: Number(row["sNo"]) !== expectedSNo, errorType: "Invalid sNo Sequence", message: `Row ${index + 1}: Expected ${expectedSNo} Found ${row["sNo"]}` },
       { condition: !this.validAccounts.has(accountName), errorType: "Missing Accounts", message: `Row ${index + 1}: Account '${accountName}' not found` },
-      { condition: row["type"] !== (this.selectedInvoiceType === "purchase" ? "purchase" : this.selectedSaleMode === "cash" ? "cashSale" : "saleCredit"), errorType: "Invalid Invoice Type", message: `Row ${index + 1}: Expected '${this.selectedInvoiceType === "purchase" ? "purchase" : this.selectedSaleMode === "cash" ? "cashSale" : "saleCredit"}' Found '${row["type"]}'` }
+      {
+        condition: row["type"] !== (
+          this.selectedInvoiceType === "purchase" ? "purchase" :
+            this.selectedInvoiceType === "sales" && this.selectedSaleMode === "cash" ? "cashSale" :
+              this.selectedInvoiceType === "sales" && this.selectedSaleMode === "credit" ? "saleCredit" :
+                this.selectedInvoiceType === "creditNote" ? "creditNote" :
+                  this.selectedInvoiceType === "debitNote" ? "debitNote" :
+                    "unknown"
+        ),
+        errorType: "Invalid Invoice Type",
+        message: `Row ${index + 1}: Expected '${this.selectedInvoiceType === "purchase" ? "purchase" :
+          this.selectedInvoiceType === "sales" && this.selectedSaleMode === "cash" ? "cashSale" :
+            this.selectedInvoiceType === "sales" && this.selectedSaleMode === "credit" ? "saleCredit" :
+              this.selectedInvoiceType === "creditNote" ? "creditNote" :
+                this.selectedInvoiceType === "debitNote" ? "debitNote" :
+                  "unknown"
+          }' Found '${row["type"]}'`
+      }
+
     ];
     validationChecks.forEach(({ condition, errorType, message }) => {
       if (condition) this.addValidationError(validationErrorsMap, errorType, message);
     });
 
-    // ✅ GST field validations
-    const validateTax = (gstValue: number, gstRate: number, gstFieldName: string) => {
-      const calculatedGst = parseFloat((gstValue * gstRate).toFixed(2));
-      const gstDifference = Math.abs(extractedData[gstFieldName] - calculatedGst).toFixed(2);
-      if (parseFloat(gstDifference) > taxTolerance) {
-        this.addValidationError(validationErrorsMap, `Mismatch in ${gstFieldName}`, `Row ${index + 1}: Expected ${calculatedGst} Found ${extractedData[gstFieldName]}`);
-      }
-    };
+    if (this.selectedSaleMode === "cash" && this.selectedSaleMode === "cash") {
+      const prefix = this.selectedTaxType === "cgst" ? "totAmt" : "iTotAmt";
+      const slabKeys = [`${prefix}0`, `${prefix}5`, `${prefix}12`, `${prefix}18`, `${prefix}28`];
 
-    const taxFieldMap = this.selectedTaxType === 'cgst'
-      ? [{ value: "gstValue5", rate: 0.05, field: "gst5" },
-      { value: "gstValue12", rate: 0.12, field: "gst12" },
-      { value: "gstValue18", rate: 0.18, field: "gst18" },
-      { value: "gstValue28", rate: 0.28, field: "gst28" }]
-      : [{ value: "gstValue5", rate: 0.05, field: "igst5" },
-      { value: "gstValue12", rate: 0.12, field: "igst12" },
-      { value: "gstValue18", rate: 0.18, field: "igst18" },
-      { value: "gstValue28", rate: 0.28, field: "igst28" }];
+      const slabSum = slabKeys.reduce((sum, key) => {
+        const val = parseFloat(row[key] || "0");
+        return sum + (isNaN(val) ? 0 : val);
+      }, 0);
 
-    taxFieldMap.forEach(({ value, rate, field }) => validateTax(extractedData[value], rate, field));
+      const netAmt = parseFloat(row["netAmt"] || "0");
+      const difference = Math.abs(slabSum - netAmt);
 
-
-    const baseTolerance = 0.50;
-    const totalTolerance = 0.01;
-
-    // Count how many GST slabs are non-zero and valid
-    const activeSlabs = [
-      extractedData["gstValue5"],
-      extractedData["gstValue12"],
-      extractedData["gstValue18"],
-      extractedData["gstValue28"]
-    ].filter(val => typeof val === 'number' && !isNaN(val) && val !== 0).length;
-
-    // Calculate dynamic tolerance
-    const tolerance = baseTolerance * activeSlabs;
-
-    if (this.selectedTaxType === 'cgst') {
-
-      const calculatedGstSum = parseFloat(
-        ((extractedData["gstValue5"] * 0.05) +
-          (extractedData["gstValue12"] * 0.12) +
-          (extractedData["gstValue18"] * 0.18) +
-          (extractedData["gstValue28"] * 0.28)).toFixed(2)
-      );
-
-      const calculatedCgstSgstSum = parseFloat((extractedData["cgst"] + extractedData["sgst"]).toFixed(2));
-      const totalGst = extractedData["totGst"];
-
-      if (Math.abs(calculatedGstSum - totalGst) > tolerance ||
-        Math.abs(calculatedCgstSgstSum - totalGst) > totalTolerance) {
+      if (difference > 0.01) {
         this.addValidationError(
           validationErrorsMap,
-          "Mismatch in total GST",
-          `Row ${index + 1}: Expected ${calculatedGstSum} Found ${totalGst}`
+          "Mismatch in netAmt",
+          `Row ${index + 1}: Sum of ${prefix} fields is ${slabSum.toFixed(2)} but netAmt is ${netAmt.toFixed(2)}`
         );
       }
     } else {
-      const calculatedIgstSum = parseFloat(
-        ((extractedData["gstValue5"] * 0.05) +
-          (extractedData["gstValue12"] * 0.12) +
-          (extractedData["gstValue18"] * 0.18) +
-          (extractedData["gstValue28"] * 0.28)).toFixed(2)
-      );
 
-      const totalIgst = extractedData["totIgst"];
+      const extractedData: Record<string, number> = this.selectedTaxType === 'cgst'
+        ? [
+          "gstValue0", "gstValue5", "gst5", "gstValue12", "gst12", "gstValue18", "gst18",
+          "gstValue28", "gst28", "cgst", "sgst", "totGst"
+        ].reduce((acc, key) => ({ ...acc, [key]: parseFloat(row[key] || "0") }), {})
+        : [
+          "gstValue0", "gstValue5", "igst5", "gstValue12", "igst12", "gstValue18", "igst18",
+          "gstValue28", "igst28", "totIgst"
+        ].reduce((acc, key) => ({ ...acc, [key]: parseFloat(row[key] || "0") }), {});
 
-      if (Math.abs(calculatedIgstSum - totalIgst) > tolerance) {
-        this.addValidationError(
-          validationErrorsMap,
-          "Mismatch in total IGST",
-          `Row ${index + 1}: Expected ${calculatedIgstSum} Found ${totalIgst}`
+      const taxTolerance = 0.50;
+
+      // ✅ GST field validations
+      const validateTax = (gstValue: number, gstRate: number, gstFieldName: string) => {
+        const calculatedGst = parseFloat((gstValue * gstRate).toFixed(2));
+        const gstDifference = Math.abs(extractedData[gstFieldName] - calculatedGst).toFixed(2);
+        if (parseFloat(gstDifference) > taxTolerance) {
+          this.addValidationError(validationErrorsMap, `Mismatch in ${gstFieldName}`, `Row ${index + 1}: Expected ${calculatedGst} Found ${extractedData[gstFieldName]}`);
+        }
+      };
+
+      const taxFieldMap = this.selectedTaxType === 'cgst'
+        ? [{ value: "gstValue5", rate: 0.05, field: "gst5" },
+        { value: "gstValue12", rate: 0.12, field: "gst12" },
+        { value: "gstValue18", rate: 0.18, field: "gst18" },
+        { value: "gstValue28", rate: 0.28, field: "gst28" }]
+        : [{ value: "gstValue5", rate: 0.05, field: "igst5" },
+        { value: "gstValue12", rate: 0.12, field: "igst12" },
+        { value: "gstValue18", rate: 0.18, field: "igst18" },
+        { value: "gstValue28", rate: 0.28, field: "igst28" }];
+
+      taxFieldMap.forEach(({ value, rate, field }) => validateTax(extractedData[value], rate, field));
+
+
+      const baseTolerance = 0.50;
+      const totalTolerance = 0.01;
+
+      // Count how many GST slabs are non-zero and valid
+      const activeSlabs = [
+        extractedData["gstValue5"],
+        extractedData["gstValue12"],
+        extractedData["gstValue18"],
+        extractedData["gstValue28"]
+      ].filter(val => typeof val === 'number' && !isNaN(val) && val !== 0).length;
+
+      // Calculate dynamic tolerance
+      const tolerance = baseTolerance * activeSlabs;
+
+      if (this.selectedTaxType === 'cgst') {
+
+        const calculatedGstSum = parseFloat(
+          ((extractedData["gstValue5"] * 0.05) +
+            (extractedData["gstValue12"] * 0.12) +
+            (extractedData["gstValue18"] * 0.18) +
+            (extractedData["gstValue28"] * 0.28)).toFixed(2)
         );
+
+        const calculatedCgstSgstSum = parseFloat((extractedData["cgst"] + extractedData["sgst"]).toFixed(2));
+        const totalGst = extractedData["totGst"];
+
+        if (Math.abs(calculatedGstSum - totalGst) > tolerance ||
+          Math.abs(calculatedCgstSgstSum - totalGst) > totalTolerance) {
+          this.addValidationError(
+            validationErrorsMap,
+            "Mismatch in total GST",
+            `Row ${index + 1}: Expected ${calculatedGstSum} Found ${totalGst}`
+          );
+        }
+      } else {
+        const calculatedIgstSum = parseFloat(
+          ((extractedData["gstValue5"] * 0.05) +
+            (extractedData["gstValue12"] * 0.12) +
+            (extractedData["gstValue18"] * 0.18) +
+            (extractedData["gstValue28"] * 0.28)).toFixed(2)
+        );
+
+        const totalIgst = extractedData["totIgst"];
+
+        if (Math.abs(calculatedIgstSum - totalIgst) > tolerance) {
+          this.addValidationError(
+            validationErrorsMap,
+            "Mismatch in total IGST",
+            `Row ${index + 1}: Expected ${calculatedIgstSum} Found ${totalIgst}`
+          );
+        }
       }
     }
 
     // ✅ Tax-based validations
-    const taxKeys = ["gstValue0", "gstValue5", "gstValue12", "gstValue18", "gstValue28"];
+    const taxKeys = this.selectedSaleMode === "cash" && this.selectedSaleMode === "cash"
+      ? this.selectedTaxType === "cgst"
+        ? ["totAmt0", "totAmt5", "totAmt12", "totAmt18", "totAmt28"]
+        : ["iTotAmt0", "iTotAmt5", "iTotAmt12", "iTotAmt18", "iTotAmt28"]
+      : ["gstValue0", "gstValue5", "gstValue12", "gstValue18", "gstValue28"];
     const activeTaxes = taxKeys.filter(key => parseFloat(row[key] || "0") > 0);
     const resolvedCategoryIds: number[] = [];
 
     activeTaxes.forEach(taxKey => {
-      const taxRate = taxKey.replace("gstValue", "");
+      const taxRate = parseFloat(
+        taxKey
+          .replace("gstValue", "")
+          .replace("totAmt", "")
+          .replace("iTotAmt", "")
+      );
+
       const expectedItem = `${itemName} ${taxRate}%`;
       const itemExists = this.items.some(item => item.name.toUpperCase() === expectedItem);
       if (!itemExists) {
@@ -460,14 +552,40 @@ export class EntriesComponent {
       const taxLabel = this.selectedTaxType === 'cgst' ? '' : ' IGST';
 
       // 🔹 Expected Account Name
-      const expectedAccount = `${this.selectedInvoiceType === "purchase" ? "PURCHASE" : "SALE"} OF ${itemName} ${taxRate}%${taxLabel}`;
+      const accountPrefix =
+        this.selectedInvoiceType === "purchase" ? "PURCHASE" :
+          this.selectedInvoiceType === "sales" ? "SALE" :
+            this.selectedInvoiceType === "creditNote" ? "CREDIT NOTE" :
+              this.selectedInvoiceType === "debitNote" ? "DEBIT NOTE" :
+                "UNKNOWN";
+
+      const expectedAccount = `${accountPrefix} OF ${itemName} ${taxRate}%${taxLabel}`;
+
       const accountExists = this.categoryAccount.some(acc => acc.name.toUpperCase() === expectedAccount);
       if (!accountExists) {
-        this.addValidationError(validationErrorsMap, `Missing ${this.selectedInvoiceType === "purchase" ? "Purchase" : "Sale"} Account`, `Row ${index + 1}: Account '${expectedAccount}' not found`);
+        const accountLabel =
+          this.selectedInvoiceType === "purchase" ? "Purchase" :
+            this.selectedInvoiceType === "sales" ? "Sale" :
+              this.selectedInvoiceType === "creditNote" ? "Credit Note" :
+                this.selectedInvoiceType === "debitNote" ? "Debit Note" :
+                  "Unknown";
+
+        this.addValidationError(
+          validationErrorsMap,
+          `Missing ${accountLabel} Account`,
+          `Row ${index + 1}: Account '${expectedAccount}' not found`
+        );
+
       }
 
       // 🔹 Expected Category Name
-      const expectedCategoryName = `${this.selectedInvoiceType === "purchase" ? "PURCHASE" : "SALE"} ${itemName} ${taxRate}%${taxLabel}`;
+      const categoryPrefix =
+        this.selectedInvoiceType === "purchase" || this.selectedInvoiceType === "creditNote"
+          ? "PURCHASE"
+          : "SALE";
+
+      const expectedCategoryName = `${categoryPrefix} ${itemName} ${taxRate}%${taxLabel}`;
+
       const category = this.categories.find(cat => cat.name.toUpperCase() === expectedCategoryName);
       if (category) {
         resolvedCategoryIds.push(category.id);
@@ -541,8 +659,16 @@ export class EntriesComponent {
       const validationErrorsMap = new Map<string, Map<string, number>>(); //  Store validation issues
 
       //  Invoke `getInvoicesNo()` from `SequenceNumberService`
-
-      this.sequenceNumberService.getInvoicesNo(this.userId, this.financialYear, this.selectedInvoiceType === 'purchase' ? 1 : this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'cash' ? 8 : this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'credit' ? 2 : 0).subscribe(
+      this.sequenceNumberService.getInvoicesNo(
+        this.userId,
+        this.financialYear,
+        this.selectedInvoiceType === 'purchase' ? 1 :
+          this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'cash' ? 8 :
+            this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'credit' ? 2 :
+              this.selectedInvoiceType === 'creditNote' ? 5 :
+                this.selectedInvoiceType === 'debitNote' ? 6 :
+                  0
+      ).subscribe(
         response => {
           latestSNo = response?.last_sNo;
           console.log(`Fetched latest sNo: ${latestSNo}`);
@@ -575,12 +701,26 @@ export class EntriesComponent {
                 Promise.all([
                   this.fetchAccountWithGroup(),
                   this.fetchItems(),
-                  this.fetchCategories(this.selectedInvoiceType === 'purchase' ? 1 : 2)
+                  this.fetchCategories(
+                    this.selectedInvoiceType === 'purchase' || this.selectedInvoiceType === 'creditNote' ? 1 : 2
+                  )
+
                 ]).then(() => {
                   let configMissing = false;
 
                   if (!this.categoryAccount || this.categoryAccount.length === 0) {
-                    this.addValidationError(validationErrorsMap, `Missing ${this.selectedInvoiceType === "purchase" ? "Purchase" : "Sale"} Account`, `No ${this.selectedInvoiceType} accounts found.`);
+                    const accountLabel =
+                      this.selectedInvoiceType === "purchase" ? "Purchase" :
+                        this.selectedInvoiceType === "sales" ? "Sale" :
+                          this.selectedInvoiceType === "creditNote" ? "Credit Note" :
+                            this.selectedInvoiceType === "debitNote" ? "Debit Note" :
+                              "Unknown";
+
+                    this.addValidationError(
+                      validationErrorsMap,
+                      `Missing ${accountLabel} Account`,
+                      `No ${accountLabel} accounts found.`
+                    );
                     configMissing = true;
                   }
 
@@ -666,13 +806,15 @@ export class EntriesComponent {
   }
 
   fetchAccountWithGroup(): Promise<void> {
-    const groupAccountMapping: { [key: number]: string } = {
-      1: 'Purchase Account',
-      2: 'Sale Account'
+    const groupAccountMapping: { [key: string]: string } = {
+      purchase: 'Purchase Account',
+      sales: 'Sale Account',
+      creditNote: 'Credit Note Account', // same group as purchase
+      debitNote: 'Debit Note Account'       // same group as sales
     };
 
-    // Get the group name based on this.data.type
-    const groupName = groupAccountMapping[this.selectedInvoiceType === 'purchase' ? 1 : 2];
+    const invoiceTypeKey = this.selectedInvoiceType;
+    const groupName = groupAccountMapping[invoiceTypeKey || ''];
 
     return new Promise((resolve) => {
       this.accountService.getAccountsByUserIdAndFinancialYear(this.userId, this.financialYear, [groupName]).subscribe((accounts: Account[]) => {

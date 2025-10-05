@@ -182,7 +182,9 @@
 
 .invoice-type-options {
   display: flex;
+  flex-wrap: wrap; /* ✅ allows wrapping */
   gap: 20px;
+  justify-content: center;
 }
 
 .invoice-option {
@@ -206,6 +208,14 @@
 
 .sales-invoice {
   background-color: #fff3e0;
+}
+
+.credit-note {
+  background-color: #e8eaf6;
+}
+
+.debit-note {
+  background-color: #fce4ec;
 }
 
 .invoice-option.active {

@@ -22,6 +22,23 @@
         <mat-icon class="invoice-icon">store</mat-icon>
         <span>Sales Bulk Upload</span>
       </div>
+
+      <!-- Credit Note Option -->
+      <div class="invoice-option credit-note" [class.active]="selectedInvoiceType === 'creditNote'"
+        (click)="selectedInvoiceType = 'creditNote'; selectedSaleMode = 'credit'"
+        matTooltip="Upload credit notes issued to customers">
+        <mat-icon class="invoice-icon">receipt_long</mat-icon>
+        <span>Credit Note Upload</span>
+      </div>
+
+      <!-- Debit Note Option -->
+      <div class="invoice-option debit-note" [class.active]="selectedInvoiceType === 'debitNote'"
+        (click)="selectedInvoiceType = 'debitNote'; selectedSaleMode = 'credit'"
+        matTooltip="Upload debit notes received from suppliers">
+        <mat-icon class="invoice-icon">receipt</mat-icon>
+        <span>Debit Note Upload</span>
+      </div>
+
     </div>
   </div>
 
@@ -66,7 +83,9 @@
     <button mat-raised-button class="download-template-button" [disabled]="!selectedInvoiceType || !selectedTaxType"
       (click)="downloadTemplate()">
       <mat-icon>file_download</mat-icon>
-      Download {{ selectedInvoiceType | titlecase }} - {{ selectedTaxType | titlecase }} - {{selectedInvoiceType === 'sales' ? selectedSaleMode : 'credit' | titlecase}} Template
+      Download {{ invoiceTypeLabels[selectedInvoiceType || ''] }} - {{ selectedTaxType | titlecase }} -
+      {{selectedInvoiceType ===
+      'sales' ? selectedSaleMode : 'credit' | titlecase}} Template
     </button>
   </div>
 
