@@ -62,8 +62,8 @@ export class AddJournalEntryDialogComponent implements OnInit {
       group_name: ['', Validators.required],
       account_id: [0, [Validators.required, notZeroValidator]],
       group_id: [0, [Validators.required, notZeroValidator]],
-      debit_amount: [0, Validators.required],
-      credit_amount: [0, Validators.required],
+      debit_amount: ['0.00', Validators.required],
+      credit_amount: ['0.00', Validators.required],
       narration: ['', Validators.required]
     }, { validators: exclusiveAmountValidator });
   }
@@ -136,12 +136,28 @@ export class AddJournalEntryDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
+  onDebitAmtChange(index: number) {
+    const itemGroup = this.items.at(index) as FormGroup;
+    const rawValue = itemGroup.get('debit_amount')?.value;
+    const rounded = parseFloat(rawValue || 0).toFixed(2);
+    itemGroup.get('debit_amount')?.setValue(rounded, { emitEvent: false });
+  }
+
+    onCreditAmtChange(index: number) {
+    const itemGroup = this.items.at(index) as FormGroup;
+    const rawValue = itemGroup.get('credit_amount')?.value;
+    const rounded = parseFloat(rawValue || 0).toFixed(2);
+    itemGroup.get('credit_amount')?.setValue(rounded, { emitEvent: false });
+  }
+
   get totalDebit(): number {
-    return this.items.controls.reduce((sum, control) => sum + Number(control.value.debit_amount || 0), 0);
+    const raw = this.items.controls.reduce((sum, control) => sum + Number(control.value.debit_amount || 0), 0);
+    return parseFloat(raw.toFixed(2));
   }
 
   get totalCredit(): number {
-    return this.items.controls.reduce((sum, control) => sum + Number(control.value.credit_amount || 0), 0);
+    const raw = this.items.controls.reduce((sum, control) => sum + Number(control.value.credit_amount || 0), 0);
+    return parseFloat(raw.toFixed(2));
   }
 
   identifyInvalidFields(form: FormGroup | FormArray): void {

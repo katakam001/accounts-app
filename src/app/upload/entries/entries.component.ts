@@ -50,6 +50,7 @@ export class EntriesComponent {
   groupMapping: any[] = []; // Add fields array
   items: any[] = []; // Add items array
   isUploading: boolean = false; // To track the upload process
+  fileUploadCompleted: boolean = false;
   selectedFile: File | null = null;
   selectedInvoiceType: string | null = null;
   selectedTaxType: 'cgst' | 'igst' = 'cgst'; // default selection
@@ -65,6 +66,7 @@ export class EntriesComponent {
   uploadMessage: string | null = null; // To show messages to the user
   uploadSuccess: boolean | null = null; // To determine upload status
   userId: number;
+  enableOverride: boolean = false; // Flag for override option
   userOverride: boolean = false; // Flag for override option
   validationMessage: string | null = null; // To display validation messages
   validationSuccess: boolean = false; // Flag for validation success
@@ -278,6 +280,7 @@ export class EntriesComponent {
     if (this.validationErrorsMap.size > 0) {
       this.validationMessage = 'Validation completed with errors. Please review and override if needed.';
       this.validationSuccess = false; // Validation failed; user needs to re-upload or override
+      this.enableOverride=true;
       this.generateValidationReportCSV();
     } else {
       this.validationMessage = 'Validation successful! All accounts are valid and ready for upload.';
@@ -287,7 +290,20 @@ export class EntriesComponent {
 
   // Handle File Selection
   onFileSelected(event: any): void {
-    this.selectedFile = event.target.files[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (file) {
+      this.selectedFile = file;
+      this.fileUploadCompleted=false;
+      this.validationSuccess = false;
+      this.userOverride=false;
+      this.enableOverride=false;
+      this.validationErrorsMap.clear();
+    }
+
+    // ✅ This line ensures re-selection of the same file triggers change again
+    input.value = '';
   }
 
   ngOnInit(): void {
@@ -321,7 +337,6 @@ export class EntriesComponent {
           const batchId = response?.batchId;
 
           if (!presignedUrl || !batchId) {
-            this.isUploading = false;
             this.uploadSuccess = false;
             this.uploadMessage = 'Error: Missing presigned URL or batch ID!';
             console.error('Missing presigned URL or batch ID in backend response.');
@@ -335,13 +350,18 @@ export class EntriesComponent {
                 const progress = Math.round((100 * event.loaded) / event.total);
                 this.uploadMessage = `Uploading: ${progress}%`;
               } else if (event.type === HttpEventType.Response) {
-                this.isUploading = false;
                 this.uploadSuccess = true;
                 this.uploadMessage = 'File uploaded successfully!';
                 // Step 3: Call Start Monitoring API here
                 this.uploadService.startMonitoring().subscribe(
-                  () => console.log('Monitoring started successfully!'),
-                  error => console.error('Error starting monitoring:', error)
+                  () => {
+                    console.log('Monitoring started successfully!');
+                    this.isUploading = false;
+                    this.fileUploadCompleted=true;
+                  },
+                  error => {
+                    console.error('Error starting monitoring:', error);
+                  }
                 );
               }
             },

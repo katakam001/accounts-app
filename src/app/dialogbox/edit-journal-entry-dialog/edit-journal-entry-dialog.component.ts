@@ -107,11 +107,11 @@ export class EditJournalEntryDialogComponent implements OnInit {
     return this.editJournalEntryForm.get('items') as FormArray;
   }
 
-  createItemGroup(item: JournalItem): FormGroup {
+  createItemGroup(item: any): FormGroup {
     return this.fb.group({
-      journal_id: [item.journal_id, [Validators.required,notZeroValidator]],
-      account_id: [item.account_id, [Validators.required,notZeroValidator]],
-      group_id: [item.group_id, [Validators.required,notZeroValidator]],
+      journal_id: [item.journal_id, [Validators.required, notZeroValidator]],
+      account_id: [item.account_id, [Validators.required, notZeroValidator]],
+      group_id: [item.group_id, [Validators.required, notZeroValidator]],
       amount: [item.amount],
       type: [item.type, Validators.required],
       narration: [item.narration, Validators.required],
@@ -126,8 +126,8 @@ export class EditJournalEntryDialogComponent implements OnInit {
     this.items.push(this.createItemGroup({
       account_name: '',
       group_name: '',
-      debit_amount: 0,
-      credit_amount: 0,
+      debit_amount: '0.00',
+      credit_amount: '0.00',
       journal_id: this.editJournalEntryForm.value.id,
       narration: '',
       account_id: 0,
@@ -183,12 +183,28 @@ export class EditJournalEntryDialogComponent implements OnInit {
     this.dialogRef.close();
   }
 
+  onDebitAmtChange(index: number) {
+    const itemGroup = this.items.at(index) as FormGroup;
+    const rawValue = itemGroup.get('debit_amount')?.value;
+    const rounded = parseFloat(rawValue || 0).toFixed(2);
+    itemGroup.get('debit_amount')?.setValue(rounded, { emitEvent: false });
+  }
+
+    onCreditAmtChange(index: number) {
+    const itemGroup = this.items.at(index) as FormGroup;
+    const rawValue = itemGroup.get('credit_amount')?.value;
+    const rounded = parseFloat(rawValue || 0).toFixed(2);
+    itemGroup.get('credit_amount')?.setValue(rounded, { emitEvent: false });
+  }
+
   get totalDebit(): number {
-    return this.items.controls.reduce((sum, control) => sum + Number(control.value.debit_amount || 0), 0);
+    const raw = this.items.controls.reduce((sum, control) => sum + Number(control.value.debit_amount || 0), 0);
+    return parseFloat(raw.toFixed(2));
   }
 
   get totalCredit(): number {
-    return this.items.controls.reduce((sum, control) => sum + Number(control.value.credit_amount || 0), 0);
+    const raw = this.items.controls.reduce((sum, control) => sum + Number(control.value.credit_amount || 0), 0);
+    return parseFloat(raw.toFixed(2));
   }
 
   identifyInvalidFields(form: FormGroup | FormArray): void {

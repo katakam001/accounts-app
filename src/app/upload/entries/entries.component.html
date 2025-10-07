@@ -76,6 +76,7 @@
   <p *ngIf="selectedFile" class="file-info">
     <mat-icon class="file-info-icon">insert_drive_file</mat-icon>
     <span>{{ selectedFile.name }}</span>
+      <span *ngIf="fileUploadCompleted" class="upload-tag">(Uploaded)</span>
   </p>
 
   <!-- Download Template Section -->
@@ -92,21 +93,21 @@
   <!-- Buttons Section with Improved Spacing -->
   <div class="button-group">
     <!-- Validate Button -->
-    <button mat-raised-button color="accent" class="validate-button" [disabled]="!selectedFile || isUploading"
+    <button mat-raised-button color="accent" class="validate-button" [disabled]="!selectedFile || isUploading || fileUploadCompleted"
       (click)="validateFile()">
       <mat-icon>check_circle</mat-icon> Validate File
     </button>
 
     <!-- Upload Button -->
     <button mat-raised-button color="primary" class="upload-button"
-      [disabled]="!selectedFile || !canUpload() || isUploading" (click)="uploadFile()">
+      [disabled]="!selectedFile || !canUpload() || isUploading || fileUploadCompleted" (click)="uploadFile()">
       <mat-icon>cloud_upload</mat-icon> {{ isUploading ? 'Uploading...' : 'Upload Invoices' }}
     </button>
   </div>
 
   <!-- Override Checkbox Section -->
   <div class="override-checkbox-container">
-    <mat-checkbox class="override-checkbox" [(ngModel)]="userOverride" name="userOverride">
+    <mat-checkbox class="override-checkbox" [disabled]="!enableOverride" [(ngModel)]="userOverride" name="userOverride">
       Override Validation
     </mat-checkbox>
   </div>

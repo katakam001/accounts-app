@@ -33,7 +33,7 @@ import { MatIconModule } from '@angular/material/icon';
 export class JournalListComponent implements OnInit, OnDestroy {
   // private subscription: Subscription = new Subscription(); // Initialize the subscription
   journalEntries = new MatTableDataSource<JournalEntry>();
-  displayedColumns: string[] = ['journal_date', 'user_name', 'actions'];
+  displayedColumns: string[] = ['journal_date', 'financial_year', 'actions'];
   nestedDisplayedColumns: string[] = ['account_name', 'group_name', 'debit_amount', 'credit_amount', 'narration'];
   expandedElement: JournalEntry | null;
   financialYear: string;
@@ -123,21 +123,36 @@ export class JournalListComponent implements OnInit, OnDestroy {
   }
 
   updateJournalEntiresWithgroupAndAccountMap(data: any[]): void {
-    const userId = this.storageService.getUser().id;
-    const username = this.storageService.getUser().username;
     data.forEach(entry => {
-      entry.user_id = userId;
-      entry.user_name = username;
-      entry.financial_year = this.financialYear,
-        entry.items.forEach((item: any) => {
-          item.account_name = this.accountMap[item.account_id];
-          item.group_name = this.groupMap[item.group_id];
-          item.debit_amount = item.type ? 0 : item.amount,
-            item.credit_amount = item.type ? item.amount : 0
-          item.showFullNarration = false // Initialize showFullNarration to false
-        });
+      entry.financial_year = this.financialYear;
+
+      entry.items.forEach((item: any) => {
+        item.account_name = this.accountMap[item.account_id];
+        item.group_name = this.groupMap[item.group_id];
+        item.debit_amount = item.type ? '0.00' : item.amount;
+        item.credit_amount = item.type ? item.amount : '0.00';
+        item.showFullNarration = false;
+      });
+
+      // ✅ Sort items: credit first (high to low), then debit (high to low)
+      const creditItems = entry.items
+        .filter((item: any) => parseFloat(item.credit_amount) > 0)
+        .sort((a: any, b: any) => parseFloat(a.credit_amount) - parseFloat(b.credit_amount));
+
+      const debitItems = entry.items
+        .filter((item: any) => parseFloat(item.debit_amount) > 0)
+        .sort((a: any, b: any) => parseFloat(a.debit_amount) - parseFloat(b.debit_amount));
+
+      entry.items = [...creditItems, ...debitItems];
     });
-    this.journalEntries.data = data.sort((a, b) => new Date(a.journal_date).getTime() - new Date(b.journal_date).getTime());
+
+    this.journalEntries.data = data.sort(
+      (a, b) => new Date(a.journal_date).getTime() - new Date(b.journal_date).getTime()
+    );
+  }
+
+  getTotal(items: any[], key: 'debit_amount' | 'credit_amount'): number {
+    return items.reduce((sum, item) => sum + (parseFloat(item[key]) || 0), 0);
   }
 
   dateFilter = (date: Date | null): boolean => {
@@ -342,14 +357,25 @@ export class JournalListComponent implements OnInit, OnDestroy {
     filteredItems.forEach((item: any) => {
       item.account_name = this.accountMap[item.account_id];
       item.group_name = this.groupMap[item.group_id];
-      item.debit_amount = item.type ? 0 : item.amount;
-      item.credit_amount = item.type ? item.amount : 0;
+      item.debit_amount = item.type ? '0.00' : item.amount;
+      item.credit_amount = item.type ? item.amount : '0.00';
     });
+
+    // ✅ Sort items: credit first (high to low), then debit (high to low)
+    const creditItems = filteredItems
+      .filter((item: any) => parseFloat(item.credit_amount) > 0)
+      .sort((a: any, b: any) => parseFloat(a.credit_amount) - parseFloat(b.credit_amount));
+
+    const debitItems = filteredItems
+      .filter((item: any) => parseFloat(item.debit_amount) > 0)
+      .sort((a: any, b: any) => parseFloat(a.debit_amount) - parseFloat(b.debit_amount));
+
+    const sortedItems = [...creditItems, ...debitItems];
 
     // Create the converted object for insertion with filtered items
     const convertedObjectInsert = {
       ...(data.entryType === 'journal' ? data.data : data.data.journalEntry),
-      items: filteredItems,
+      items: sortedItems,
       user_id: currentUserId,
       user_name: username,
       financial_year: currentFinancialYear,
@@ -419,12 +445,23 @@ export class JournalListComponent implements OnInit, OnDestroy {
     filteredItems.forEach((item: any) => {
       item.account_name = this.accountMap[item.account_id];
       item.group_name = this.groupMap[item.group_id];
-      item.debit_amount = item.type ? 0 : item.amount;
-      item.credit_amount = item.type ? item.amount : 0;
+      item.debit_amount = item.type ? '0.00' : item.amount;
+      item.credit_amount = item.type ? item.amount : '0.00';
     });
+
+    const creditItems = filteredItems
+      .filter((item: any) => parseFloat(item.credit_amount) > 0)
+      .sort((a: any, b: any) => parseFloat(a.credit_amount) - parseFloat(b.credit_amount));
+
+    const debitItems = filteredItems
+      .filter((item: any) => parseFloat(item.debit_amount) > 0)
+      .sort((a: any, b: any) => parseFloat(a.debit_amount) - parseFloat(b.debit_amount));
+
+    const sortedItems = [...creditItems, ...debitItems];
+
     const convertedObjectUpdate = {
       ...(data.entryType === 'journal' ? data.data : data.data.journalEntry),
-      items: filteredItems,
+      items: sortedItems,
       user_id: currentUserId,
       user_name: username,
       financial_year: currentFinancialYear,
