@@ -99,35 +99,12 @@ export class FieldsComponent implements OnInit, AfterViewInit {
   }
 
   addFieldToList(field: any): void {
-    this.fieldService.addField(field).subscribe(response => {
-      console.log(response);
+    this.fieldService.addField(field).subscribe({
+      next: (response) => {
+        console.log(response);
 
-      // Create a *new* array with the added field
-      const newData = [...this.dataSource.data, response];  // Spread operator creates a copy
-      this.dataSource.data = newData; // Assign the new array
-      // Re-apply sort after data changes
-      if (this.dataSource.sort) {
-        const activeSort = this.dataSource.sort.active || 'field_name'; // Default to 'name' if no active sort
-        const sortDirection: SortDirection = this.dataSource.sort.direction || 'asc'; // Default to 'asc'
-
-        this.dataSource.sort.sort({
-          id: activeSort,
-          start: sortDirection,
-          disableClear: false // Crucial: Add disableClear property
-        });
-      }
-      this.snackBar.open(`Field "${response.field_name}" added successfully.`, 'Close', { duration: 3000 });
-    });
-  }
-
-  updateField(field: any): void {
-    this.fieldService.updateField(field.id, field).subscribe(response => {
-      const index = this.dataSource.data.findIndex(f => f.id === response.id);
-      console.log(response);
-      if (index !== -1) {
-        // Create a *new* array with the updated field
-        const newData = [...this.dataSource.data]; // Copy existing data
-        newData[index] = response; // Update the copied array
+        // Create a *new* array with the added field
+        const newData = [...this.dataSource.data, response];  // Spread operator creates a copy
         this.dataSource.data = newData; // Assign the new array
         // Re-apply sort after data changes
         if (this.dataSource.sort) {
@@ -140,7 +117,42 @@ export class FieldsComponent implements OnInit, AfterViewInit {
             disableClear: false // Crucial: Add disableClear property
           });
         }
-        this.snackBar.open(`Field "${response.field_name}" updation is successfully.`, 'Close', { duration: 3000 });
+        this.snackBar.open(`Field "${response.field_name}" added successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  updateField(field: any): void {
+    this.fieldService.updateField(field.id, field).subscribe({
+      next: (response) => {
+        const index = this.dataSource.data.findIndex(f => f.id === response.id);
+        console.log(response);
+        if (index !== -1) {
+          // Create a *new* array with the updated field
+          const newData = [...this.dataSource.data]; // Copy existing data
+          newData[index] = response; // Update the copied array
+          this.dataSource.data = newData; // Assign the new array
+          // Re-apply sort after data changes
+          if (this.dataSource.sort) {
+            const activeSort = this.dataSource.sort.active || 'field_name'; // Default to 'name' if no active sort
+            const sortDirection: SortDirection = this.dataSource.sort.direction || 'asc'; // Default to 'asc'
+
+            this.dataSource.sort.sort({
+              id: activeSort,
+              start: sortDirection,
+              disableClear: false // Crucial: Add disableClear property
+            });
+          }
+          this.snackBar.open(`Field "${response.field_name}" updation is successfully.`, 'Close', { duration: 3000 });
+        }
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
       }
     });
   }

@@ -351,8 +351,10 @@ export class AddEditEntryDialogComponent implements OnInit {
     return new Promise((resolve) => {
       this.groupMappingService.getGroupMappingTree(this.data.userId, this.data.financialYear).subscribe(data => {
         this.groupMapping = data;
-        const accountIds = this.getAccountIdsFromNodeByName('Indirect Expenses');
-        this.fetchAccounts(accountIds);
+        const taxAccountIds = this.getAccountIdsFromNodeByName('Indirect Expenses');
+        const tcsAccountsIds = this.getAccountIdsFromNodeByName('Advance Tax & TDS');
+        const combinedAccountIds = taxAccountIds.concat(tcsAccountsIds);
+        this.fetchAccounts(combinedAccountIds);
         resolve();
       });
     });

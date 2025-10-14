@@ -89,32 +89,10 @@ export class UnitsComponent implements OnInit, AfterViewInit {
   }
 
   addUnitToList(unit: any): void {
-    this.unitService.addUnit(unit).subscribe(response => {
-      // Create a *new* array with the added unit
-      const newData = [...this.units.data, response];
-      this.units.data = newData; // Assign the new array
-      // Re-apply sort after data changes
-      if (this.units.sort) {
-        const activeSort = this.units.sort.active || 'name'; // Default to 'name' if no active sort
-        const sortDirection: SortDirection = this.units.sort.direction || 'asc'; // Default to 'asc'
-
-        this.units.sort.sort({
-          id: activeSort,
-          start: sortDirection,
-          disableClear: false // Crucial: Add disableClear property
-        });
-      }
-      this.snackBar.open(`Unit "${response.name}" added successfully.`, 'Close', { duration: 3000 });
-    });
-  }
-
-  updateUnit(unit: any): void {
-    this.unitService.updateUnit(unit.id, unit).subscribe(response => {
-      const index = this.units.data.findIndex(u => u.id === response.id);
-      if (index !== -1) {
-        // Create a *new* array with the updated unit
-        const newData = [...this.units.data]; // Copy existing data
-        newData[index] = response; // Update the copied array
+    this.unitService.addUnit(unit).subscribe({
+      next: (response) => {
+        // Create a *new* array with the added unit
+        const newData = [...this.units.data, response];
         this.units.data = newData; // Assign the new array
         // Re-apply sort after data changes
         if (this.units.sort) {
@@ -127,7 +105,41 @@ export class UnitsComponent implements OnInit, AfterViewInit {
             disableClear: false // Crucial: Add disableClear property
           });
         }
-        this.snackBar.open(`Unit "${response.name}" updation is successfully.`, 'Close', { duration: 3000 });
+        this.snackBar.open(`Unit "${response.name}" added successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  updateUnit(unit: any): void {
+    this.unitService.updateUnit(unit.id, unit).subscribe({
+      next: (response) => {
+        const index = this.units.data.findIndex(u => u.id === response.id);
+        if (index !== -1) {
+          // Create a *new* array with the updated unit
+          const newData = [...this.units.data]; // Copy existing data
+          newData[index] = response; // Update the copied array
+          this.units.data = newData; // Assign the new array
+          // Re-apply sort after data changes
+          if (this.units.sort) {
+            const activeSort = this.units.sort.active || 'name'; // Default to 'name' if no active sort
+            const sortDirection: SortDirection = this.units.sort.direction || 'asc'; // Default to 'asc'
+
+            this.units.sort.sort({
+              id: activeSort,
+              start: sortDirection,
+              disableClear: false // Crucial: Add disableClear property
+            });
+          }
+          this.snackBar.open(`Unit "${response.name}" updation is successfully.`, 'Close', { duration: 3000 });
+        }
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
       }
     });
   }

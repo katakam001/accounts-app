@@ -53,7 +53,7 @@ export class EntriesComponent {
   fileUploadCompleted: boolean = false;
   selectedFile: File | null = null;
   selectedInvoiceType: string | null = null;
-  selectedTaxType: 'cgst' | 'igst' = 'cgst'; // default selection
+  selectedTaxType: 'cgst' | 'igst' | 'tcs' = 'cgst'; // default selection
   selectedSaleMode: 'credit' | 'cash' = 'credit';
   invoiceTypeLabels: { [key: string]: string } = {
     purchase: 'Purchase',
@@ -80,6 +80,7 @@ export class EntriesComponent {
       "Missing sNo",
       "Duplicate sNo",
       "Invalid Date Format",
+      "Out of Date Range",
       "Invalid sNo Sequence",
 
       // GST Mismatches (CGST/SGST)
@@ -99,6 +100,15 @@ export class EntriesComponent {
       // Mismatch in totAmt
       "Mismatch in netAmt",
 
+      // TCS Mismatches
+      "Invalid Tax Rate",
+      "Non-numeric Unit Rate",
+      "Invalid Unit Rate",
+      "Empty Unit Rate",
+      "Invalid Unit Rate Precision",
+      "Invalid Amount",
+      "Mismatch in Amount",
+
       // Invoice Type & Entity Mapping
       "Invalid Invoice Type",
       "Missing Item",
@@ -110,6 +120,7 @@ export class EntriesComponent {
 
       // Category Configuration
       "Missing Unit",
+      "Missing Unit Name",
       "Missing Dynamic Field",
       "Missing Tax Field",
       "Invalid 0% Tax Fields",
@@ -181,29 +192,37 @@ export class EntriesComponent {
 
     const type = this.selectedInvoiceType;
     const isCGST = this.selectedTaxType === 'cgst';
+    const isTCS = this.selectedTaxType === 'tcs';
+
+    if (type === 'purchase' && isTCS) {
+      return [
+        type, '1', formatAsText('TCS001'), '01-04-2024', 'LUBRICANT SUPPLIERS', '29ABCDE1234F1Z5',
+        'HS LUBRICANT', 'LITERS', '100', '85.50', '8550.00', '0.1'
+      ];
+    }
 
     if (type === 'purchase' || type === 'creditNote') {
       return isCGST
-        ? [type, '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
-        : [type, '1', formatAsText('2473'), '08-10-2024', 'STORE1', '1.0000', 'ABC2342423423ZA', 'FERTIZER', '82200', '0', '0', '0', '0', '0', '0', '0', '0', '0', '82200'];
+        ? [type, '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FERTIZER', 'BAGS', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
+        : [type, '1', formatAsText('2473'), '08-10-2024', 'STORE1', '1.0000', 'ABC2342423423ZA', 'FERTIZER', 'BAGS', '82200', '0', '0', '0', '0', '0', '0', '0', '0', '0', '82200'];
     }
 
     if (type === 'sales') {
       if (this.selectedSaleMode === 'cash') {
         return isCGST
-          ? ['cashSale', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '100.00', '105.00', '112.00', '118.00', '128.00', '563.00']
-          : ['cashSale', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', '100.00', '105.00', '112.00', '118.00', '128.00', '563.00'];
+          ? ['cashSale', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', 'UNITS', '100.00', '105.00', '112.00', '118.00', '128.00', '563.00']
+          : ['cashSale', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', 'BAGS', '100.00', '105.00', '112.00', '118.00', '128.00', '563.00'];
       } else {
         return isCGST
-          ? ['saleCredit', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
-          : ['saleCredit', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
+          ? ['saleCredit', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', 'UNITS', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
+          : ['saleCredit', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', 'BAGS', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
       }
     }
 
     if (type === 'debitNote') {
       return isCGST
-        ? ['debitNote', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
-        : ['debitNote', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
+        ? ['debitNote', '1', formatAsText('SR00001'), '01-04-2024', 'RAMA STORES', '1.0000', '37ADEFS1234J1ZH', 'FANCY ITEM', 'UNITS', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '807.62', '807.62', '1615.24', '33920']
+        : ['debitNote', '1', formatAsText('ABSD3534'), '01-04-2024', 'STORE1', '1.0000', 'ABCD1324242424', 'FERTIZER', 'BAGS', '0', '32304.76', '1615.24', '0', '0', '0', '0', '0', '0', '1615.24', '33920'];
     }
 
     return []; // fallback
@@ -211,15 +230,21 @@ export class EntriesComponent {
 
   getTemplateHeaders(): string[] {
     const isCashSaleFormat = this.selectedInvoiceType === 'sales' && this.selectedSaleMode === 'cash';
+    if (this.selectedTaxType === 'tcs' && this.selectedInvoiceType === 'purchase') {
+      return [
+        "type", "sNo", "invoiceNo", "entryDate", "name", "gstNo",
+        "itemName", "unitName", "quantity", "rate", "amount", "taxRate"
+      ];
+    }
     if (this.selectedTaxType === 'cgst') {
       if (isCashSaleFormat) {
         return [
-          "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName",
+          "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName", "unitName",
           "totAmt0", "totAmt5", "totAmt12", "totAmt18", "totAmt28", "netAmt"
         ];
       } else {
         return [
-          "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName",
+          "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName", "unitName",
           "gstValue0", "gstValue5", "gst5",
           "gstValue12", "gst12",
           "gstValue18", "gst18",
@@ -230,12 +255,12 @@ export class EntriesComponent {
     } else {
       if (isCashSaleFormat) {
         return [
-          "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName",
+          "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName", "unitName",
           "iTotAmt0", "iTotAmt5", "iTotAmt12", "iTotAmt18", "iTotAmt28", "netAmt"
         ];
       } else {
         return [
-          "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName",
+          "type", "sNo", "invoiceNo", "entryDate", "name", "quantity", "gstNo", "itemName", "unitName",
           "gstValue0", "gstValue5", "igst5",
           "gstValue12", "igst12",
           "gstValue18", "igst18",
@@ -280,7 +305,7 @@ export class EntriesComponent {
     if (this.validationErrorsMap.size > 0) {
       this.validationMessage = 'Validation completed with errors. Please review and override if needed.';
       this.validationSuccess = false; // Validation failed; user needs to re-upload or override
-      this.enableOverride=true;
+      this.enableOverride = true;
       this.generateValidationReportCSV();
     } else {
       this.validationMessage = 'Validation successful! All accounts are valid and ready for upload.';
@@ -295,10 +320,10 @@ export class EntriesComponent {
 
     if (file) {
       this.selectedFile = file;
-      this.fileUploadCompleted=false;
+      this.fileUploadCompleted = false;
       this.validationSuccess = false;
-      this.userOverride=false;
-      this.enableOverride=false;
+      this.userOverride = false;
+      this.enableOverride = false;
       this.validationErrorsMap.clear();
     }
 
@@ -357,7 +382,7 @@ export class EntriesComponent {
                   () => {
                     console.log('Monitoring started successfully!');
                     this.isUploading = false;
-                    this.fileUploadCompleted=true;
+                    this.fileUploadCompleted = true;
                   },
                   error => {
                     console.error('Error starting monitoring:', error);
@@ -405,11 +430,12 @@ export class EntriesComponent {
     const validationChecks = [
       { condition: !row["sNo"] || isNaN(row["sNo"]), errorType: "Missing sNo", message: `Row ${index + 1}` },
       { condition: row["quantity"] === "", errorType: "Empty Quantity", message: `Row ${index + 1}: Quantity is empty please enter a valid number` },
+      { condition: row["unitName"] === "", errorType: "Missing Unit", message: `Row ${index + 1}: unitName is empty please enter a valid units` },
       { condition: isNaN(row["quantity"]), errorType: "Non-numeric Quantity", message: `Row ${index + 1}: Quantity must be a number found ${row["quantity"]}` },
       { condition: Number(row["quantity"]) <= 0, errorType: "Invalid Quantity Value", message: `Row ${index + 1}: Quantity must be greater than zero` },
       { condition: !/^\d+(\.\d{1,4})?$/.test(row["quantity"]), errorType: "Invalid Quantity Precision", message: `Row ${index + 1}: Quantity must have up to 4 decimal places` },
-      { condition: sNoSet.has(row["sNo"]), errorType: "Duplicate sNo", message: `sNo ${row["sNo"]}` },
       { condition: row["entryDate"] && !this.validateDateFormat(row["entryDate"]), errorType: "Invalid Date Format", message: `Row ${index + 1}: ${row["entryDate"]}` },
+      { condition: row["entryDate"] && this.validateDateFormat(row["entryDate"]) && !this.validateDateWithinFinancialYear(row["entryDate"]), errorType: "Out of Date Range", message: `Row ${index + 1}: ${row["entryDate"]} is outside ${this.financialYear}` },
       { condition: Number(row["sNo"]) !== expectedSNo, errorType: "Invalid sNo Sequence", message: `Row ${index + 1}: Expected ${expectedSNo} Found ${row["sNo"]}` },
       { condition: !this.validAccounts.has(accountName), errorType: "Missing Accounts", message: `Row ${index + 1}: Account '${accountName}' not found` },
       {
@@ -436,7 +462,34 @@ export class EntriesComponent {
       if (condition) this.addValidationError(validationErrorsMap, errorType, message);
     });
 
-    if (this.selectedSaleMode === "cash" && this.selectedSaleMode === "cash") {
+    if (this.selectedTaxType !== "tcs") {
+      if (sNoSet.has(row["sNo"])) {
+        this.addValidationError(
+          validationErrorsMap,
+          "Duplicate sNo",
+          `Row ${index + 1}: sNo ${row["sNo"]} is duplicated`
+        );
+      }
+    }
+    if (this.selectedInvoiceType === "purchase" && this.selectedTaxType === "tcs") {
+      const quantity = parseFloat(row["quantity"]);
+      const rate = parseFloat(row["rate"]);
+      const amount = parseFloat(row["amount"]);
+      const expectedAmount = quantity * rate;
+
+      const tcsValidationChecks = [
+        { condition: typeof row["taxRate"] === "string" && isNaN(parseFloat(row["taxRate"])), errorType: "Invalid Tax Rate", message: `Row ${index + 1}: Tax rate must be a number found ' ${row["taxRate"]}'` },
+        { condition: isNaN(row["rate"]), errorType: "Non-numeric Unit Rate", message: `Row ${index + 1}: Unit rate must be a number found ${row["rate"]}` },
+        { condition: Number(row["rate"]) <= 0, errorType: "Invalid Unit Rate", message: `Row ${index + 1}: Unit rate must be greater than zero` },
+        { condition: row["rate"] === "", errorType: "Empty Unit Rate", message: `Row ${index + 1}: Unit rate must be a valid number found ' ${row["rate"]}'` },
+        { condition: !/^\d+(\.\d{1,2})?$/.test(row["rate"]), errorType: "Invalid Unit Rate Precision", message: `Row ${index + 1}: Unit Rate must have up to 2 decimal places` },
+        { condition: row["amount"] === "" || isNaN(amount), errorType: "Invalid Amount", message: `Row ${index + 1}: Amount must be a valid number found ' ${row["amount"]}'` },
+        { condition: Math.abs(expectedAmount - amount) > 0.01, errorType: "Mismatch in Amount", message: `Row ${index + 1}: Quantity * Rate = ${expectedAmount.toFixed(2)} but Amount is ${amount.toFixed(2)}` }
+      ];
+      tcsValidationChecks.forEach(({ condition, errorType, message }) => {
+        if (condition) this.addValidationError(validationErrorsMap, errorType, message);
+      });
+    } else if (this.selectedSaleMode === "cash" && this.selectedSaleMode === "cash") {
       const prefix = this.selectedTaxType === "cgst" ? "totAmt" : "iTotAmt";
       const slabKeys = [`${prefix}0`, `${prefix}5`, `${prefix}12`, `${prefix}18`, `${prefix}28`];
 
@@ -546,21 +599,30 @@ export class EntriesComponent {
     }
 
     // ✅ Tax-based validations
-    const taxKeys = this.selectedSaleMode === "cash" && this.selectedSaleMode === "cash"
-      ? this.selectedTaxType === "cgst"
-        ? ["totAmt0", "totAmt5", "totAmt12", "totAmt18", "totAmt28"]
-        : ["iTotAmt0", "iTotAmt5", "iTotAmt12", "iTotAmt18", "iTotAmt28"]
-      : ["gstValue0", "gstValue5", "gstValue12", "gstValue18", "gstValue28"];
-    const activeTaxes = taxKeys.filter(key => parseFloat(row[key] || "0") > 0);
+    const taxKeys =
+      this.selectedTaxType === "tcs"
+        ? ["taxRate"] // TCS uses a single flat rate
+        : this.selectedSaleMode === "cash" && this.selectedSaleMode === "cash"
+          ? this.selectedTaxType === "cgst"
+            ? ["totAmt0", "totAmt5", "totAmt12", "totAmt18", "totAmt28"]
+            : ["iTotAmt0", "iTotAmt5", "iTotAmt12", "iTotAmt18", "iTotAmt28"]
+          : ["gstValue0", "gstValue5", "gstValue12", "gstValue18", "gstValue28"];
+    const activeTaxes =
+      this.selectedTaxType === "tcs"
+        ? parseFloat(row["taxRate"] || "0") > 0 ? ["taxRate"] : []
+        : taxKeys.filter(key => parseFloat(row[key] || "0") > 0);
+
     const resolvedCategoryIds: number[] = [];
 
     activeTaxes.forEach(taxKey => {
-      const taxRate = parseFloat(
-        taxKey
-          .replace("gstValue", "")
-          .replace("totAmt", "")
-          .replace("iTotAmt", "")
-      );
+      const taxRate = this.selectedTaxType === "tcs"
+        ? parseFloat(row["taxRate"] || "0")
+        : parseFloat(
+          taxKey
+            .replace("gstValue", "")
+            .replace("totAmt", "")
+            .replace("iTotAmt", "")
+        );
 
       const expectedItem = `${itemName} ${taxRate}%`;
       const itemExists = this.items.some(item => item.name.toUpperCase() === expectedItem);
@@ -569,7 +631,12 @@ export class EntriesComponent {
       }
 
       // 🔹 Determine tax label for account and category naming
-      const taxLabel = this.selectedTaxType === 'cgst' ? '' : ' IGST';
+      const taxLabel =
+        this.selectedTaxType === 'cgst' ? '' :
+          this.selectedTaxType === 'igst' ? ' IGST' :
+            this.selectedTaxType === 'tcs' ? ' TCS' :
+              '';
+
 
       // 🔹 Expected Account Name
       const accountPrefix =
@@ -622,6 +689,12 @@ export class EntriesComponent {
 
       if (!this.unitsMap[categoryId] || this.unitsMap[categoryId].length === 0) {
         this.addValidationError(validationErrorsMap, "Missing Unit", `Row ${index + 1}: No units found for category '${categoryName}'`);
+      } else {
+        const expectedUnitName = row["unitName"]?.toLowerCase().trim(); // normalize input
+        const unitNamesForCategory = this.unitsMap[categoryId].map(u => u.name); // already lowercase
+        if (!unitNamesForCategory.includes(expectedUnitName)) {
+          this.addValidationError(validationErrorsMap,"Missing Unit Name",`Row ${index + 1}: Unit '${row["unitName"]}' not found for category '${categoryName}'`);
+        }
       }
 
       if (fields.length === 0) {
@@ -630,8 +703,16 @@ export class EntriesComponent {
       }
 
       const expectedTaxAccountIds = Array.from(this.taxAccountMap.keys());
-      const taxRateMatch = categoryName.match(/(\d+)%/);
-      const taxRate = taxRateMatch ? parseInt(taxRateMatch[1], 10) : 0;
+      const taxRateMatch = this.selectedTaxType === 'tcs'
+        ? categoryName.match(/(\d+(\.\d+)?)%/) // supports decimals like 0.1%
+        : categoryName.match(/(\d+)%/);        // original pattern for CGST/IGST
+
+      const taxRate = taxRateMatch
+        ? this.selectedTaxType === 'tcs'
+          ? parseFloat(taxRateMatch[1])
+          : parseInt(taxRateMatch[1], 10)
+        : 0;
+
 
       if (taxRate === 0) {
         const nonTaxFields = fields.filter(field => !expectedTaxAccountIds.includes(field.account_id));
@@ -652,11 +733,17 @@ export class EntriesComponent {
           if (!cgstField || !sgstField) {
             this.addValidationError(validationErrorsMap, "Missing Tax Field", `Row ${index + 1}: Category '${categoryName}' missing CGST or SGST field for ${taxRate}%`);
           }
-        } else {
+        } else if (this.selectedTaxType === 'igst') {
           const igstField = taxFields.find(field => field.field_name?.toUpperCase().includes("IGST"));
 
           if (!igstField) {
             this.addValidationError(validationErrorsMap, "Missing Tax Field", `Row ${index + 1}: Category '${categoryName}' missing IGST field for ${taxRate}%`);
+          }
+        } else if (this.selectedTaxType === 'tcs') {
+          const tcsField = taxFields.find(field => field.field_name?.toUpperCase().includes("TCS"));
+
+          if (!tcsField) {
+            this.addValidationError(validationErrorsMap, "Missing Tax Field", `Row ${index + 1}: Category '${categoryName}' missing TCS field for ${taxRate}%`);
           }
         }
       }
@@ -676,6 +763,7 @@ export class EntriesComponent {
       let validationFailed = false;
       let latestSNo: number = 0; // ✅ Start from `0`, avoiding null
       const sNoSet = new Set<number>(); //  Track duplicates
+      const invoiceSNoMap = new Map<string, number>();
       const validationErrorsMap = new Map<string, Map<string, number>>(); //  Store validation issues
 
       //  Invoke `getInvoicesNo()` from `SequenceNumberService`
@@ -774,7 +862,18 @@ export class EntriesComponent {
                   } else {
                     configReady = true;
                     results.data.forEach((row, index) => {
-                      latestSNo++;
+                      const invoiceNo = row["invoiceNo"];
+
+                      // ✅ For TCS: increment latestSNo only for new invoice
+                      if (this.selectedTaxType === "tcs") {
+                        if (!invoiceSNoMap.has(invoiceNo)) {
+                          latestSNo++;
+                          invoiceSNoMap.set(invoiceNo, latestSNo);
+                        }
+                      } else {
+                        // ✅ For non-TCS: always increment
+                        latestSNo++;
+                      }
                       this.validateEachRow(row, index, latestSNo, sNoSet, validationErrorsMap);
                     });
                     parser.resume(); // ✅ Resume only if config is valid
@@ -786,7 +885,18 @@ export class EntriesComponent {
               if (configReady) {
                 // If headers already validated and config already fetched
                 results.data.forEach((row, index) => {
-                  latestSNo++;
+                  const invoiceNo = row["invoiceNo"];
+
+                  // ✅ For TCS: increment latestSNo only for new invoice
+                  if (this.selectedTaxType === "tcs") {
+                    if (!invoiceSNoMap.has(invoiceNo)) {
+                      latestSNo++;
+                      invoiceSNoMap.set(invoiceNo, latestSNo);
+                    }
+                  } else {
+                    // ✅ For non-TCS: always increment
+                    latestSNo++;
+                  }
                   this.validateEachRow(row, index, latestSNo, sNoSet, validationErrorsMap);
                 });
 
@@ -820,6 +930,21 @@ export class EntriesComponent {
 
     return parsedDate.getDate() === day && parsedDate.getMonth() === month - 1 && parsedDate.getFullYear() === year;
   }
+
+  validateDateWithinFinancialYear(entryDate: string): boolean {
+    const [startYear, endYear] = this.financialYear.split('-').map(Number);
+
+    // Normalize and parse the date
+    const [day, month, year] = entryDate.replace(/\//g, '-').split('-').map(Number);
+    const parsedDate = new Date(year, month - 1, day);
+
+    // Define financial year boundaries
+    const fyStart = new Date(startYear, 3, 1); // April 1st
+    const fyEnd = new Date(endYear, 2, 31);   // March 31st
+
+    return parsedDate >= fyStart && parsedDate <= fyEnd;
+  }
+
 
   validateHeaders(fileHeaders: string[], expectedHeaders: string[]): boolean {
     return JSON.stringify(fileHeaders) === JSON.stringify(expectedHeaders);
@@ -869,7 +994,7 @@ export class EntriesComponent {
                   unitData.forEach(unit => {
                     if (categoryIds.includes(unit.category_id)) {
                       const categoryId = unit.category_id;
-                      const unitEntry = { id: unit.unit_id, name: unit.unit_name };
+                      const unitEntry = { id: unit.unit_id, name: unit.unit_name.toLowerCase() };
                       if (!this.unitsMap[categoryId]) {
                         this.unitsMap[categoryId] = [];
                       }
@@ -913,8 +1038,10 @@ export class EntriesComponent {
     return new Promise((resolve) => {
       this.groupMappingService.getGroupMappingTree(this.userId, this.financialYear).subscribe(data => {
         this.groupMapping = data;
-        const accountIds = this.getAccountIdsFromNodeByName('Indirect Expenses');
-        this.fetchTaxAccounts(accountIds);
+        const taxAccountIds = this.getAccountIdsFromNodeByName('Indirect Expenses');
+        const tcsAccountsIds = this.getAccountIdsFromNodeByName('Advance Tax & TDS');
+        const combinedAccountIds = taxAccountIds.concat(tcsAccountsIds);
+        this.fetchTaxAccounts(combinedAccountIds);
         resolve();
       });
     });

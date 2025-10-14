@@ -17,7 +17,7 @@ export class CategoryService {
   private lastCacheTime: number = this.getLastCacheTime();
   private categoryCache: { [key: string]: { data: any[], timestamp: number } } = this.loadFromLocalStorage(); // Cache for categories
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getCategoriesByUserIdAndFinancialYear(userId: number, financialYear: string): Observable<any[]> {
     const currentTime = Date.now();
@@ -25,7 +25,7 @@ export class CategoryService {
     let params = new HttpParams()
       .set('userId', userId.toString())
       .set('financialYear', financialYear);
-  
+
     if (this.categoryCache[cacheKey] && (currentTime - this.categoryCache[cacheKey].timestamp) < this.cacheTTL) {
       return of(this.categoryCache[cacheKey].data);
     } else {
@@ -47,7 +47,7 @@ export class CategoryService {
       );
     }
   }
-  
+
 
   getCategoriesByType(userId: number, financialYear: string, type: number): Observable<any[]> {
     const currentTime = Date.now();
@@ -83,7 +83,15 @@ export class CategoryService {
         }
         this.saveToLocalStorage();
       }),
-      catchError(this.handleError<any>('addCategory'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already exists')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to add category. Please try again later.'));
+        }
+      })
     );
   }
 
@@ -106,7 +114,15 @@ export class CategoryService {
         }
         this.saveToLocalStorage();
       }),
-      catchError(this.handleError<any>('updateCategory'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already exists')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to update category. Please try again later.'));
+        }
+      })
     );
   }
 
@@ -131,7 +147,7 @@ export class CategoryService {
             return throwError(() => new Error(error.error.detail)); // Re-throw error if needed
         } else {
           // Handle other errors
-          return throwError(() => new Error('Failed to delete field. Please try again later.'));
+          return throwError(() => new Error('Failed to delete category. Please try again later.'));
         }
       })
     );
@@ -146,7 +162,7 @@ export class CategoryService {
   switchUserAndFinancialYear(userId: number, financialYear: string): Observable<any> {
     this.clearCache();
     return this.getCategoriesByUserIdAndFinancialYear(userId, financialYear);
-  }  
+  }
 
   private clearCacheIfStale(currentTime: number): void {
     if ((currentTime - this.lastCacheTime) >= this.cacheTTL) {

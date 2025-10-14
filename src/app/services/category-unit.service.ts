@@ -17,7 +17,7 @@ export class CategoryUnitService {
   private lastCacheTime: number = this.getLastCacheTime();
   private categoryCache: { [key: string]: { data: any[], timestamp: number } } = this.loadFromLocalStorage(); // Cache for category units
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getCategoryUnitsByUserIdAndFinancialYear(userId: number, financialYear: string): Observable<any[]> {
     const currentTime = Date.now();
@@ -25,7 +25,7 @@ export class CategoryUnitService {
     let params = new HttpParams()
       .set('userId', userId.toString())
       .set('financialYear', financialYear);
-  
+
     if (this.categoryCache[cacheKey] && (currentTime - this.categoryCache[cacheKey].timestamp) < this.cacheTTL) {
       return of(this.categoryCache[cacheKey].data);
     } else {
@@ -46,7 +46,7 @@ export class CategoryUnitService {
         catchError(this.handleError<any[]>('getCategoryUnitsByUserIdAndFinancialYear', []))
       );
     }
-  }  
+  }
 
   getUnitsByCategory(userId: number, financialYear: string, categoryId: number): Observable<any[]> {
     const currentTime = Date.now();
@@ -82,7 +82,15 @@ export class CategoryUnitService {
         }
         this.saveToLocalStorage();
       }),
-      catchError(this.handleError<any>('addCategoryUnit'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already exists')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to add category units. Please try again later.'));
+        }
+      })
     );
   }
 
@@ -105,7 +113,15 @@ export class CategoryUnitService {
         }
         this.saveToLocalStorage();
       }),
-      catchError(this.handleError<any>('updateCategoryUnit'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already exists')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to update category units. Please try again later.'));
+        }
+      })
     );
   }
 
@@ -140,7 +156,7 @@ export class CategoryUnitService {
   switchUserAndFinancialYear(userId: number, financialYear: string): Observable<any> {
     this.clearCache();
     return this.getCategoryUnitsByUserIdAndFinancialYear(userId, financialYear);
-  }  
+  }
 
   private clearCacheIfStale(currentTime: number): void {
     if ((currentTime - this.lastCacheTime) >= this.cacheTTL) {

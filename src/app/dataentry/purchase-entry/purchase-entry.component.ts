@@ -467,9 +467,11 @@ export class PurchaseEntryComponent implements OnInit, OnDestroy {
     return new Promise((resolve) => {
       this.groupMappingService.getGroupMappingTree(this.storageService.getUser().id, this.financialYear).subscribe(data => {
         this.groupMapping = data;
-        const accountIds = this.getAccountIdsFromNodeByName('Indirect Expenses');
-        this.fetchAccounts(accountIds);
-        console.log('Accounts:', accountIds);
+        const taxAccountIds = this.getAccountIdsFromNodeByName('Indirect Expenses');
+        const tcsAccountsIds = this.getAccountIdsFromNodeByName('Advance Tax & TDS');
+        const combinedAccountIds = taxAccountIds.concat(tcsAccountsIds);
+        this.fetchAccounts(combinedAccountIds);
+        console.log('Accounts:', combinedAccountIds);
         resolve();
       });
     });

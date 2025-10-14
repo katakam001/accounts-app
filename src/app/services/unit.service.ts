@@ -17,7 +17,7 @@ export class UnitService {
   private lastCacheTime: number = this.getLastCacheTime();
   private unitCache: any[] = this.loadFromLocalStorage(); // Cache for units
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getUnitsByUserIdAndFinancialYear(userId: number, financialYear: string): Observable<any[]> {
     const currentTime = Date.now();
@@ -46,7 +46,15 @@ export class UnitService {
         this.unitCache = [...this.unitCache, newUnit];
         this.saveToLocalStorage();
       }),
-      catchError(this.handleError<any>('addUnit'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already exists')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to add units. Please try again later.'));
+        }
+      })
     );
   }
 
@@ -59,7 +67,15 @@ export class UnitService {
           this.saveToLocalStorage();
         }
       }),
-      catchError(this.handleError<any>('updateUnit'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already exists')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to update units. Please try again later.'));
+        }
+      })
     );
   }
 
@@ -88,7 +104,7 @@ export class UnitService {
             return throwError(() => new Error(error.error.detail)); // Re-throw error if needed
         } else {
           // Handle other errors
-          return throwError(() => new Error('Failed to delete group. Please try again later.'));
+          return throwError(() => new Error('Failed to delete units. Please try again later.'));
         }
       }));
   }
@@ -102,7 +118,7 @@ export class UnitService {
   switchUserAndFinancialYear(userId: number, financialYear: string): Observable<any> {
     this.clearCache();
     return this.getUnitsByUserIdAndFinancialYear(userId, financialYear);
-  } 
+  }
 
   private clearCacheIfStale(currentTime: number): void {
     if ((currentTime - this.lastCacheTime) >= this.cacheTTL) {

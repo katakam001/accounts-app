@@ -17,7 +17,7 @@ export class FieldService {
   private lastCacheTime: number = this.getLastCacheTime();
   private fieldCache: any[] = this.loadFromLocalStorage(); // Cache for fields
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAllFieldsByUserIdAndFinancialYear(userId: number, financialYear: string): Observable<any[]> {
     const currentTime = Date.now();
@@ -46,7 +46,15 @@ export class FieldService {
         this.fieldCache = [...this.fieldCache, newField];
         this.saveToLocalStorage();
       }),
-      catchError(this.handleError<any>('addField'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already exists')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to add field. Please try again later.'));
+        }
+      })
     );
   }
 
@@ -59,7 +67,15 @@ export class FieldService {
           this.saveToLocalStorage();
         }
       }),
-      catchError(this.handleError<any>('updateField'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already exists')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to update field. Please try again later.'));
+        }
+      })
     );
   }
 
@@ -95,7 +111,7 @@ export class FieldService {
   switchUserAndFinancialYear(userId: number, financialYear: string): Observable<any> {
     this.clearCache();
     return this.getAllFieldsByUserIdAndFinancialYear(userId, financialYear);
-  }  
+  }
 
   private clearCacheIfStale(currentTime: number): void {
     if ((currentTime - this.lastCacheTime) >= this.cacheTTL) {

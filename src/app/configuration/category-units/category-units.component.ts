@@ -123,32 +123,10 @@ export class CategoryUnitsComponent implements OnInit, AfterViewInit {
   }
 
   addCategoryUnitToList(categoryUnit: any): void {
-    this.categoryUnitService.addCategoryUnit(categoryUnit).subscribe(response => {
-      // Create a *new* array with the added category unit
-      const newData = [...this.categoryUnits.data, response];
-      this.categoryUnits.data = newData; // Assign the new array
-      // Re-apply sort after data changes
-      if (this.categoryUnits.sort) {
-        const activeSort = this.categoryUnits.sort.active || 'category_name'; // Default to 'name' if no active sort
-        const sortDirection: SortDirection = this.categoryUnits.sort.direction || 'asc'; // Default to 'asc'
-
-        this.categoryUnits.sort.sort({
-          id: activeSort,
-          start: sortDirection,
-          disableClear: false // Crucial: Add disableClear property
-        });
-      }
-      this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation addition is successfully.`, 'Close', { duration: 3000 });
-    });
-  }
-
-  updateCategoryUnit(categoryUnit: any): void {
-    this.categoryUnitService.updateCategoryUnit(categoryUnit.id, categoryUnit).subscribe(response => {
-      const index = this.categoryUnits.data.findIndex(unit => unit.id === response.id);
-      if (index !== -1) {
-        // Create a *new* array with the updated category unit
-        const newData = [...this.categoryUnits.data]; // Copy existing data
-        newData[index] = response; // Update the copied array
+    this.categoryUnitService.addCategoryUnit(categoryUnit).subscribe({
+      next: (response) => {
+        // Create a *new* array with the added category unit
+        const newData = [...this.categoryUnits.data, response];
         this.categoryUnits.data = newData; // Assign the new array
         // Re-apply sort after data changes
         if (this.categoryUnits.sort) {
@@ -161,7 +139,41 @@ export class CategoryUnitsComponent implements OnInit, AfterViewInit {
             disableClear: false // Crucial: Add disableClear property
           });
         }
-        this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation updation is successfully.`, 'Close', { duration: 3000 });
+        this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation addition is successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  updateCategoryUnit(categoryUnit: any): void {
+    this.categoryUnitService.updateCategoryUnit(categoryUnit.id, categoryUnit).subscribe({
+      next: (response) => {
+        const index = this.categoryUnits.data.findIndex(unit => unit.id === response.id);
+        if (index !== -1) {
+          // Create a *new* array with the updated category unit
+          const newData = [...this.categoryUnits.data]; // Copy existing data
+          newData[index] = response; // Update the copied array
+          this.categoryUnits.data = newData; // Assign the new array
+          // Re-apply sort after data changes
+          if (this.categoryUnits.sort) {
+            const activeSort = this.categoryUnits.sort.active || 'category_name'; // Default to 'name' if no active sort
+            const sortDirection: SortDirection = this.categoryUnits.sort.direction || 'asc'; // Default to 'asc'
+
+            this.categoryUnits.sort.sort({
+              id: activeSort,
+              start: sortDirection,
+              disableClear: false // Crucial: Add disableClear property
+            });
+          }
+          this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation updation is successfully.`, 'Close', { duration: 3000 });
+        }
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
       }
     });
   }

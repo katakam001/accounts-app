@@ -61,6 +61,8 @@
     <mat-button-toggle-group [(ngModel)]="selectedTaxType" name="selectedTaxType" aria-label="Tax Type">
       <mat-button-toggle value="cgst"> <mat-icon>account_balance</mat-icon> CGST / SGST</mat-button-toggle>
       <mat-button-toggle value="igst"> <mat-icon>public</mat-icon> IGST</mat-button-toggle>
+      <mat-button-toggle value="tcs" *ngIf="selectedInvoiceType === 'purchase'">
+        <mat-icon>savings</mat-icon>TCS</mat-button-toggle>
     </mat-button-toggle-group>
   </div>
 

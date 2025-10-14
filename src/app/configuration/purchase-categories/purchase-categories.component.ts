@@ -87,33 +87,12 @@ export class PurchaseCategoriesComponent implements OnInit, AfterViewInit {
   }
 
   addCategory(category: any): void {
-    this.categoryService.addCategory(category).subscribe((newCategory) => {
-      // Create a *new* array with the added category
-      const newData = [...this.categories.data, newCategory];
-      this.categories.data = newData; // Assign the new array
-      // Re-apply sort after data changes
-      if (this.categories.sort) {
-        const activeSort = this.categories.sort.active || 'name'; // Default to 'name' if no active sort
-        const sortDirection: SortDirection = this.categories.sort.direction || 'asc'; // Default to 'asc'
-
-        this.categories.sort.sort({
-          id: activeSort,
-          start: sortDirection,
-          disableClear: false // Crucial: Add disableClear property
-        });
-      }
-      this.snackBar.open(`Category "${newCategory.name}" added successfully.`, 'Close', { duration: 3000 });
-    });
-  }
-
-  updateCategory(updatedCategory: any): void {
-    this.categoryService.updateCategory(updatedCategory.id, updatedCategory).subscribe(() => {
-      const index = this.categories.data.findIndex(category => category.id === updatedCategory.id);
-      if (index !== -1) {
-        // Create a *new* array with the updated category
-        const newData = [...this.categories.data]; // Copy existing data
-        newData[index] = updatedCategory; // Update the copied array
+    this.categoryService.addCategory(category).subscribe({
+      next: (newCategory) => {
+        // Create a *new* array with the added category
+        const newData = [...this.categories.data, newCategory];
         this.categories.data = newData; // Assign the new array
+        // Re-apply sort after data changes
         if (this.categories.sort) {
           const activeSort = this.categories.sort.active || 'name'; // Default to 'name' if no active sort
           const sortDirection: SortDirection = this.categories.sort.direction || 'asc'; // Default to 'asc'
@@ -124,7 +103,40 @@ export class PurchaseCategoriesComponent implements OnInit, AfterViewInit {
             disableClear: false // Crucial: Add disableClear property
           });
         }
-        this.snackBar.open(`Category "${updatedCategory.name}" updation is successfully.`, 'Close', { duration: 3000 });
+        this.snackBar.open(`Category "${newCategory.name}" added successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  updateCategory(updatedCategory: any): void {
+    this.categoryService.updateCategory(updatedCategory.id, updatedCategory).subscribe({
+      next: (response) => {
+        const index = this.categories.data.findIndex(category => category.id === response.id);
+        if (index !== -1) {
+          // Create a *new* array with the updated category
+          const newData = [...this.categories.data]; // Copy existing data
+          newData[index] = response; // Update the copied array
+          this.categories.data = newData; // Assign the new array
+          if (this.categories.sort) {
+            const activeSort = this.categories.sort.active || 'name'; // Default to 'name' if no active sort
+            const sortDirection: SortDirection = this.categories.sort.direction || 'asc'; // Default to 'asc'
+
+            this.categories.sort.sort({
+              id: activeSort,
+              start: sortDirection,
+              disableClear: false // Crucial: Add disableClear property
+            });
+          }
+          this.snackBar.open(`Category "${response.name}" updation is successfully.`, 'Close', { duration: 3000 });
+        }
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
       }
     });
   }
