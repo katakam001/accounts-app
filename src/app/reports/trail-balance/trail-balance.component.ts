@@ -57,7 +57,7 @@ export class TrailBalanceComponent implements OnInit {
       if (params['fromDate']) {
         this.fromDate.patchValue(new Date(params['fromDate']));
         this.toDate.patchValue(new Date(params['toDate']));
-        this.getTrailBalanceReport(); // 💫 Re-populates main report
+        this.navigateToJournalEntry(null,params['groupId']); // 💫 Re-populates main report
       }
     });
   }
@@ -144,13 +144,13 @@ export class TrailBalanceComponent implements OnInit {
     return type;
   }
 
-  navigateToJournalEntry(accountId: number | null, groupId: number, groupName: string): void {
+  navigateToJournalEntry(accountId: number | null, groupId: number): void {
     console.log(accountId);
     console.log(groupId);
     const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string;
     const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string;
 
-    if (accountId == null && (groupName === 'Sundry Debtors' || groupName === 'Sundry Creditors')) {
+    if (accountId == null && groupId !== null) {
       this.trailBalanceService.getAccountsForGroup(groupId, this.userId, fromDateStr, toDateStr, this.financialYear).subscribe((data: TrailBalanceReport[]) => {
         this.overallDebit = 0;
         this.overallCredit = 0;
@@ -179,6 +179,7 @@ export class TrailBalanceComponent implements OnInit {
       this.router.navigate(['/accountCopy'], {
         queryParams: {
           accountId: accountId,
+          groupId: groupId,
           fromDate: fromDateStr,
           toDate: toDateStr
         }

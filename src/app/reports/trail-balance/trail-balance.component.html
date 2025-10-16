@@ -42,7 +42,7 @@
     </thead>
     <tbody>
       <tr *ngFor="let entry of trailBalanceReport"
-        (click)="navigateToJournalEntry(entry.accountId, entry.groupId, entry.groupName)">
+        (click)="navigateToJournalEntry(entry.accountId, entry.groupId)">
         <td>{{ entry.groupName }}</td>
         <td>{{ entry.accountName }}</td>
         <td class="right-align">{{ entry.totalDebit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>

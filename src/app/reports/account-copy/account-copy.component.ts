@@ -28,6 +28,7 @@ import { UploadService } from '../../services/upload.service';
 })
 export class AccountCopyComponent implements OnInit, OnDestroy {
   selectedAccountId: number;
+  selectedGroupId: number;
   financialYear: string;
   companyName: string;
   city: string;
@@ -91,6 +92,7 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
       this.route.queryParams.subscribe(params => {
         if (params['accountId']) {
           this.selectedAccountId = Number(params['accountId']);
+          this.selectedGroupId = Number(params['groupId']);
           this.fromDate = new Date(params['fromDate']);
           this.toDate = new Date(params['toDate']);
           this.isTrailBalanceDrilldownActive = true;
@@ -150,7 +152,8 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
     this.router.navigate(['/trailBalance'], {
       queryParams: {
         fromDate: this.fromDate,
-        toDate: this.toDate
+        toDate: this.toDate,
+        groupId:this.selectedGroupId
       }
     });
   }
