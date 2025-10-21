@@ -78,7 +78,7 @@ export class OpeningStockService {
     return this.getOpeningStockByUserIdAndFinancialYear(userId, financialYear);
   }
 
-  private clearCache(): void {
+  clearCache(): void {
     this.stocks = [];
     this.lastCacheTime = 0;
     this.saveToLocalStorage();
