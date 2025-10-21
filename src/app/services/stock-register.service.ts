@@ -8,12 +8,16 @@ import { environment } from '../../environments/environment';
 })
 export class StockRegisterService {
 
-    private baseUrl = environment.apiUrl;
-    private apiUrl = `${this.baseUrl}/api/generate-stock-register`; // Append the path to the base URL
+  private baseUrl = environment.apiUrl;
+  private apiUrl = `${this.baseUrl}/api/generate-stock-register`; // Append the path to the base URL
 
   constructor(private http: HttpClient) { }
 
-  getStockRegister(financialYear: string, itemId: number, userId: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}?financialYear=${financialYear}&itemId=${itemId}&userId=${userId}`);
+  getStockRegister(financialYear: string, itemId: number, userId: number, month?: number): Observable<any> {
+    let url = `${this.apiUrl}?financialYear=${financialYear}&itemId=${itemId}&userId=${userId}`;
+    if (month !== undefined) {
+      url += `&month=${month}`;
+    }
+    return this.http.get<any>(url);
   }
 }

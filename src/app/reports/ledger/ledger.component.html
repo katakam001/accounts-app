@@ -31,29 +31,6 @@
       </button>
     </div>
   </div>
-  <!-- Date Filter Section -->
-  <!-- <div class="filter-container">
-    <mat-form-field appearance="outline" class="date-field">
-      <mat-label>From Date</mat-label>
-      <input matInput [matDatepicker]="picker1" [(ngModel)]="fromDate" [matDatepickerFilter]="dateFilter"
-        placeholder="Select From Date" />
-      <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
-      <mat-datepicker #picker1></mat-datepicker>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="date-field">
-      <mat-label>To Date</mat-label>
-      <input matInput [matDatepicker]="picker2" [(ngModel)]="toDate" [matDatepickerFilter]="dateFilter"
-        placeholder="Select To Date" />
-      <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
-      <mat-datepicker #picker2></mat-datepicker>
-    </mat-form-field>
-
-    <div class="apply-filter-container">
-      <mat-icon class="apply-filter-icon" (click)="applyDateFilter()" aria-label="Apply Filter">filter_alt</mat-icon>
-      <span class="apply-filter-label">Date Filter</span>
-    </div>
-  </div> -->
 
   <!-- Ledger Table Section -->
   <div *ngFor="let groupedEntry of groupedEntries" class="grouped-entry">
