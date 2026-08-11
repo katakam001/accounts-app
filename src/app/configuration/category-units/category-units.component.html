@@ -10,21 +10,16 @@
   <mat-card class="category-units-card">
     <mat-card-content>
       <div class="filter-container">
-        <mat-form-field appearance="fill" class="filter-field">
-          <mat-label>Category</mat-label>
-          <mat-select [(value)]="selectedCategory" (selectionChange)="applyFilter()">
-            <mat-option *ngFor="let category of categories" [value]="category">{{ category }}</mat-option>
-          </mat-select>
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search Category Units</mat-label>
+          <input matInput (keyup)="applyFilter($event)" placeholder="Search by Category or Unit Name">
+          <button mat-icon-button matSuffix>
+            <mat-icon color="primary">search</mat-icon>
+          </button>
         </mat-form-field>
-
-        <mat-form-field appearance="fill" class="filter-field">
-          <mat-label>Unit</mat-label>
-          <mat-select [(value)]="selectedUnit" (selectionChange)="applyFilter()">
-            <mat-option *ngFor="let unit of units" [value]="unit">{{ unit }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <button mat-raised-button class="reset-button" (click)="resetFilters()">Reset Filters</button>
+      </div>
+      <div *ngIf="financialYear" class="financial-year-container">
+        <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
       </div>
       <table mat-table [dataSource]="categoryUnits" matSort class="mat-elevation-z8">
         <ng-container matColumnDef="category_name">
@@ -43,7 +38,8 @@
             <button mat-icon-button class="edit-button" (click)="openEditCategoryUnitDialog(categoryUnit)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button class="delete-button" (click)="deleteCategoryUnit(categoryUnit.id,categoryUnit.category_name,categoryUnit.unit_name)">
+            <button mat-icon-button class="delete-button"
+              (click)="deleteCategoryUnit(categoryUnit.id,categoryUnit.category_name,categoryUnit.unit_name)">
               <mat-icon>delete</mat-icon>
             </button>
           </td>

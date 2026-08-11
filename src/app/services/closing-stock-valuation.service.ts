@@ -9,7 +9,7 @@ import { environment } from '../../environments/environment';
 export class ClosingStockValuationService {
 
   private baseUrl = environment.apiUrl;
-  private apiUrl = `${this.baseUrl}/api/closing-stock-valuation`; // Append the path to the base URL
+  private apiUrl = `${this.baseUrl}/api/stock-valuation`; // Append the path to the base URL
 
   constructor(private http: HttpClient) { }
 

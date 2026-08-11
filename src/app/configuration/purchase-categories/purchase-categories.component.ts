@@ -11,11 +11,13 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { StorageService } from '../../services/storage.service';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { FormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-purchase-categories',
   standalone: true,
-  imports: [MatTableModule, MatToolbarModule, MatCardModule, MatIconModule, CommonModule, MatSortModule],
+  imports: [MatTableModule, MatToolbarModule, MatCardModule, MatIconModule, CommonModule, MatSortModule, FormsModule, MatInputModule],
   templateUrl: './purchase-categories.component.html',
   styleUrls: ['./purchase-categories.component.css']
 })
@@ -39,6 +41,11 @@ export class PurchaseCategoriesComponent implements OnInit, AfterViewInit {
     this.getFinancialYear();
   }
 
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.categories.filter = filterValue.trim().toLowerCase();
+  }
+
   ngAfterViewInit() {
     // Assign the MatSort instance to the MatTableDataSource
     this.categories.sort = this.sort;
@@ -57,6 +64,14 @@ export class PurchaseCategoriesComponent implements OnInit, AfterViewInit {
   fetchCategories(userId: number, financialYear: string): void {
     this.categoryService.getCategoriesByUserIdAndFinancialYear(userId, financialYear).subscribe((data: any[]) => {
       this.categories.data = data;
+
+      // ✅ Unified filter logic
+      this.categories.filterPredicate = (category, filter) => {
+        const normalized = filter.trim().toLowerCase();
+        return (
+          category.name?.toLowerCase().includes(normalized)
+        );
+      };
     });
   }
 

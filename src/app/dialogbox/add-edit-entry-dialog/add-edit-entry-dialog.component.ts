@@ -23,6 +23,7 @@ import { GroupMappingService } from '../../services/group-mapping.service';
 import { SupplierFilterPipe } from "../../pipe/supplier-filter.pipe";
 import { notZeroValidator } from '../..//validators';
 import { minArrayLengthValidator } from '../..//validators';
+import moment from 'moment';
 
 @Component({
   selector: 'app-add-edit-entry-dialog',
@@ -121,8 +122,8 @@ export class AddEditEntryDialogComponent implements OnInit {
       quantity: ['', [Validators.required, Validators.min(1)]],
       unit_id: ['', Validators.required],
       unit_price: ['', [Validators.required, notZeroValidator]],
-      value: [{ value: '', disabled: true }, [Validators.required, notZeroValidator]],
-      total_amount: [{ value: '', disabled: true }],
+      value: [{ value: '' }, [Validators.required, notZeroValidator]],
+      total_amount: [{ value: '' }],
       category_account_id: ['', Validators.required],
       journal_id: [''],
       id: [''],
@@ -172,7 +173,14 @@ export class AddEditEntryDialogComponent implements OnInit {
             }
           });
           this.entryForm.setControl('entries', entriesArray);
-          this.entryForm.patchValue(this.data.group);
+          this.entryForm.patchValue({
+            invoice_seq_id: this.data.group.invoice_seq_id,
+            invoiceNumber: this.data.group.invoiceNumber,
+            entry_date: moment(this.data.group.entry_date),
+            customerName: this.data.group.customerName,
+            account_id: this.data.group.account_id,
+          });
+          // this.entryForm.patchValue(this.data.group);
 
           categoryIds.forEach(categoryId => {
             this.onCategoryChange(categoryId);
@@ -190,7 +198,7 @@ export class AddEditEntryDialogComponent implements OnInit {
       this.entryForm.patchValue({
         invoice_seq_id: entry.invoice_seq_id,
         invoiceNumber: entry.invoiceNumber,
-        entry_date: entry.entry_date,
+        entry_date: moment(entry.entry_date),
         customerName: entry.customerName,
         account_id: entry.account_id,
       });
@@ -262,9 +270,12 @@ export class AddEditEntryDialogComponent implements OnInit {
     }
 
     const [startYear, endYear] = this.data.financialYear.split('-').map(Number);
-    const startDate = new Date(startYear, 3, 1);
-    const endDate = new Date(endYear, 2, 31);
-    return date >= startDate && date <= endDate;
+    const startDate = moment(`${startYear}-04-01`).startOf('day');   // April 1st
+    const endDate = moment(`${endYear}-03-31`).endOf('day');         // March 31st
+
+    const selectedDate = moment.isMoment(date) ? date : moment(date);
+
+    return selectedDate.isBetween(startDate, endDate, undefined, '[]'); // inclusive
   };
 
   fetchInitialData(categoryType: number): Promise<void> {
@@ -441,79 +452,79 @@ export class AddEditEntryDialogComponent implements OnInit {
   }
 
 
-updateTotalAmount(entryGroup: FormGroup): void {
-  let quantity = parseFloat(entryGroup.get('quantity')?.value || 0).toFixed(4);
-  let unit_price = parseFloat(entryGroup.get('unit_price')?.value || 0).toFixed(2);
+  updateTotalAmount(entryGroup: FormGroup): void {
+    let quantity = parseFloat(entryGroup.get('quantity')?.value || 0).toFixed(4);
+    let unit_price = parseFloat(entryGroup.get('unit_price')?.value || 0).toFixed(2);
 
-  entryGroup.get('quantity')?.setValue(quantity, { emitEvent: false });
-  entryGroup.get('unit_price')?.setValue(unit_price, { emitEvent: false });
+    entryGroup.get('quantity')?.setValue(quantity, { emitEvent: false });
+    entryGroup.get('unit_price')?.setValue(unit_price, { emitEvent: false });
 
-  const type = this.data.type;
-  const gstFields = (entryGroup.get('dynamicFields') as FormArray).controls;
-  const gstRates: number[] = [];
+    const type = this.data.type;
+    const gstFields = (entryGroup.get('dynamicFields') as FormArray).controls;
+    const gstRates: number[] = [];
 
-  gstFields.forEach((control: AbstractControl) => {
-    const fieldGroup = control as FormGroup;
-    const field_category = fieldGroup.get('field_category')?.value;
-    if (field_category === 1) {
-      const field_name = fieldGroup.get('field_name')?.value;
-      const gstRateMatch = field_name.match(/(\d+(\.\d+)?)/);
-      const gstRate = gstRateMatch ? parseFloat(gstRateMatch[1]) : 0;
-      gstRates.push(gstRate);
-    }
-  });
-
-  const totalGSTPercent = gstRates.reduce((sum, rate) => sum + rate, 0);
-  let totalAmount = parseFloat((parseFloat(quantity) * parseFloat(unit_price)).toFixed(2));
-  entryGroup.get('total_amount')?.setValue(totalAmount, { emitEvent: false });
-
-  let value = 0;
-  if (type === 8) {
-    // Cash Sale: derive value from totalAmount
-    value = totalAmount / (1 + totalGSTPercent / 100);
-  } else {
-    // Regular Entry: derive totalAmount from value
-    value = parseFloat((parseFloat(quantity) * parseFloat(unit_price)).toFixed(2));
-  }
-
-  value = parseFloat(value.toFixed(2));
-  entryGroup.get('value')?.setValue(value, { emitEvent: false });
-
-  // GST Calculations
-  let gstAmount = 0;
-  const gstValues: { [key: string]: number } = {};
-
-  gstFields.forEach((control: AbstractControl) => {
-    const fieldGroup = control as FormGroup;
-    const field_name = fieldGroup.get('field_name')?.value;
-    const field_category = fieldGroup.get('field_category')?.value;
-    const exclude_from_total = fieldGroup.get('exclude_from_total')?.value;
-
-    if (field_category === 1) {
-      const gstRateMatch = field_name.match(/(\d+(\.\d+)?)/);
-      const gstRate = gstRateMatch ? parseFloat(gstRateMatch[1]) : 0;
-      let gstValue = (value * gstRate) / 100;
-      gstValue = parseFloat(gstValue.toFixed(2));
-      gstValues[field_name] = gstValue;
-
-      if (!exclude_from_total) {
-        gstAmount += gstValue;
+    gstFields.forEach((control: AbstractControl) => {
+      const fieldGroup = control as FormGroup;
+      const field_category = fieldGroup.get('field_category')?.value;
+      if (field_category === 1) {
+        const field_name = fieldGroup.get('field_name')?.value;
+        const gstRateMatch = field_name.match(/(\d+(\.\d+)?)/);
+        const gstRate = gstRateMatch ? parseFloat(gstRateMatch[1]) : 0;
+        gstRates.push(gstRate);
       }
+    });
 
-      fieldGroup.get('field_value')?.setValue(gstValue, { emitEvent: false });
-    }
-  });
-
-  if (type !== 8) {
-    totalAmount = value + gstAmount;
-    totalAmount = parseFloat(totalAmount.toFixed(2));
+    const totalGSTPercent = gstRates.reduce((sum, rate) => sum + rate, 0);
+    let totalAmount = parseFloat((parseFloat(quantity) * parseFloat(unit_price)).toFixed(2));
     entryGroup.get('total_amount')?.setValue(totalAmount, { emitEvent: false });
+
+    let value = 0;
+    if (type === 8) {
+      // Cash Sale: derive value from totalAmount
+      value = totalAmount / (1 + totalGSTPercent / 100);
+    } else {
+      // Regular Entry: derive totalAmount from value
+      value = parseFloat((parseFloat(quantity) * parseFloat(unit_price)).toFixed(2));
+    }
+
+    value = parseFloat(value.toFixed(2));
+    entryGroup.get('value')?.setValue(value, { emitEvent: false });
+
+    // GST Calculations
+    let gstAmount = 0;
+    const gstValues: { [key: string]: number } = {};
+
+    gstFields.forEach((control: AbstractControl) => {
+      const fieldGroup = control as FormGroup;
+      const field_name = fieldGroup.get('field_name')?.value;
+      const field_category = fieldGroup.get('field_category')?.value;
+      const exclude_from_total = fieldGroup.get('exclude_from_total')?.value;
+
+      if (field_category === 1) {
+        const gstRateMatch = field_name.match(/(\d+(\.\d+)?)/);
+        const gstRate = gstRateMatch ? parseFloat(gstRateMatch[1]) : 0;
+        let gstValue = (value * gstRate) / 100;
+        gstValue = parseFloat(gstValue.toFixed(2));
+        gstValues[field_name] = gstValue;
+
+        if (!exclude_from_total) {
+          gstAmount += gstValue;
+        }
+
+        fieldGroup.get('field_value')?.setValue(gstValue, { emitEvent: false });
+      }
+    });
+
+    if (type !== 8) {
+      totalAmount = value + gstAmount;
+      totalAmount = parseFloat(totalAmount.toFixed(2));
+      entryGroup.get('total_amount')?.setValue(totalAmount, { emitEvent: false });
+    }
+
+    entryGroup.patchValue(gstValues, { emitEvent: false });
+
+    this.updateGroupValues();
   }
-
-  entryGroup.patchValue(gstValues, { emitEvent: false });
-
-  this.updateGroupValues();
-}
 
   updateGroupValues(): void {
     console.log("update group total amount");
@@ -527,8 +538,8 @@ updateTotalAmount(entryGroup: FormGroup): void {
       const totalAmount = entry.get('total_amount')?.value || 0;
 
       // Disable the fields again
-      entry.get('value')?.disable({ emitEvent: false });
-      entry.get('total_amount')?.disable({ emitEvent: false });
+      // entry.get('value')?.disable({ emitEvent: false });
+      // entry.get('total_amount')?.disable({ emitEvent: false });
 
       return { value: entryValue, total_amount: totalAmount };
     });
@@ -652,7 +663,8 @@ updateTotalAmount(entryGroup: FormGroup): void {
           invoice_seq_id: formValues.invoice_seq_id,
           invoiceNumber: formValues.invoiceNumber, // Include invoiceNumber
           account_id: formValues.account_id,       // Include account_id
-          dynamicFields: dynamicFields // Include dynamic fields for each entry
+          dynamicFields: dynamicFields, // Include dynamic fields for each entry
+          ...(this.data.sNo ? { s_no: this.data.sNo } : {}) // ✅ only include if defined
         };
       });
 

@@ -22,7 +22,7 @@ export class AdminAuthGuard implements CanActivate {
     }
     const adminDetails = this.storageService.getAdminDetails();
 
-    if (user.profile_completed && adminDetails) {
+    if (adminDetails) {
       this.storageService.saveUser(adminDetails);
       return true;
     }

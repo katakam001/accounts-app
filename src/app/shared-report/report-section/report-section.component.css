@@ -1,0 +1,148 @@
+.report-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fafafa;
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.report-table {
+  width: 100%;
+  table-layout: fixed; /* Ensures equal column widths */
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+
+/* Column widths and alignment */
+.report-table th:nth-child(1),
+.report-table td:nth-child(1) {
+  width: 31%; /* Particulars */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.report-table th:nth-child(2),
+.report-table td:nth-child(2) {
+  width: 34%; /* Item */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.report-table th:nth-child(3),
+.report-table td:nth-child(3) {
+  width: 15%; /* Quantity */
+  text-align: right;
+  white-space: nowrap;
+}
+
+.report-table th:nth-child(4),
+.report-table td:nth-child(4) {
+  width: 20%; /* Amount */
+  text-align: right;
+  white-space: nowrap;
+}
+
+
+.report-table th {
+  background-color: #f0f0f0;
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 2px solid #ccc;
+  font-weight: 500;
+  color: #444;
+}
+
+/* Cell styling */
+.report-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+  color: #222;
+  position: relative;
+}
+
+/* Tooltip on hover */
+.report-table td:hover::after {
+  content: attr(title);
+  position: absolute;
+  background: #333;
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 10;
+  top: 100%;
+  left: 0;
+  border-radius: 4px;
+}
+
+/* Amount column emphasis */
+.amount {
+  text-align: right;
+  font-weight: bold;
+  color: #333;
+}
+
+.summary-row td {
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+  color: #fff;
+}
+
+.summary-profit td {
+  background-color: #4caf50; /* green */
+}
+
+.summary-loss td {
+  background-color: #f44336; /* red */
+}
+
+
+/* Totals and summary rows — aligned with table layout */
+.totals-row td {
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #444;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #eee;
+}
+
+/* Optional: right-align last column in summary/totals */
+.summary-row td:last-child,
+.totals-row td:last-child {
+  text-align: right;
+}
+
+/* Blank row for alignment */
+.blank-row td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  color: transparent;
+}
+
+/* Backgrounds for group modes */
+.bg-structured {
+  background-color: #e3f2fd;
+}
+
+.bg-flat {
+  background-color: #fff3e0;
+}
+
+.bg-default {
+  background-color: #ffffff;
+}

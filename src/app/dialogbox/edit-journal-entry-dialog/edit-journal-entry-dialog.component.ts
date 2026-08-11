@@ -21,6 +21,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { minArrayLengthValidator } from '../..//validators';
 import { notZeroValidator } from '../..//validators';
 import { exclusiveAmountValidator } from '../../validators';
+import moment from 'moment';
 
 @Component({
   selector: 'app-edit-journal-entry-dialog',
@@ -72,7 +73,7 @@ export class EditJournalEntryDialogComponent implements OnInit {
   patchFormValues(entry: JournalEntry): void {
     this.editJournalEntryForm.patchValue({
       id: entry.id,
-      journal_date: new Date(entry.journal_date),
+      journal_date: moment(entry.journal_date),
       user_id: entry.user_id,
       user_name: entry.user_name,
       financial_year: entry.financial_year
@@ -92,15 +93,19 @@ export class EditJournalEntryDialogComponent implements OnInit {
     });
   }
 
-  dateFilter = (date: Date | null): boolean => {
-    if (!date || !this.editJournalEntryForm.get('financial_year')?.value) {
-      return false;
-    }
+  dateFilter = (date: any): boolean => {
+    if (!date) return false;
 
-    const [startYear, endYear] = this.editJournalEntryForm.get('financial_year')?.value.split('-').map(Number);
-    const startDate = new Date(startYear, 3, 1); // April 1st of start year
-    const endDate = new Date(endYear, 2, 31); // March 31st of end year
-    return date >= startDate && date <= endDate;
+    const fy = this.editJournalEntryForm.get('financial_year')?.value;
+    if (!fy || !fy.includes('-')) return true; // allow all dates if FY is not set
+
+    const [startYear, endYear] = fy.split('-').map(Number);
+    const startDate = moment(`${startYear}-04-01`).startOf('day');   // April 1st
+    const endDate = moment(`${endYear}-03-31`).endOf('day');         // March 31st
+
+    const selectedDate = moment.isMoment(date) ? date : moment(date);
+
+    return selectedDate.isBetween(startDate, endDate, undefined, '[]'); // inclusive
   };
 
   get items(): FormArray {
@@ -190,7 +195,7 @@ export class EditJournalEntryDialogComponent implements OnInit {
     itemGroup.get('debit_amount')?.setValue(rounded, { emitEvent: false });
   }
 
-    onCreditAmtChange(index: number) {
+  onCreditAmtChange(index: number) {
     const itemGroup = this.items.at(index) as FormGroup;
     const rawValue = itemGroup.get('credit_amount')?.value;
     const rounded = parseFloat(rawValue || 0).toFixed(2);

@@ -9,6 +9,18 @@
 
   <mat-card class="purchase-categories-card">
     <mat-card-content>
+      <div class="filter-container">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search Categories</mat-label>
+          <input matInput (keyup)="applyFilter($event)" placeholder="Search by category or type">
+          <button mat-icon-button matSuffix>
+            <mat-icon color="primary">search</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+      <div *ngIf="financialYear" class="financial-year-container">
+        <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
+      </div>
       <table mat-table [dataSource]="categories" matSort class="mat-elevation-z8">
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Category Name </th>
@@ -17,8 +29,8 @@
 
         <ng-container matColumnDef="type">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Type </th>
-          <td mat-cell *matCellDef="let category"> 
-            {{ category.type === 1 ? 'Purchase' : 'Sale' }} 
+          <td mat-cell *matCellDef="let category">
+            {{ category.type === 1 ? 'Purchase' : 'Sale' }}
           </td>
         </ng-container>
 
@@ -28,7 +40,8 @@
             <button mat-icon-button color="primary" class="edit-button" (click)="openEditCategoryDialog(category)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" class="delete-button" (click)="deleteCategory(category.id,category.name)">
+            <button mat-icon-button color="warn" class="delete-button"
+              (click)="deleteCategory(category.id,category.name)">
               <mat-icon>delete</mat-icon>
             </button>
           </td>

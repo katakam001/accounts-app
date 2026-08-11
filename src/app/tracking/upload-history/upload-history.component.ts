@@ -1,10 +1,9 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSortModule } from '@angular/material/sort';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { UploadService } from '../../services/upload.service';
@@ -13,15 +12,23 @@ import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { EntryService } from '../../services/entry.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-upload-history',
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
+    MatDatepickerModule,
+    MatFormFieldModule,
+    MatInputModule,
+    CommonModule,
     MatTableModule,
     MatSortModule,
-    MatDialogModule,
     MatButtonModule,
     MatIconModule,
     MatToolbarModule,
@@ -34,6 +41,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class UploadHistoryComponent implements OnInit {
   dataSource = new MatTableDataSource<any>();
   financialYear: string;
+  fromDate = new FormControl();
+  toDate = new FormControl();
   displayedColumns: string[] = [
     'file_name',
     'file_type',
@@ -46,12 +55,14 @@ export class UploadHistoryComponent implements OnInit {
     'error_message',
     'action'
   ];
+  @ViewChild(MatSort) sort: MatSort;
 
   constructor(private uploadService: UploadService,
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
     private entryService: EntryService,
     private snackBar: MatSnackBar,
+    private datePipe: DatePipe,
   ) { }
 
   ngOnInit(): void {
@@ -62,13 +73,18 @@ export class UploadHistoryComponent implements OnInit {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
       this.financialYear = storedFinancialYear;
-      this.loadUploads();
     }
   }
 
   loadUploads(): void {
-    this.uploadService.getUploadHistory(this.storageService.getUser().id, this.financialYear).subscribe({
-      next: (data) => this.dataSource.data = data,
+    const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format
+    const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format  
+
+    this.uploadService.getUploadHistory(this.storageService.getUser().id, fromDateStr, toDateStr, this.financialYear).subscribe({
+      next: (data) => {
+        this.dataSource.data = data;
+        this.dataSource.sort = this.sort;
+      },
       error: (err) => console.error('❌ Failed to load upload history:', err)
     });
   }

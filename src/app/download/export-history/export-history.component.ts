@@ -1,25 +1,33 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { ExportService } from '../../services/export.service'; // Your service to fetch export data
 import { ExportRecord } from '../../models/export.interface';   // Interface for export record
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { DownloadService } from '../../services/download.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSortModule } from '@angular/material/sort';
+import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-export-history',
   templateUrl: './export-history.component.html',
   styleUrls: ['./export-history.component.css'],
-    standalone: true,
+  standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
+    MatDatepickerModule,
+    MatFormFieldModule,
+    MatInputModule,
     MatTableModule,
     MatSortModule,
     MatDialogModule,
@@ -31,14 +39,19 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 })
 export class ExportHistoryComponent implements OnInit {
   dataSource = new MatTableDataSource<ExportRecord>();
-  displayedColumns: string[] = ['file_name','file_type','status','output_key_timestamp','actions'];
+  displayedColumns: string[] = ['file_name', 'file_type', 'status', 'output_key_timestamp', 'actions'];
   financialYear: string;
+  fromDate = new FormControl();
+  toDate = new FormControl();
+  @ViewChild(MatSort) sort: MatSort;
 
   constructor(
     private exportService: ExportService,
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
-    private downloadService: DownloadService) { }
+    private downloadService: DownloadService,
+    private datePipe: DatePipe,
+  ) { }
 
   ngOnInit(): void {
     this.getFinancialYear();
@@ -48,13 +61,16 @@ export class ExportHistoryComponent implements OnInit {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
       this.financialYear = storedFinancialYear;
-      this.loadExports();
     }
   }
 
   loadExports(): void {
-    this.exportService.getExportsByUserIdAndFinancialYear(this.storageService.getUser().id, this.financialYear).subscribe((data: ExportRecord[]) => {
+    const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format
+    const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format  
+
+    this.exportService.getExportsByUserIdAndFinancialYear(this.storageService.getUser().id, fromDateStr, toDateStr, this.financialYear).subscribe((data: ExportRecord[]) => {
       this.dataSource.data = data;
+      this.dataSource.sort = this.sort;
     });
   }
 

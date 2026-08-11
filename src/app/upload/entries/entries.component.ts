@@ -102,6 +102,8 @@ export class EntriesComponent {
 
       // TCS Mismatches
       "Invalid Tax Rate",
+      "Invalid Tax",
+      "Mismatch in Tax",
       "Non-numeric Unit Rate",
       "Invalid Unit Rate",
       "Empty Unit Rate",
@@ -197,7 +199,7 @@ export class EntriesComponent {
     if (type === 'purchase' && isTCS) {
       return [
         type, '1', formatAsText('TCS001'), '01-04-2024', 'LUBRICANT SUPPLIERS', '29ABCDE1234F1Z5',
-        'HS LUBRICANT', 'LITERS', '100', '85.50', '8550.00', '0.1'
+        'HS LUBRICANT', 'LITERS', '100', '85.50', '8550.00', '0.1', '8.55'
       ];
     }
 
@@ -233,7 +235,7 @@ export class EntriesComponent {
     if (this.selectedTaxType === 'tcs' && this.selectedInvoiceType === 'purchase') {
       return [
         "type", "sNo", "invoiceNo", "entryDate", "name", "gstNo",
-        "itemName", "unitName", "quantity", "rate", "amount", "taxRate"
+        "itemName", "unitName", "quantity", "rate", "amount", "taxRate", "tax"
       ];
     }
     if (this.selectedTaxType === 'cgst') {
@@ -475,6 +477,10 @@ export class EntriesComponent {
       const quantity = parseFloat(row["quantity"]);
       const rate = parseFloat(row["rate"]);
       const amount = parseFloat(row["amount"]);
+      const tax = parseFloat(row["tax"]);
+      const taxRate = parseFloat(row["taxRate"]);
+      const computedTax = amount * (taxRate / 100);
+
       const expectedAmount = quantity * rate;
 
       const tcsValidationChecks = [
@@ -484,7 +490,9 @@ export class EntriesComponent {
         { condition: row["rate"] === "", errorType: "Empty Unit Rate", message: `Row ${index + 1}: Unit rate must be a valid number found ' ${row["rate"]}'` },
         { condition: !/^\d+(\.\d{1,2})?$/.test(row["rate"]), errorType: "Invalid Unit Rate Precision", message: `Row ${index + 1}: Unit Rate must have up to 2 decimal places` },
         { condition: row["amount"] === "" || isNaN(amount), errorType: "Invalid Amount", message: `Row ${index + 1}: Amount must be a valid number found ' ${row["amount"]}'` },
-        { condition: Math.abs(expectedAmount - amount) > 0.01, errorType: "Mismatch in Amount", message: `Row ${index + 1}: Quantity * Rate = ${expectedAmount.toFixed(2)} but Amount is ${amount.toFixed(2)}` }
+        { condition: row["tax"] === "" || isNaN(amount), errorType: "Invalid Tax", message: `Row ${index + 1}: Tax must be a valid number found ' ${row["tax"]}'` },
+        { condition: Math.abs(expectedAmount - amount) > 100, errorType: "Mismatch in Amount", message: `Row ${index + 1}: Quantity * Rate = ${expectedAmount.toFixed(2)} but Amount is ${amount.toFixed(2)}` },
+        { condition: Math.abs(computedTax - tax) > 10, errorType: "Mismatch in Tax", message: `Row ${index + 1}: amount * (taxRate/100) = ${computedTax.toFixed(2)} but Amount is ${tax.toFixed(2)}` }
       ];
       tcsValidationChecks.forEach(({ condition, errorType, message }) => {
         if (condition) this.addValidationError(validationErrorsMap, errorType, message);
@@ -609,7 +617,7 @@ export class EntriesComponent {
           : ["gstValue0", "gstValue5", "gstValue12", "gstValue18", "gstValue28"];
     const activeTaxes =
       this.selectedTaxType === "tcs"
-        ? parseFloat(row["taxRate"] || "0") > 0 ? ["taxRate"] : []
+        ? parseFloat(row["taxRate"] || "0") >= 0 ? ["taxRate"] : []
         : taxKeys.filter(key => parseFloat(row[key] || "0") > 0);
 
     const resolvedCategoryIds: number[] = [];
@@ -693,7 +701,7 @@ export class EntriesComponent {
         const expectedUnitName = row["unitName"]?.toLowerCase().trim(); // normalize input
         const unitNamesForCategory = this.unitsMap[categoryId].map(u => u.name); // already lowercase
         if (!unitNamesForCategory.includes(expectedUnitName)) {
-          this.addValidationError(validationErrorsMap,"Missing Unit Name",`Row ${index + 1}: Unit '${row["unitName"]}' not found for category '${categoryName}'`);
+          this.addValidationError(validationErrorsMap, "Missing Unit Name", `Row ${index + 1}: Unit '${row["unitName"]}' not found for category '${categoryName}'`);
         }
       }
 
@@ -920,16 +928,20 @@ export class EntriesComponent {
     }
   }
 
-  validateDateFormat(entryDate: string): boolean {
-    const datePattern = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/; // ✅ Strict DD-MM-YYYY format
-    if (!datePattern.test(entryDate)) return false; // ✅ Format check
+validateDateFormat(entryDate: string): boolean {
+  // Remove Excel text wrapper if present
+  const cleaned = entryDate.replace(/^="?(.+?)"?$/, '$1');
 
-    // ✅ Validate if the date exists
-    const [day, month, year] = entryDate.split('-').map(Number);
-    const parsedDate = new Date(year, month - 1, day);
+  const datePattern = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
+  if (!datePattern.test(cleaned)) return false;
 
-    return parsedDate.getDate() === day && parsedDate.getMonth() === month - 1 && parsedDate.getFullYear() === year;
-  }
+  const [day, month, year] = cleaned.split('-').map(Number);
+  const parsedDate = new Date(year, month - 1, day);
+
+  return parsedDate.getDate() === day &&
+         parsedDate.getMonth() === month - 1 &&
+         parsedDate.getFullYear() === year;
+}
 
   validateDateWithinFinancialYear(entryDate: string): boolean {
     const [startYear, endYear] = this.financialYear.split('-').map(Number);

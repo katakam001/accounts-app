@@ -12,6 +12,8 @@ import { AddEditItemDialogComponent } from '../../dialogbox/add-edit-item-dialog
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-item-list',
@@ -24,7 +26,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatButtonModule,
     MatIconModule,
     MatToolbarModule,
-    MatCardModule
+    MatCardModule,
+    FormsModule,
+    MatInputModule
   ],
   templateUrl: './item-list.component.html',
   styleUrls: ['./item-list.component.css']
@@ -50,6 +54,11 @@ export class ItemListComponent implements OnInit, AfterViewInit {
     this.getFinancialYear();
   }
 
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
   ngAfterViewInit() {
     // Assign the MatSort instance to the MatTableDataSource
     this.dataSource.sort = this.sort;
@@ -68,6 +77,13 @@ export class ItemListComponent implements OnInit, AfterViewInit {
   loadItems(): void {
     this.itemsService.getItemsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
       this.dataSource.data = data;
+      // ✅ Unified filter logic
+      this.dataSource.filterPredicate = (item, filter) => {
+        const normalized = filter.trim().toLowerCase();
+        return (
+          item.name?.toLowerCase().includes(normalized)
+        );
+      };
     });
   }
 

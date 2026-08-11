@@ -12,6 +12,8 @@ import { AddEditFieldDialogComponent } from '../../dialogbox/add-edit-field-dial
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { FormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-fields',
@@ -24,7 +26,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatButtonModule,
     MatIconModule,
     MatToolbarModule,
-    MatCardModule
+    MatCardModule,
+    FormsModule,
+    MatInputModule
   ],
   templateUrl: './fields.component.html',
   styleUrls: ['./fields.component.css']
@@ -50,6 +54,11 @@ export class FieldsComponent implements OnInit, AfterViewInit {
     this.getFinancialYear();
   }
 
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
   ngAfterViewInit() {
     // Assign the MatSort instance to the MatTableDataSource
     this.dataSource.sort = this.sort;
@@ -69,6 +78,13 @@ export class FieldsComponent implements OnInit, AfterViewInit {
   loadFields(): void {
     this.fieldService.getAllFieldsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
       this.dataSource.data = data;
+      // ✅ Unified filter logic
+      this.dataSource.filterPredicate = (field, filter) => {
+        const normalized = filter.trim().toLowerCase();
+        return (
+          field.field_name?.toLowerCase().includes(normalized)
+        );
+      };
     });
   }
 

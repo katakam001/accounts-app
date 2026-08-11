@@ -9,6 +9,56 @@ mat-toolbar {
     margin-bottom: 20px;
 }
 
+.filter-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.custom-date-picker {
+  margin-right: 20px;
+  background-color: #f0f4f8;
+  border-radius: 5px;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-flex {
+  background-color: #ffffff;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-underline {
+  background-color: #009879;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-label {
+  color: #009879;
+}
+
+.generate-report-button {
+  background-color: #28a745;
+  color: white;
+  height: 56px;/* Match mat-form-field */
+  padding: 0 20px;/* Only horizontal padding */
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.generate-report-button:hover {
+  background-color: #28a745;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+}
+
+.generate-report-button:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: scale(0.98);
+}
+
 .spacer {
     flex: 1 1 auto;
 }

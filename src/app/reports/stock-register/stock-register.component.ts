@@ -40,6 +40,15 @@ import { StockRegisterChartDialogComponent } from '../../dialogbox/stock-registe
 export class StockRegisterComponent implements OnInit {
   displayedColumns: string[] = ['Date', 'Item', 'Opening Stock', 'Purchase', 'Sale Return', 'Received From Process', 'Total', 'Sales', 'Purchase Return', 'Dispatch To Process', 'Closing Stock'];
   dataSource = new MatTableDataSource<any>();
+  columnTotals: { [key: string]: number } = {};
+  summaryColumns = [
+    'Purchase',
+    'Sale Return',
+    'Received From Process',
+    'Sales',
+    'Purchase Return',
+    'Dispatch To Process'
+  ];
   amountColumns = [
     'Opening Stock',
     'Purchase',
@@ -155,7 +164,15 @@ export class StockRegisterComponent implements OnInit {
       .subscribe(
         (data: any[]) => {
           this.dataSource.data = data;
-
+          this.columnTotals = {};
+          this.summaryColumns.forEach(col => {
+            const total = data.reduce((sum, row) => {
+              const value = parseFloat(row[col] || '0');
+              return sum + value;
+            }, 0);
+            this.columnTotals[col] = total.toFixed(4); // store as string with 4 decimals
+          });
+          console.log(this.columnTotals);
           setTimeout(() => {
             this.dataSource.sort = this.sort;
           });

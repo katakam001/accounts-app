@@ -47,6 +47,12 @@
           <span>User List</span>
         </div>
       </a>
+      <a mat-list-item routerLink="/copyJob-list" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">content_copy</mat-icon>
+          <span>Copy Job List</span>
+        </div>
+      </a>
     </mat-nav-list>
     <mat-nav-list
       *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER') && storageService.isUserProfileCompleted()">
@@ -203,6 +209,30 @@
     <mat-nav-list
       *ngIf="storageService.getUser().roles && storageService.getUser().roles.includes('ROLE_USER')  && storageService.isUserProfileCompleted()">
       <h3 class="section-heading">Reports</h3>
+      <a mat-list-item routerLink="/tradingAccount" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">account_balance_wallet</mat-icon>
+          <span>Trading Account</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/profitAndLoss" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">show_chart</mat-icon>
+          <span>Profit And Loss</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/tradingAccProfitAndLoss" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">stacked_line_chart</mat-icon>
+          <span>Trading + P&L Report</span>
+        </div>
+      </a>
+      <a mat-list-item routerLink="/balanceSheet" routerLinkActive="active">
+        <div class="nav-item" style="display: flex; align-items: center;">
+          <mat-icon style="margin-right: 8px;">account_balance</mat-icon>
+          <span>Balance Sheet</span>
+        </div>
+      </a>
       <a mat-list-item routerLink="/trailBalance" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">
           <mat-icon style="margin-right: 8px;">balance</mat-icon>
@@ -215,10 +245,10 @@
           <span>Stock Register</span>
         </div>
       </a>
-      <a mat-list-item routerLink="/closingStock" routerLinkActive="active">
+      <a mat-list-item routerLink="/stockValuation" routerLinkActive="active">
         <div class="nav-item" style="display: flex; align-items: center;">
           <mat-icon style="margin-right: 8px;">assignment</mat-icon>
-          <span>Closing Stock</span>
+          <span>Stock Valuation</span>
         </div>
       </a>
       <a mat-list-item routerLink="/yieldStatement" routerLinkActive="active">

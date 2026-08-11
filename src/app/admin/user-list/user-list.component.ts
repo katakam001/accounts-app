@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { Router } from '@angular/router';
@@ -25,7 +25,7 @@ import { MatInputModule } from '@angular/material/input';
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.css']
 })
-export class UserListComponent implements OnInit {
+export class UserListComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['username', 'email', 'role', 'actions'];
   dataSource = new MatTableDataSource<any>();
   adminId: number;
@@ -46,7 +46,6 @@ export class UserListComponent implements OnInit {
 
     this.adminService.getUsersForAdmin().subscribe(users => {
       this.dataSource.data = users;
-      this.dataSource.sort = this.sort;
 
       // ✅ Custom filter across multiple fields
       this.dataSource.filterPredicate = (data, filter) => {
@@ -56,6 +55,16 @@ export class UserListComponent implements OnInit {
           data.email?.toLowerCase().includes(normalized)
         );
       };
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.dataSource.sort = this.sort;
+
+    setTimeout(() => {
+      this.sort.active = 'username';
+      this.sort.direction = 'asc';
+      this.sort.sortChange.emit({ active: 'username', direction: 'asc' });
     });
   }
 

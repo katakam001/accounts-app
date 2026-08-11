@@ -1,0 +1,231 @@
+.profit-loss-container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filter-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.custom-date-picker {
+  margin-right: 20px;
+  background-color: #f0f4f8;
+  border-radius: 5px;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-flex {
+  background-color: #ffffff;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-underline {
+  background-color: #009879;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-label {
+  color: #009879;
+}
+
+.generate-report-button {
+  background-color: #28a745;
+  color: white;
+  height: 56px;/* Match mat-form-field */
+  padding: 0 20px;/* Only horizontal padding */
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.generate-report-button:hover {
+  background-color: #28a745;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+}
+
+.generate-report-button:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: scale(0.98);
+}
+
+.pdf-button {
+  background-color: #dc3545;
+  color: white;
+  height: 56px;/* Match mat-form-field */
+  padding: 0 20px;/* Only horizontal padding */
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.pdf-button mat-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.pdf-button:hover {
+  background-color: #c82333;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+}
+
+.pdf-button:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: scale(0.98);
+}
+
+.back-button {
+  background-color: #ffc107;
+  color: white;
+  height: 56px;/* Match mat-form-field */
+  padding: 0 20px;/* Only horizontal padding */
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #ffc107;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+}
+
+.back-button:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: scale(0.98);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 25px 0;
+  font-size: 0.9em;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 12px 15px;
+}
+
+th {
+  background-color: #009879;
+  color: #ffffff;
+  text-align: left;
+}
+
+tbody tr {
+  border-bottom: 1px solid #dddddd;
+}
+
+tbody tr:nth-of-type(even) {
+  background-color: #f3f3f3;
+}
+
+tbody tr:last-of-type {
+  border-bottom: 2px solid #009879;
+}
+
+tbody tr.active-row {
+  font-weight: bold;
+  color: #009879;
+}
+
+.financial-year-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #f0f4f8;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+}
+
+.financial-year-text {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.report-title {
+  font-size: 2.5em; /* Larger font size */
+  font-weight: bold; /* Bold text */
+  color: #009879; /* Eye-catching color */
+  text-align: center; /* Center alignment */
+  margin-bottom: 20px; /* Space below the title */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.right-align {
+  text-align: right;
+}
+
+.totals-row {
+  background-color: #f5f5f5; /* subtle grey background */
+  font-weight: bold;
+  border-top: 2px solid #ccc;
+}
+
+.totals-row td {
+  padding: 8px;
+  text-align: right;
+  color: #333;
+}
+
+.difference-container {
+  margin-top: 12px;
+  text-align: right;
+  padding-right: 16px;
+  font-weight: bold;
+}
+
+.difference-debit {
+  color: red;
+}
+
+.difference-credit {
+  color: green;
+}
+
+.difference-neutral {
+  color: black;
+}
+
+
+.styled-table tfoot tr {
+  background-color: #009879; /* Match header color */
+  color: white;
+}
+
+.styled-table tfoot td {
+  padding: 8px;
+  border-top: 2px solid #ccc;
+}
+
+.styled-table tbody tr:hover {
+  background-color: #f1f1f1;
+  cursor: pointer;
+}
+
+.spacer {
+  flex-grow: 1; /* Push buttons to the far right */
+}

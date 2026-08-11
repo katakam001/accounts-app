@@ -15,6 +15,7 @@ import { SupplierFilterPipe } from '../../pipe/supplier-filter.pipe';
 import { notZeroValidator } from '../..//validators';
 import { exclusiveCashAmountValidator } from '../../validators';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import moment from 'moment';
 
 @Component({
   selector: 'app-edit-cash-book-dialog',
@@ -76,7 +77,7 @@ export class EditCashBookDialogComponent implements OnInit {
     this.cashBookForm.patchValue({
       id: entry.id,
       unique_entry_id: entry.unique_entry_id,
-      cash_entry_date: new Date(entry.cash_entry_date),
+      cash_entry_date: moment(entry.cash_entry_date),
       account_id: entry.account_id,
       group_id: entry.group_id,
       account_name: entry.account_name,
@@ -104,10 +105,13 @@ export class EditCashBookDialogComponent implements OnInit {
       return false;
     }
 
-    const [startYear, endYear] = this.data.financialYear.split('-').map(Number);
-    const startDate = new Date(startYear, 3, 1); // April 1st of start year
-    const endDate = new Date(endYear, 2, 31); // March 31st of end year
-    return date >= startDate && date <= endDate;
+      const [startYear, endYear] = this.data.financialYear.split('-').map(Number);
+      const startDate = moment(`${startYear}-04-01`).startOf('day');   // April 1st
+      const endDate = moment(`${endYear}-03-31`).endOf('day');         // March 31st
+  
+      const selectedDate = moment.isMoment(date) ? date : moment(date);
+  
+      return selectedDate.isBetween(startDate, endDate, undefined, '[]'); // inclusive
   };
 
   fetchAccountList(): void {

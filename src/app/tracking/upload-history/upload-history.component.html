@@ -6,6 +6,26 @@
 
   <mat-card class="uploads-card">
     <mat-card-content>
+      <div class="filter-container">
+        <mat-form-field appearance="fill" class="custom-date-picker">
+          <mat-label>From Date</mat-label>
+          <input matInput [matDatepicker]="fromDatePicker" [formControl]="fromDate">
+          <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #fromDatePicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="custom-date-picker">
+          <mat-label>To Date</mat-label>
+          <input matInput [matDatepicker]="toDatePicker" [formControl]="toDate">
+          <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #toDatePicker></mat-datepicker>
+        </mat-form-field>
+        <span class="spacer"></span>
+
+        <button mat-raised-button color="primary" class="generate-report-button" (click)="loadUploads()">
+          Get History
+        </button>
+      </div>
       <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
 
         <!-- File Name -->

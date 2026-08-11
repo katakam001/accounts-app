@@ -41,15 +41,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class PurchaseFieldsComponent implements OnInit {
   fields = new MatTableDataSource<any>();
   displayedColumns: string[] = ['category_name', 'field_name', 'field_type', 'field_category', 'exclude_from_total', 'account_name', 'required', 'actions'];
-  categories: string[] = [];
-  fieldTypes: string[] = [];
-  fieldCategories: string[] = ['Tax', 'Normal'];
-  selectedCategory: string = '';
-  selectedFieldType: string = '';
-  selectedFieldCategory: string = '';
-  excludeFromTotal: boolean = false;
-  mandatory: boolean = false;
-  originalData: any[] = [];
   userId: number;
   financialYear: string;
   groupMapping: any[] = []; // Add fields array
@@ -74,6 +65,11 @@ export class PurchaseFieldsComponent implements OnInit {
     this.getFinancialYear();
   }
 
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.fields.filter = filterValue.trim().toLowerCase();
+  }
+
   getFinancialYear() {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
@@ -85,17 +81,25 @@ export class PurchaseFieldsComponent implements OnInit {
 
   fetchFields(): void {
     this.fieldMappingService.getFieldMappingsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
-      this.originalData = this.updateFieldsWithAccountName(data);
-      this.fields.data = this.originalData;
+      this.fields.data = this.updateFieldsWithAccountName(data);
+      // ✅ Unified filter logic
+      this.fields.filterPredicate = (field, filter) => {
+        const normalized = filter.trim().toLowerCase();
+        return (
+          field.category_name?.toLowerCase().includes(normalized) ||
+          field.field_name?.toLowerCase().includes(normalized) ||
+          field.field_type?.toLowerCase().includes(normalized) ||
+          field.account_name?.toLowerCase().includes(normalized)
+
+        );
+      };
       this.fields.sort = this.sort; // Set the sort after fetching the data
-      this.extractFilterOptions(this.originalData);
     });
   }
   updateFieldsWithAccountName(data: any[]): any[] {
     data.forEach(field => {
       field.account_name = this.accountMap.get(field.account_id) || '';
     });
-    console.log(data);
     return data;
   }
   fetchGroupMapping(): void {
@@ -116,46 +120,6 @@ export class PurchaseFieldsComponent implements OnInit {
     });
   }
 
-  extractFilterOptions(data: any[]): void {
-    this.categories = [...new Set(data.map(field => field.category_name))];
-    this.fieldTypes = [...new Set(data.map(field => field.field_type))];
-  }
-
-  applyFilter(): void {
-    let filteredData = this.originalData;
-
-    if (this.selectedCategory) {
-      filteredData = filteredData.filter(field => field.category_name === this.selectedCategory);
-    }
-
-    if (this.selectedFieldType) {
-      filteredData = filteredData.filter(field => field.field_type === this.selectedFieldType);
-    }
-
-    if (this.selectedFieldCategory) {
-      filteredData = filteredData.filter(field => field.field_category === (this.selectedFieldCategory === 'Tax' ? 1 : 0));
-    }
-
-    if (this.excludeFromTotal) {
-      filteredData = filteredData.filter(field => field.exclude_from_total);
-    }
-
-    if (this.mandatory) {
-      filteredData = filteredData.filter(field => field.required);
-    }
-
-    this.fields.data = filteredData;
-  }
-
-  resetFilters(): void {
-    this.selectedCategory = '';
-    this.selectedFieldType = '';
-    this.selectedFieldCategory = '';
-    this.excludeFromTotal = false;
-    this.mandatory = false;
-    this.fields.data = this.originalData;
-  }
-
   openAddFieldDialog(): void {
     const dialogRef = this.dialog.open(AddEditFieldMappingDialogComponent, {
       width: '400px',
@@ -171,10 +135,12 @@ export class PurchaseFieldsComponent implements OnInit {
   addFieldMapping(result: any) {
     this.fieldMappingService.addFieldMapping(result).subscribe({
       next: (response) => {
+
         // Add the new field to the original data
         response.account_name = this.accountMap.get(response.account_id) || '';
-        this.originalData = [...this.originalData, response];
-        this.applyFilter(); // Reapply filters to update the displayed data
+        const newData = [...this.fields.data, response];
+        this.fields.data = newData; // Update the data source
+
         this.snackBar.open(`Category "${response.category_name}" to Field Mapping "${response.field_name}" relation addition is successfully.`, 'Close', { duration: 3000 });
       },
       error: (error) => {
@@ -199,12 +165,15 @@ export class PurchaseFieldsComponent implements OnInit {
   updateFieldMapping(result: any) {
     this.fieldMappingService.updateFieldMapping(result.id, result).subscribe({
       next: (response) => {
-        console.log(this.originalData);
         response.account_name = this.accountMap.get(response.account_id) || '';
-        // Update the existing field in the original data
-        this.originalData = this.originalData.map(f => f.id === response.id ? response : f);
-        console.log(this.originalData);
-        this.applyFilter(); // Reapply filters to update the displayed data
+        const index = this.fields.data.findIndex(f => f.id === response.id);
+        console.log(response);
+        if (index !== -1) {
+          // Create a *new* array with the updated field
+          const newData = [...this.fields.data]; // Copy existing data
+          newData[index] = response; // Update the copied array
+          this.fields.data = newData; // Assign the new array
+        }
         this.snackBar.open(`Category "${response.category_name}" to Field Mapping "${response.field_name}" relation updation is successfully.`, 'Close', { duration: 3000 });
       },
       error: (error) => {
@@ -218,8 +187,7 @@ export class PurchaseFieldsComponent implements OnInit {
     this.fieldMappingService.deleteFieldMapping(fieldId).subscribe({
       next: () => {
         // Remove the field from the original data
-        this.originalData = this.originalData.filter(f => f.id !== fieldId);
-        this.applyFilter(); // Reapply filters to update the displayed data
+        this.fields.data = this.fields.data.filter(f => f.id !== fieldId);
         this.snackBar.open(`Category "${category_name}" to Field Mapping "${field_name}" relation deletion is successfully.`, 'Close', { duration: 3000 });
       },
       error: (error) => {

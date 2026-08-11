@@ -1,6 +1,6 @@
 <div class="closing-stock-container">
     <mat-toolbar color="primary" class="toolbar">
-        <span class="title">Closing Stock Valuation</span>
+        <span class="title">Stock Valuation</span>
         <mat-form-field appearance="outline" class="date-field">
             <mat-label>From Date</mat-label>
             <input matInput [matDatepicker]="fromPicker" [formControl]="fromDate" [matDatepickerFilter]="dateFilter">
@@ -32,9 +32,17 @@
                     <td mat-cell *matCellDef="let stock"> {{ stock.item_name }} </td>
                 </ng-container>
 
-                <ng-container matColumnDef="value">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Value</th>
-                    <td mat-cell *matCellDef="let stock"> {{ stock.value | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                <ng-container matColumnDef="opening_stock_valuation">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Opening Stock</th>
+                    <td mat-cell *matCellDef="let stock"> {{ stock.opening_stock_valuation |
+                        currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="closing_stock_valuation">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Closing Stock</th>
+                    <td mat-cell *matCellDef="let stock"> {{ stock.closing_stock_valuation |
+                        currency:'INR':'symbol':'1.2-2':'en-IN' }}
                     </td>
                 </ng-container>
 

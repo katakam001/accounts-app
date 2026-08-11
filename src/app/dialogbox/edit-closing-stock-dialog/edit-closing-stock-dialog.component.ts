@@ -29,13 +29,15 @@ export class EditClosingStockDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.stockForm = this.fb.group({
-      value: [0, [Validators.required, Validators.min(0)]]
+      opening_stock_valuation: [0, [Validators.required, Validators.min(0)]],
+      closing_stock_valuation: [0, [Validators.required, Validators.min(0)]]
     });
   }
 
   ngOnInit(): void {
     if (this.data.stock) {
-      this.stockForm.patchValue({ value: this.data.stock.value });
+      this.stockForm.patchValue({ opening_stock_valuation: this.data.stock.opening_stock_valuation });
+      this.stockForm.patchValue({ closing_stock_valuation: this.data.stock.closing_stock_valuation });
     }
   }
 
@@ -43,7 +45,8 @@ export class EditClosingStockDialogComponent implements OnInit {
     if (this.stockForm.valid) {
       const updatedStock = {
         id: this.data.stock.id,
-        value: this.stockForm.value.value,
+        opening_stock_valuation: this.stockForm.value.opening_stock_valuation,
+        closing_stock_valuation: this.stockForm.value.closing_stock_valuation,
         is_manual: true
       };
       this.dialogRef.close(updatedStock);

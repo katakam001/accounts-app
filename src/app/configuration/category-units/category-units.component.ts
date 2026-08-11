@@ -12,22 +12,19 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-category-units',
   standalone: true,
-  imports: [MatTableModule, MatToolbarModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule, MatSortModule],
+  imports: [MatTableModule, MatToolbarModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule, MatSortModule,FormsModule,MatInputModule],
   templateUrl: './category-units.component.html',
   styleUrls: ['./category-units.component.css']
 })
 export class CategoryUnitsComponent implements OnInit, AfterViewInit {
   categoryUnits = new MatTableDataSource<any>();
-  originalData: any[] = [];
   displayedColumns: string[] = ['category_name', 'unit_name', 'actions'];
-  categories: string[] = [];
-  units: string[] = [];
-  selectedCategory: string = '';
-  selectedUnit: string = '';
   userId: number;
   financialYear: string;
 
@@ -45,6 +42,11 @@ export class CategoryUnitsComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.userId = this.storageService.getUser().id;
     this.getFinancialYear();
+  }
+
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.categoryUnits.filter = filterValue.trim().toLowerCase();
   }
 
   ngAfterViewInit() {
@@ -65,36 +67,18 @@ export class CategoryUnitsComponent implements OnInit, AfterViewInit {
 
   fetchCategoryUnits(): void {
     this.categoryUnitService.getCategoryUnitsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
-      this.originalData = data;
       this.categoryUnits.data = data;
-      this.extractFilterOptions(data);
+      // ✅ Unified filter logic
+      this.categoryUnits.filterPredicate = (categoryUnit, filter) => {
+        const normalized = filter.trim().toLowerCase();
+        return (
+          categoryUnit.category_name?.toLowerCase().includes(normalized) ||
+          categoryUnit.unit_name?.toLowerCase().includes(normalized)
+        );
+      };
     });
   }
 
-  extractFilterOptions(data: any[]): void {
-    this.categories = [...new Set(data.map(unit => unit.category_name))];
-    this.units = [...new Set(data.map(unit => unit.unit_name))];
-  }
-
-  applyFilter(): void {
-    let filteredData = this.originalData;
-
-    if (this.selectedCategory) {
-      filteredData = filteredData.filter(unit => unit.category_name === this.selectedCategory);
-    }
-
-    if (this.selectedUnit) {
-      filteredData = filteredData.filter(unit => unit.unit_name === this.selectedUnit);
-    }
-
-    this.categoryUnits.data = filteredData;
-  }
-
-  resetFilters(): void {
-    this.selectedCategory = '';
-    this.selectedUnit = '';
-    this.categoryUnits.data = this.originalData;
-  }
 
   openAddCategoryUnitDialog(): void {
     const dialogRef = this.dialog.open(AddEditCategoryUnitDialogComponent, {

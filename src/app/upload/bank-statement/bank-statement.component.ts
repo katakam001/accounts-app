@@ -59,6 +59,7 @@ export class BankStatementComponent {
     'INDIAN OVERSEAS BANK',
     'KARUR VYSYA BANK',
     'SBI',
+    'TAMILNAD MERCANTILE BANK LTD',
     'UNION BANK OF INDIA'
   ];
   creditCards: string[] = ['Credit Card X', 'Credit Card Y', 'Credit Card Z'];

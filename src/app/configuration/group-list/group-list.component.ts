@@ -14,6 +14,8 @@ import { MatSort, MatSortModule, SortDirection } from '@angular/material/sort'; 
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { FormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-group-list',
@@ -25,7 +27,9 @@ import { MatButtonModule } from '@angular/material/button';
     CommonModule,
     MatSortModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    FormsModule,
+    MatInputModule
   ],
   templateUrl: './group-list.component.html',
   styleUrls: ['./group-list.component.css']
@@ -51,11 +55,13 @@ export class GroupListComponent implements OnInit, AfterViewInit {
     this.getFinancialYear();
   }
 
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.groups.filter = filterValue.trim().toLowerCase();
+  }
+
   ngAfterViewInit() {
-    // Assign the MatSort instance to the MatTableDataSource
     this.groups.sort = this.sort;
-    // You might also want to trigger an initial sort if desired
-    // this.groups.sort.sort({ id: 'name', start: 'asc', disableClear: false });
   }
 
   getFinancialYear() {
@@ -69,6 +75,14 @@ export class GroupListComponent implements OnInit, AfterViewInit {
   fetchGroups(userId: number, financialYear: string): void {
     this.groupService.getGroupsByUserIdAndFinancialYear(userId, financialYear).subscribe((data: Group[]) => {
       this.groups.data = data;
+
+      // ✅ Unified filter logic
+      this.groups.filterPredicate = (group, filter) => {
+        const normalized = filter.trim().toLowerCase();
+        return (
+          group.name?.toLowerCase().includes(normalized)
+        );
+      };
     });
   }
 
