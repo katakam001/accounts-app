@@ -1,0 +1,81 @@
+<div class="balance-sheet-container">
+    <h2 class="report-title">Balance Sheet Report</h2>
+
+    <div class="filter-container">
+        <mat-form-field appearance="fill" class="custom-date-picker">
+            <mat-label>From Date</mat-label>
+            <input matInput [matDatepicker]="fromDatePicker" [matDatepickerFilter]="dateFilter"
+                [formControl]="fromDate">
+            <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #fromDatePicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="custom-date-picker">
+            <mat-label>To Date</mat-label>
+            <input matInput [matDatepicker]="toDatePicker" [matDatepickerFilter]="dateFilter" [formControl]="toDate">
+            <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #toDatePicker></mat-datepicker>
+        </mat-form-field>
+
+        <span class="spacer"></span>
+
+        <button mat-raised-button color="primary" class="generate-report-button" (click)="loadReport()">
+            Generate Report
+        </button>
+
+        <button mat-stroked-button class="pdf-button" (click)="exportToPDF()">
+            <mat-icon>picture_as_pdf</mat-icon> PDF
+        </button>
+
+        <button mat-raised-button class="back-button" *ngIf="isGroupDrilldownActive" (click)="handleBackToMainReport()">
+            ← Back to Balance Sheet
+        </button>
+    </div>
+
+    <div class="report-section balance-sheet-horizontal" *ngIf="leftGroups.length || rightGroups.length">
+        <table class="report-table">
+            <thead>
+                <tr class="header-row">
+                    <th class="side-label">Liabilities</th>
+                    <th></th>
+                    <th>Amount</th>
+                    <th class="side-label">Assets</th>
+                    <th></th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let _ of maxLengthArray; let idx = index">
+                    <td [ngClass]="getGroupClass(leftGroups[idx])">
+                        {{ leftGroups[idx]?.label || '' }}
+                    </td>
+                    <td class="amount">
+                        {{ leftGroups[idx]?.innerAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                    </td>
+                    <td class="amount">
+                        {{ leftGroups[idx]?.outerAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                    </td>
+
+                    <td [ngClass]="getGroupClass(rightGroups[idx])">
+                        {{ rightGroups[idx]?.label || '' }}
+                    </td>
+                    <td class="amount">
+                        {{ rightGroups[idx]?.innerAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                    </td>
+                    <td class="amount">
+                        {{ rightGroups[idx]?.outerAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                    </td>
+                </tr>
+
+                <tr class="totals-row">
+                    <td></td>
+                    <td></td>
+                    <td>{{ leftTotal | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+                    <td></td>
+                    <td></td>
+                    <td>{{ rightTotal | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

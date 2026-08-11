@@ -1,0 +1,53 @@
+.job-container {
+  display: flex;
+  flex-direction: column;
+  margin: 20px;
+}
+
+.job-card {
+  margin-top: 20px;
+  padding: 16px;
+}
+
+.spacer {
+  flex: 1 1 auto; /* pushes the Create Job button to the right */
+}
+
+.add-job-button {
+  background-color: #1976d2; /* Material blue */
+  color: #fff;
+  font-weight: bold;
+  border-radius: 6px;
+  padding: 6px 12px;
+  transition: background-color 0.3s ease;
+}
+
+.add-job-button:hover {
+  background-color: #1565c0;
+}
+
+.retry-button {
+  color: #f57c00; /* orange accent for retry */
+}
+
+.run-ledger-button {
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px; /* spacing between icon and text */
+}
+
+.run-ledger-button:hover {
+  background-color: #388e3c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}

@@ -1,0 +1,11 @@
+<div class="trading-account">
+    <app-report-section [title]="''" [groups]="debitGroups" [showHeader]="true" [showTotals]="true"
+        [showSummary]="isGrossProfit()" [summaryLabel]="getSummaryLabel()" [summaryValue]="getSummaryValue()"
+        [totalQuantity]="debitTotalQuantity" [totalAmount]="debitTotalAmount"
+        [maxRowCount]="getMaxRowCount()"></app-report-section>
+
+    <app-report-section [title]="''" [groups]="creditGroups" [showHeader]="true" [showTotals]="true"
+        [showSummary]="isGrossLoss()" [summaryLabel]="getSummaryLabel()" [summaryValue]="getSummaryValue()"
+        [totalQuantity]="creditTotalQuantity" [totalAmount]="creditTotalAmount"
+        [maxRowCount]="getMaxRowCount()"></app-report-section>
+</div>

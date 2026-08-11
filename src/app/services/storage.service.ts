@@ -9,14 +9,20 @@ import { CategoryUnitService } from './category-unit.service';
 import { BrokerService } from './broker.service';
 import { AreaService } from './area.service';
 import { FinancialYearService } from './financial-year.service';
+import { ConversionService } from './conversion.service';
+import { GroupMappingService } from './group-mapping.service';
+import { ItemsService } from './items.service';
+import { OpeningStockService } from './opening-stock.service';
+import { YieldService } from './yield.service';
 
 const USER_KEY = 'auth-user';
 const ADMIN_KEY = 'admin-user';
+const IMPERSONATION_KEY = 'is-impersonating';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class StorageService {
+  private cacheServices: any[] = [];
+
   constructor(
     private accountService: AccountService,
     private unitService: UnitService,
@@ -27,69 +33,103 @@ export class StorageService {
     private categoryUnitService: CategoryUnitService,
     private brokerService: BrokerService,
     private areaService: AreaService,
+    private itemsService: ItemsService,
+    private yieldService: YieldService,
+    private conversionService: ConversionService,
+    private groupMappingService: GroupMappingService,
+    private openingStockService: OpeningStockService,
     private financialYearService: FinancialYearService
-  ) {}
+  ) {
+    this.cacheServices = [
+      this.accountService, this.unitService, this.groupService,
+      this.categoryService, this.fieldService, this.fieldMappingService,
+      this.categoryUnitService, this.brokerService, this.areaService,
+      this.itemsService, this.yieldService, this.conversionService,
+      this.groupMappingService, this.openingStockService
+    ];
+  }
+
+  private setItem(key: string, value: any): void {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    }
+  }
+
+  private getItem<T>(key: string): T | null {
+    if (typeof window !== 'undefined') {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : null;
+    }
+    return null;
+  }
+
+  private removeItem(key: string): void {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(key);
+    }
+  }
+
+  private clearAllCaches(): void {
+    this.cacheServices.forEach(service => service.clearCache?.());
+    this.financialYearService.clearFinancialYear();
+  }
 
   clean(): void {
     if (typeof window !== 'undefined') {
       window.localStorage.clear();
-      this.accountService.clearCache();
-      this.unitService.clearCache();
-      this.groupService.clearCache();
-      this.categoryService.clearCache();
-      this.fieldService.clearCache();
-      this.fieldMappingService.clearCache();
-      this.categoryUnitService.clearCache();
-      this.brokerService.clearCache();
-      this.areaService.clearCache();
-      this.financialYearService.clearFinancialYear();
+      this.clearAllCaches();
     }
   }
 
-  public saveUser(user: any): void {
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(USER_KEY);
-      window.localStorage.setItem(USER_KEY, JSON.stringify(user));
-    }
+  saveUser(user: any): void {
+    this.removeItem(USER_KEY);
+    this.setItem(USER_KEY, user);
   }
 
-  public getUser(): any {
-    if (typeof window !== 'undefined') {
-      const user = window.localStorage.getItem(USER_KEY);
-      if (user) {
-        return JSON.parse(user);
-      }
-    }
-    return null;
+  getUser(): any {
+    return this.getItem(USER_KEY);
   }
 
-  public saveAdminDetails(admin: any): void {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(ADMIN_KEY, JSON.stringify(admin));
-    }
+  saveAdminDetails(admin: any): void {
+    this.setItem(ADMIN_KEY, admin);
   }
 
-  public getAdminDetails(): any {
-    if (typeof window !== 'undefined') {
-      const admin = window.localStorage.getItem(ADMIN_KEY);
-      if (admin) {
-        return JSON.parse(admin);
-      }
-    }
-    return null;
+  getAdminDetails(): any {
+    return this.getItem(ADMIN_KEY);
   }
 
-  public clearAdminDetails(): void {
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(ADMIN_KEY);
-    }
+  clearAdminDetails(): void {
+    this.removeItem(ADMIN_KEY);
   }
 
-  public isLoggedIn(): boolean {
-    if (typeof window !== 'undefined') {
-      const user = window.localStorage.getItem(USER_KEY);
-      return !!user;
-    }
-    return false;
+  setImpersonationState(state: boolean): void {
+    this.setItem(IMPERSONATION_KEY, state);
+  }
+
+  isImpersonating(): boolean {
+    return this.getItem<boolean>(IMPERSONATION_KEY) === true;
+  }
+
+  clearImpersonationState(): void {
+    this.removeItem(IMPERSONATION_KEY);
+    this.clearAllCaches();
+  }
+
+  isLoggedIn(): boolean {
+    return !!this.getItem(USER_KEY);
+  }
+
+  isAdminLoggedIn(): boolean {
+    return !!this.getItem(ADMIN_KEY);
+  }
+
+  isUserProfileCompleted(): boolean {
+    const user = this.getUser();
+    return user?.profile_completed === true;
+  }
+
+  isAdminProfileCompleted(): boolean {
+    const admin = this.getAdminDetails();
+    return admin?.profile_completed === true;
   }
 }

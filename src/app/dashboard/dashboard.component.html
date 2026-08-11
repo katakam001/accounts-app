@@ -1,8 +1,20 @@
-<!-- app.component.html -->
+<!-- Back to Admin Button (only if impersonated) -->
+<div *ngIf="isImpersonated" class="back-to-admin-container">
+  <button mat-raised-button class="back-to-admin-button" (click)="backToAdmin()">
+    <mat-icon>arrow_back</mat-icon>
+    Back to Admin
+  </button>
+</div>
+
+<!-- Set Financial Year -->
 <button mat-button class="set-financial-year-button" (click)="openFinancialYearDialog()">Set Financial Year</button>
+
+<!-- Financial Year Display -->
 <div *ngIf="financialYear" class="financial-year-container">
   <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
 </div>
+
+<!-- Dashboard Chart -->
 <div class="dashboard-container">
   <div class="dashboard-section">
     <h3>Entry Type Summary</h3>

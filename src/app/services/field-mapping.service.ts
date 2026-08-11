@@ -17,7 +17,7 @@ export class FieldMappingService {
   private apiUrl = `${this.baseUrl}/api/fieldsMapping`; // Append the path to the base URL
   private cacheTTL = environment.cacheTTL; // 1 day in milliseconds
   private cacheCapacity = environment.fieldMappingCacheCapacity; // Number of records to keep in memory
-  constructor(private http: HttpClient, private dbService: NgxIndexedDBService) {}
+  constructor(private http: HttpClient, private dbService: NgxIndexedDBService) { }
 
   getFieldMappingsByUserIdAndFinancialYear(userId: number, financialYear: string): Observable<any[]> {
     const currentTime = Date.now();
@@ -26,25 +26,25 @@ export class FieldMappingService {
     // Retrieve cached field mappings from localStorage
     let cachedFieldMappings = this.getCachedFieldMappings();
 
-      return this.dbService.getAll('fieldMappings').pipe(
-        map((dbFieldMappings: unknown[]) => {
-          let fieldMappings = dbFieldMappings as any[];
-          // Combine the cached field mappings with the remaining field mappings from IndexedDB
-          const combinedFieldMappings = [...cachedFieldMappings, ...fieldMappings];
-          return combinedFieldMappings;
-        }),
-        switchMap((combinedFieldMappings: any[]) => {
-          const totalFieldMappingsCount = this.getTotalFieldMappingsCount();
-          if (combinedFieldMappings.length < totalFieldMappingsCount || totalFieldMappingsCount == 0) {
-            return this.fetchFieldMappingsFromServer(userId, financialYear, combinedFieldMappings);
-          }
-          return of(combinedFieldMappings);
-        }),
-        catchError((error: any) => {
-          console.error('Error fetching field mappings from DB:', error);
-          return this.fetchFieldMappingsFromServer(userId, financialYear, cachedFieldMappings);
-        })
-      );
+    return this.dbService.getAll('fieldMappings').pipe(
+      map((dbFieldMappings: unknown[]) => {
+        let fieldMappings = dbFieldMappings as any[];
+        // Combine the cached field mappings with the remaining field mappings from IndexedDB
+        const combinedFieldMappings = [...cachedFieldMappings, ...fieldMappings];
+        return combinedFieldMappings;
+      }),
+      switchMap((combinedFieldMappings: any[]) => {
+        const totalFieldMappingsCount = this.getTotalFieldMappingsCount();
+        if (combinedFieldMappings.length < totalFieldMappingsCount || totalFieldMappingsCount == 0) {
+          return this.fetchFieldMappingsFromServer(userId, financialYear, combinedFieldMappings);
+        }
+        return of(combinedFieldMappings);
+      }),
+      catchError((error: any) => {
+        console.error('Error fetching field mappings from DB:', error);
+        return this.fetchFieldMappingsFromServer(userId, financialYear, cachedFieldMappings);
+      })
+    );
   }
 
   getFieldMappingsByCategory(userId: number, financialYear: string, categoryId: number): Observable<any[]> {
@@ -55,28 +55,28 @@ export class FieldMappingService {
     let cachedFieldMappings = this.getCachedFieldMappings().filter(fm => fm.category_id === categoryId);
     console.log(cachedFieldMappings);
 
-      return this.dbService.getAllByIndex('fieldMappings', 'category_id', IDBKeyRange.only(categoryId)).pipe(
-        map((dbFieldMappings: unknown[]) => {
-          console.log('FieldMappings from DB:', dbFieldMappings); // Debug log
-          let fieldMappings = dbFieldMappings as any[];
-          // Combine the cached field mappings with the remaining field mappings from IndexedDB
-          const combinedFieldMappings = [...cachedFieldMappings, ...fieldMappings];
-          console.log('Combined FieldMappings:', combinedFieldMappings); // Debug log
-          return combinedFieldMappings;
-        }),
-        switchMap((combinedFieldMappings: any[]) => {
-          console.log('Combined FieldMappings after SwitchMap:', combinedFieldMappings); // Debug log
-          const totalFieldMappingsCountForCategory = combinedFieldMappings.filter(fm => fm.category_id === categoryId).length;
-          if (combinedFieldMappings.length < totalFieldMappingsCountForCategory || totalFieldMappingsCountForCategory == 0) {
-            return this.fetchFieldMappingsFromServerByCategory(userId, financialYear, categoryId, combinedFieldMappings);
-          }
-          return of(combinedFieldMappings);
-        }),
-        catchError((error: any) => {
-          console.error('Error fetching field mappings from DB:', error);
-          return this.fetchFieldMappingsFromServerByCategory(userId, financialYear, categoryId, cachedFieldMappings);
-        })
-      );
+    return this.dbService.getAllByIndex('fieldMappings', 'category_id', IDBKeyRange.only(categoryId)).pipe(
+      map((dbFieldMappings: unknown[]) => {
+        console.log('FieldMappings from DB:', dbFieldMappings); // Debug log
+        let fieldMappings = dbFieldMappings as any[];
+        // Combine the cached field mappings with the remaining field mappings from IndexedDB
+        const combinedFieldMappings = [...cachedFieldMappings, ...fieldMappings];
+        console.log('Combined FieldMappings:', combinedFieldMappings); // Debug log
+        return combinedFieldMappings;
+      }),
+      switchMap((combinedFieldMappings: any[]) => {
+        console.log('Combined FieldMappings after SwitchMap:', combinedFieldMappings); // Debug log
+        const totalFieldMappingsCountForCategory = combinedFieldMappings.filter(fm => fm.category_id === categoryId).length;
+        if (combinedFieldMappings.length < totalFieldMappingsCountForCategory || totalFieldMappingsCountForCategory == 0) {
+          return this.fetchFieldMappingsFromServerByCategory(userId, financialYear, categoryId, combinedFieldMappings);
+        }
+        return of(combinedFieldMappings);
+      }),
+      catchError((error: any) => {
+        console.error('Error fetching field mappings from DB:', error);
+        return this.fetchFieldMappingsFromServerByCategory(userId, financialYear, categoryId, cachedFieldMappings);
+      })
+    );
   }
 
   private fetchFieldMappingsFromServer(userId: number, financialYear: string, cachedFieldMappings: any[]): Observable<any[]> {
@@ -196,17 +196,17 @@ export class FieldMappingService {
       tap((newFieldMapping: any) => {
         const cachedFieldMappings = this.getCachedFieldMappings();
         let lastFieldMapping: any | undefined = undefined;
-  
+
         // Check if the cache exceeds the capacity
         if (cachedFieldMappings.length + 1 > this.cacheCapacity) {
           lastFieldMapping = cachedFieldMappings.pop(); // Remove the last field mapping
         }
         const updatedFieldMappings = [...cachedFieldMappings, newFieldMapping];
         this.setCachedFieldMappings(updatedFieldMappings);
-  
+
         // Increment totalFieldMappingsCount by 1
         this.setTotalFieldMappingsCount(this.getTotalFieldMappingsCount() + 1);
-  
+
         if (lastFieldMapping) {
           this.dbService.getByKey('fieldMappings', lastFieldMapping.id).subscribe(existingFieldMapping => {
             if (existingFieldMapping) {
@@ -223,9 +223,17 @@ export class FieldMappingService {
           });
         }
       }),
-      catchError(this.handleError<any>('addFieldMapping'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already mapped')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to add field Mapping. Please try again later.'));
+        }
+      })
     );
-  }  
+  }
 
   deleteFieldMapping(fieldMappingId: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${fieldMappingId}`, { observe: 'response' }).pipe(
@@ -253,7 +261,7 @@ export class FieldMappingService {
         }
       })
     );
-  }  
+  }
 
   updateFieldMapping(fieldMappingId: number, fieldMapping: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/${fieldMappingId}`, fieldMapping).pipe(
@@ -270,9 +278,17 @@ export class FieldMappingService {
           });
         }
       }),
-      catchError(this.handleError<any>('updateFieldMapping'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already mapped')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to add field Mapping. Please try again later.'));
+        }
+      })
     );
-  }  
+  }
 
   switchUserAndFinancialYear(userId: number, financialYear: string): Observable<any> {
     this.clearCache();

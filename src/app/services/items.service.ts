@@ -49,7 +49,15 @@ export class ItemsService {
         this.items = [...this.items, newItem];
         this.saveToLocalStorage();
       }),
-      catchError(this.handleError<Item>('addItem'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already exists')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to add item. Please try again later.'));
+        }
+      })
     );
   }
 
@@ -62,8 +70,16 @@ export class ItemsService {
           this.saveToLocalStorage();
         }
       }),
-      catchError(this.handleError<Item>('editItem'))
-    );
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already exists')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to update item. Please try again later.'));
+        }
+      })
+        );
   }
 
   deleteItem(id: number): Observable<any> {
@@ -91,7 +107,7 @@ export class ItemsService {
             return throwError(() => new Error(error.error.detail)); // Re-throw error if needed
         } else {
           // Handle other errors
-          return throwError(() => new Error('Failed to delete group. Please try again later.'));
+          return throwError(() => new Error('Failed to delete item. Please try again later.'));
         }
       }));
   }

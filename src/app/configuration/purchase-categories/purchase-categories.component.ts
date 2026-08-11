@@ -11,11 +11,13 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { StorageService } from '../../services/storage.service';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { FormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-purchase-categories',
   standalone: true,
-  imports: [MatTableModule, MatToolbarModule, MatCardModule, MatIconModule, CommonModule, MatSortModule],
+  imports: [MatTableModule, MatToolbarModule, MatCardModule, MatIconModule, CommonModule, MatSortModule, FormsModule, MatInputModule],
   templateUrl: './purchase-categories.component.html',
   styleUrls: ['./purchase-categories.component.css']
 })
@@ -39,6 +41,11 @@ export class PurchaseCategoriesComponent implements OnInit, AfterViewInit {
     this.getFinancialYear();
   }
 
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.categories.filter = filterValue.trim().toLowerCase();
+  }
+
   ngAfterViewInit() {
     // Assign the MatSort instance to the MatTableDataSource
     this.categories.sort = this.sort;
@@ -57,6 +64,14 @@ export class PurchaseCategoriesComponent implements OnInit, AfterViewInit {
   fetchCategories(userId: number, financialYear: string): void {
     this.categoryService.getCategoriesByUserIdAndFinancialYear(userId, financialYear).subscribe((data: any[]) => {
       this.categories.data = data;
+
+      // ✅ Unified filter logic
+      this.categories.filterPredicate = (category, filter) => {
+        const normalized = filter.trim().toLowerCase();
+        return (
+          category.name?.toLowerCase().includes(normalized)
+        );
+      };
     });
   }
 
@@ -87,33 +102,12 @@ export class PurchaseCategoriesComponent implements OnInit, AfterViewInit {
   }
 
   addCategory(category: any): void {
-    this.categoryService.addCategory(category).subscribe((newCategory) => {
-      // Create a *new* array with the added category
-      const newData = [...this.categories.data, newCategory];
-      this.categories.data = newData; // Assign the new array
-      // Re-apply sort after data changes
-      if (this.categories.sort) {
-        const activeSort = this.categories.sort.active || 'name'; // Default to 'name' if no active sort
-        const sortDirection: SortDirection = this.categories.sort.direction || 'asc'; // Default to 'asc'
-
-        this.categories.sort.sort({
-          id: activeSort,
-          start: sortDirection,
-          disableClear: false // Crucial: Add disableClear property
-        });
-      }
-      this.snackBar.open(`Category "${newCategory.name}" added successfully.`, 'Close', { duration: 3000 });
-    });
-  }
-
-  updateCategory(updatedCategory: any): void {
-    this.categoryService.updateCategory(updatedCategory.id, updatedCategory).subscribe(() => {
-      const index = this.categories.data.findIndex(category => category.id === updatedCategory.id);
-      if (index !== -1) {
-        // Create a *new* array with the updated category
-        const newData = [...this.categories.data]; // Copy existing data
-        newData[index] = updatedCategory; // Update the copied array
+    this.categoryService.addCategory(category).subscribe({
+      next: (newCategory) => {
+        // Create a *new* array with the added category
+        const newData = [...this.categories.data, newCategory];
         this.categories.data = newData; // Assign the new array
+        // Re-apply sort after data changes
         if (this.categories.sort) {
           const activeSort = this.categories.sort.active || 'name'; // Default to 'name' if no active sort
           const sortDirection: SortDirection = this.categories.sort.direction || 'asc'; // Default to 'asc'
@@ -124,7 +118,40 @@ export class PurchaseCategoriesComponent implements OnInit, AfterViewInit {
             disableClear: false // Crucial: Add disableClear property
           });
         }
-        this.snackBar.open(`Category "${updatedCategory.name}" updation is successfully.`, 'Close', { duration: 3000 });
+        this.snackBar.open(`Category "${newCategory.name}" added successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  updateCategory(updatedCategory: any): void {
+    this.categoryService.updateCategory(updatedCategory.id, updatedCategory).subscribe({
+      next: (response) => {
+        const index = this.categories.data.findIndex(category => category.id === response.id);
+        if (index !== -1) {
+          // Create a *new* array with the updated category
+          const newData = [...this.categories.data]; // Copy existing data
+          newData[index] = response; // Update the copied array
+          this.categories.data = newData; // Assign the new array
+          if (this.categories.sort) {
+            const activeSort = this.categories.sort.active || 'name'; // Default to 'name' if no active sort
+            const sortDirection: SortDirection = this.categories.sort.direction || 'asc'; // Default to 'asc'
+
+            this.categories.sort.sort({
+              id: activeSort,
+              start: sortDirection,
+              disableClear: false // Crucial: Add disableClear property
+            });
+          }
+          this.snackBar.open(`Category "${response.name}" updation is successfully.`, 'Close', { duration: 3000 });
+        }
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
       }
     });
   }

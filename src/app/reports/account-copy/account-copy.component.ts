@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, AfterViewInit } from '@angular/core';
-import { Subscription } from 'rxjs';
+// import { Subscription } from 'rxjs';
 import { LedgerService } from '../../services/ledger.service';
-import { WebSocketService } from '../../services/websocket.service';
+// import { WebSocketService } from '../../services/websocket.service';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
@@ -17,6 +17,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
+import { UploadService } from '../../services/upload.service';
 
 @Component({
   selector: 'app-account-copy',
@@ -27,7 +28,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 })
 export class AccountCopyComponent implements OnInit, OnDestroy {
   selectedAccountId: number;
+  selectedGroupId: number;
   financialYear: string;
+  companyName: string;
+  city: string;
   accountList: any[] = [];
   userId: number;
   entries: any[] = [];
@@ -46,13 +50,14 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
   financialYearendDate: Date;
   isTrailBalanceDrilldownActive: boolean = false;
   searchName: FormControl = new FormControl(''); // FormControl for input field
-  private subscription: Subscription = new Subscription(); // Initialize the subscription
+  // private subscription: Subscription = new Subscription(); // Initialize the subscription
   constructor(
     private ledgerService: LedgerService,
     private dbService: NgxIndexedDBService,
-    private webSocketService: WebSocketService,
+    // private webSocketService: WebSocketService,
     private accountService: AccountService,
     private storageService: StorageService,
+    private uploadService: UploadService,
     private datePipe: DatePipe,
     private route: ActivatedRoute,
     private financialYearService: FinancialYearService,
@@ -66,13 +71,15 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
     this.clearCache();
     this.getFinancialYear();
     this.userId = this.storageService.getUser().id;
+    this.companyName = this.storageService.getUser().user_details.company_name;
+    this.city = this.storageService.getUser().user_details.city;
     this.fetchAccountList();
-    this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
+    // this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe(); // Clean up the subscription
-    this.webSocketService.close();
+    // this.subscription.unsubscribe(); // Clean up the subscription
+    // this.webSocketService.close();
   }
 
   fetchAccountList(): void {
@@ -85,6 +92,7 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
       this.route.queryParams.subscribe(params => {
         if (params['accountId']) {
           this.selectedAccountId = Number(params['accountId']);
+          this.selectedGroupId = Number(params['groupId']);
           this.fromDate = new Date(params['fromDate']);
           this.toDate = new Date(params['toDate']);
           this.isTrailBalanceDrilldownActive = true;
@@ -111,10 +119,24 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
   }
 
   exportToPDF(): void {
-    this.ledgerService.exportToPDF(this.selectedAccountId, this.userId, this.financialYear).subscribe((response: Blob) => {
-      saveAs(response, `ledger_${this.userId}_${this.financialYear}.pdf`);
-    }, error => {
-      console.error('Error exporting PDF:', error);
+    const fromDateStr = this.datePipe.transform(this.fromDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format
+    const toDateStr = this.datePipe.transform(this.toDate, 'yyyy-MM-dd', 'en-IN') as string; // Transform to desired format  
+
+    this.ledgerService.exportAccountCopyToPDF(this.selectedAccountId, this.userId, this.financialYear,this.companyName, this.city, fromDateStr, toDateStr).subscribe({
+      next: data => {
+        console.log(data);
+        this.snackBar.open('Pdf generation is started please check the status in Download screen.', 'Close', {
+          duration: 3000,
+        });
+        // Step 3: Call Start Monitoring API here
+        this.uploadService.startMonitoring().subscribe(
+          () => console.log('Monitoring started successfully!'),
+          error => console.error('Error starting monitoring:', error)
+        );
+      },
+      error: err => {
+        console.error('Error impersonating user:', err);
+      }
     });
   }
 
@@ -130,7 +152,8 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
     this.router.navigate(['/trailBalance'], {
       queryParams: {
         fromDate: this.fromDate,
-        toDate: this.toDate
+        toDate: this.toDate,
+        groupId:this.selectedGroupId
       }
     });
   }
@@ -433,45 +456,45 @@ export class AccountCopyComponent implements OnInit, OnDestroy {
     const entryTypes = ['entry', 'journal', 'cash'];
 
     entryTypes.forEach(type => {
-      this.subscription.add(
-        this.webSocketService.onEvent('INSERT').subscribe(async (data: any) => {
-          const entryDate = data.entryType === 'cash' ? new Date(data.cash_date).getTime() : new Date(data.journal_date).getTime();
-          const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(), this.fromDate.getMonth(), this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
-          const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(), this.toDate.getMonth(), this.toDate.getDate())).getTime() : null; // Convert toDate to timestamp      
-          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear &&
-            (!fromDateTimestamp || entryDate >= fromDateTimestamp) && // Check if entryDate is on or after fromDate
-            (!toDateTimestamp || entryDate <= toDateTimestamp)) {
-            console.log("first");
-            await this.handleInsertEvent(data.data, type);
-          }
-        })
-      );
-      this.subscription.add(
-        this.webSocketService.onEvent('UPDATE').subscribe(async (data: any) => {
-          const entryDate = data.entryType === 'cash' ? new Date(data.cash_date).getTime() : new Date(data.journal_date).getTime();
-          const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(), this.fromDate.getMonth(), this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
-          const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(), this.toDate.getMonth(), this.toDate.getDate())).getTime() : null; // Convert toDate to timestamp      
-          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear &&
-            (!fromDateTimestamp || entryDate >= fromDateTimestamp) && // Check if entryDate is on or after fromDate
-            (!toDateTimestamp || entryDate <= toDateTimestamp)) {
-            console.log("second");
-            await this.handleUpdateEvent(data.data, type);
-          }
-        })
-      );
-      this.subscription.add(
-        this.webSocketService.onEvent('DELETE').subscribe(async (data: any) => {
-          const entryDate = data.entryType === 'cash' ? new Date(data.cash_date).getTime() : new Date(data.journal_date).getTime();
-          const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(), this.fromDate.getMonth(), this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
-          const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(), this.toDate.getMonth(), this.toDate.getDate())).getTime() : null; // Convert toDate to timestamp      
-          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear &&
-            (!fromDateTimestamp || entryDate >= fromDateTimestamp) && // Check if entryDate is on or after fromDate
-            (!toDateTimestamp || entryDate <= toDateTimestamp)) {
-            console.log("third");
-            await this.handleDeleteEvent(data.data, type);
-          }
-        })
-      );
+      // this.subscription.add(
+      //   this.webSocketService.onEvent('INSERT').subscribe(async (data: any) => {
+      //     const entryDate = data.entryType === 'cash' ? new Date(data.cash_date).getTime() : new Date(data.journal_date).getTime();
+      //     const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(), this.fromDate.getMonth(), this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
+      //     const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(), this.toDate.getMonth(), this.toDate.getDate())).getTime() : null; // Convert toDate to timestamp      
+      //     if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear &&
+      //       (!fromDateTimestamp || entryDate >= fromDateTimestamp) && // Check if entryDate is on or after fromDate
+      //       (!toDateTimestamp || entryDate <= toDateTimestamp)) {
+      //       console.log("first");
+      //       await this.handleInsertEvent(data.data, type);
+      //     }
+      //   })
+      // );
+      // this.subscription.add(
+      //   this.webSocketService.onEvent('UPDATE').subscribe(async (data: any) => {
+      //     const entryDate = data.entryType === 'cash' ? new Date(data.cash_date).getTime() : new Date(data.journal_date).getTime();
+      //     const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(), this.fromDate.getMonth(), this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
+      //     const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(), this.toDate.getMonth(), this.toDate.getDate())).getTime() : null; // Convert toDate to timestamp      
+      //     if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear &&
+      //       (!fromDateTimestamp || entryDate >= fromDateTimestamp) && // Check if entryDate is on or after fromDate
+      //       (!toDateTimestamp || entryDate <= toDateTimestamp)) {
+      //       console.log("second");
+      //       await this.handleUpdateEvent(data.data, type);
+      //     }
+      //   })
+      // );
+      // this.subscription.add(
+      //   this.webSocketService.onEvent('DELETE').subscribe(async (data: any) => {
+      //     const entryDate = data.entryType === 'cash' ? new Date(data.cash_date).getTime() : new Date(data.journal_date).getTime();
+      //     const fromDateTimestamp = this.fromDate ? new Date(Date.UTC(this.fromDate.getFullYear(), this.fromDate.getMonth(), this.fromDate.getDate())).getTime() : null; // Convert fromDate to timestamp
+      //     const toDateTimestamp = this.toDate ? new Date(Date.UTC(this.toDate.getFullYear(), this.toDate.getMonth(), this.toDate.getDate())).getTime() : null; // Convert toDate to timestamp      
+      //     if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear &&
+      //       (!fromDateTimestamp || entryDate >= fromDateTimestamp) && // Check if entryDate is on or after fromDate
+      //       (!toDateTimestamp || entryDate <= toDateTimestamp)) {
+      //       console.log("third");
+      //       await this.handleDeleteEvent(data.data, type);
+      //     }
+      //   })
+      // );
     });
   }
 

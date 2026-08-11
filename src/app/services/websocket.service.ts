@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
+//untill this service is intitalized in component it would be disabled and never connect to backend
 export class WebSocketService {
   private websocketUrl = environment.websocketUrl;
   private socket: WebSocket;

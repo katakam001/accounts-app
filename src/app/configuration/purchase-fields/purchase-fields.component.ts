@@ -39,21 +39,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./purchase-fields.component.css']
 })
 export class PurchaseFieldsComponent implements OnInit {
-  fields = new MatTableDataSource<any>();  
-  displayedColumns: string[] = ['category_name', 'field_name', 'field_type', 'field_category', 'exclude_from_total','account_name', 'required', 'actions'];
-  categories: string[] = [];
-  fieldTypes: string[] = [];
-  fieldCategories: string[] = ['Tax', 'Normal'];
-  selectedCategory: string = '';
-  selectedFieldType: string = '';
-  selectedFieldCategory: string = '';
-  excludeFromTotal: boolean = false;
-  mandatory: boolean = false;
-  originalData: any[] = [];
+  fields = new MatTableDataSource<any>();
+  displayedColumns: string[] = ['category_name', 'field_name', 'field_type', 'field_category', 'exclude_from_total', 'account_name', 'required', 'actions'];
   userId: number;
   financialYear: string;
-    groupMapping: any[] = []; // Add fields array
-    accounts: Account[] = [];
+  groupMapping: any[] = []; // Add fields array
+  accounts: Account[] = [];
 
   @ViewChild(MatSort) sort: MatSort;
   accountMap: Map<number, string> = new Map();
@@ -74,6 +65,11 @@ export class PurchaseFieldsComponent implements OnInit {
     this.getFinancialYear();
   }
 
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.fields.filter = filterValue.trim().toLowerCase();
+  }
+
   getFinancialYear() {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
@@ -85,25 +81,35 @@ export class PurchaseFieldsComponent implements OnInit {
 
   fetchFields(): void {
     this.fieldMappingService.getFieldMappingsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
-      this.originalData =this.updateFieldsWithAccountName(data);
-      this.fields.data = this.originalData;
+      this.fields.data = this.updateFieldsWithAccountName(data);
+      // ✅ Unified filter logic
+      this.fields.filterPredicate = (field, filter) => {
+        const normalized = filter.trim().toLowerCase();
+        return (
+          field.category_name?.toLowerCase().includes(normalized) ||
+          field.field_name?.toLowerCase().includes(normalized) ||
+          field.field_type?.toLowerCase().includes(normalized) ||
+          field.account_name?.toLowerCase().includes(normalized)
+
+        );
+      };
       this.fields.sort = this.sort; // Set the sort after fetching the data
-      this.extractFilterOptions(this.originalData);
     });
   }
   updateFieldsWithAccountName(data: any[]): any[] {
     data.forEach(field => {
       field.account_name = this.accountMap.get(field.account_id) || '';
     });
-    console.log(data);
     return data;
   }
   fetchGroupMapping(): void {
     this.groupMappingService.getGroupMappingTree(this.userId, this.financialYear).subscribe(data => {
       this.groupMapping = data;
-      const accountIds = this.getAccountIdsFromNodeByName('Indirect Expenses');
-      this.fetchAccounts(accountIds);
-      console.log('Accounts:', accountIds);
+      const taxAccountIds = this.getAccountIdsFromNodeByName('Indirect Expenses');
+      const tcsAccountsIds = this.getAccountIdsFromNodeByName('Advance Tax & TDS');
+      const combinedAccountIds = taxAccountIds.concat(tcsAccountsIds);
+      this.fetchAccounts(combinedAccountIds);
+      console.log('Accounts:', combinedAccountIds);
     });
   }
   fetchAccounts(accountIds: number[]): void {
@@ -114,46 +120,6 @@ export class PurchaseFieldsComponent implements OnInit {
     });
   }
 
-  extractFilterOptions(data: any[]): void {
-    this.categories = [...new Set(data.map(field => field.category_name))];
-    this.fieldTypes = [...new Set(data.map(field => field.field_type))];
-  }
-
-  applyFilter(): void {
-    let filteredData = this.originalData;
-
-    if (this.selectedCategory) {
-      filteredData = filteredData.filter(field => field.category_name === this.selectedCategory);
-    }
-
-    if (this.selectedFieldType) {
-      filteredData = filteredData.filter(field => field.field_type === this.selectedFieldType);
-    }
-
-    if (this.selectedFieldCategory) {
-      filteredData = filteredData.filter(field => field.field_category === (this.selectedFieldCategory === 'Tax' ? 1 : 0));
-    }
-
-    if (this.excludeFromTotal) {
-      filteredData = filteredData.filter(field => field.exclude_from_total);
-    }
-
-    if (this.mandatory) {
-      filteredData = filteredData.filter(field => field.required);
-    }
-
-    this.fields.data = filteredData;
-  }
-
-  resetFilters(): void {
-    this.selectedCategory = '';
-    this.selectedFieldType = '';
-    this.selectedFieldCategory = '';
-    this.excludeFromTotal = false;
-    this.mandatory = false;
-    this.fields.data = this.originalData;
-  }
-
   openAddFieldDialog(): void {
     const dialogRef = this.dialog.open(AddEditFieldMappingDialogComponent, {
       width: '400px',
@@ -162,11 +128,24 @@ export class PurchaseFieldsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-              // Add the new field to the original data
-              result.account_name = this.accountMap.get(result.account_id) || '';
-      this.originalData = [...this.originalData, result];
-      this.applyFilter(); // Reapply filters to update the displayed data
-      this.snackBar.open(`Category "${result.category_name}" to Field Mapping "${result.field_name}" relation addition is successfully.`,'Close',{ duration: 3000 });
+        this.addFieldMapping(result);
+      }
+    });
+  }
+  addFieldMapping(result: any) {
+    this.fieldMappingService.addFieldMapping(result).subscribe({
+      next: (response) => {
+
+        // Add the new field to the original data
+        response.account_name = this.accountMap.get(response.account_id) || '';
+        const newData = [...this.fields.data, response];
+        this.fields.data = newData; // Update the data source
+
+        this.snackBar.open(`Category "${response.category_name}" to Field Mapping "${response.field_name}" relation addition is successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
       }
     });
   }
@@ -179,22 +158,36 @@ export class PurchaseFieldsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        console.log(this.originalData);
-        result.account_name = this.accountMap.get(result.account_id) || '';
-              // Update the existing field in the original data
-      this.originalData = this.originalData.map(f => f.id === result.id ? result : f);
-      console.log(this.originalData);
-      this.applyFilter(); // Reapply filters to update the displayed data
-      this.snackBar.open(`Category "${result.category_name}" to Field Mapping "${result.field_name}" relation updation is successfully.`,'Close',{ duration: 3000 });
+        this.updateFieldMapping(result);
       }
     });
   }
-  deleteField(fieldId: number,category_name:string,field_name:string): void {
+  updateFieldMapping(result: any) {
+    this.fieldMappingService.updateFieldMapping(result.id, result).subscribe({
+      next: (response) => {
+        response.account_name = this.accountMap.get(response.account_id) || '';
+        const index = this.fields.data.findIndex(f => f.id === response.id);
+        console.log(response);
+        if (index !== -1) {
+          // Create a *new* array with the updated field
+          const newData = [...this.fields.data]; // Copy existing data
+          newData[index] = response; // Update the copied array
+          this.fields.data = newData; // Assign the new array
+        }
+        this.snackBar.open(`Category "${response.category_name}" to Field Mapping "${response.field_name}" relation updation is successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  deleteField(fieldId: number, category_name: string, field_name: string): void {
     this.fieldMappingService.deleteFieldMapping(fieldId).subscribe({
       next: () => {
         // Remove the field from the original data
-        this.originalData = this.originalData.filter(f => f.id !== fieldId);
-        this.applyFilter(); // Reapply filters to update the displayed data
+        this.fields.data = this.fields.data.filter(f => f.id !== fieldId);
         this.snackBar.open(`Category "${category_name}" to Field Mapping "${field_name}" relation deletion is successfully.`, 'Close', { duration: 3000 });
       },
       error: (error) => {
@@ -202,56 +195,56 @@ export class PurchaseFieldsComponent implements OnInit {
       }
     });
   }
-    // Function to find a node by its name
-    findNodeByName(node: GroupNode, name: string): GroupNode | null {
-      if (node.name === name) {
-        return node;
-      }
-  
-      if (node.children && node.children.length) {
-        for (const child of node.children) {
-          const result = this.findNodeByName(child, name);
-          if (result) {
-            return result;
-          }
-        }
-      }
-  
-      return null;
+
+  // Function to find a node by its name
+  findNodeByName(node: GroupNode, name: string): GroupNode | null {
+    if (node.name === name) {
+      return node;
     }
-  
-    // Function to extract account IDs from a node and return a set of unique IDs
-    extractAccountIds(node: GroupNode, result = new Set<number>()): number[] {
-      if (!node.children || node.children.length === 0) {
-        // This is an account node
-        result.add(Number(node.id));
-      } else {
-        // This is a group node, traverse its children
-        node.children.forEach(child => this.extractAccountIds(child, result));
-      }
-      // Convert the set to an array for the final output
-      return Array.from(result);
-    }
-  
-    getNodeByName(nodeName: string): GroupNode | null {
-      for (const node of this.groupMapping) {
-        const result = this.findNodeByName(node, nodeName);
+
+    if (node.children && node.children.length) {
+      for (const child of node.children) {
+        const result = this.findNodeByName(child, name);
         if (result) {
           return result;
         }
       }
-      return null;
     }
-  
-    // Function to get account IDs from a specific node by its name
-    getAccountIdsFromNodeByName(nodeName: string): number[] {
-      const node = this.getNodeByName(nodeName);
-      console.log(node);
-      if (node) {
-        return this.extractAccountIds(node);
-      } else {
-        console.error('Node not found');
-        return [];
+    return null;
+  }
+
+  // Function to extract account IDs from a node and return a set of unique IDs
+  extractAccountIds(node: GroupNode, result = new Set<number>()): number[] {
+    if (!node.children || node.children.length === 0) {
+      // This is an account node
+      result.add(Number(node.id));
+    } else {
+      // This is a group node, traverse its children
+      node.children.forEach(child => this.extractAccountIds(child, result));
+    }
+    // Convert the set to an array for the final output
+    return Array.from(result);
+  }
+
+  getNodeByName(nodeName: string): GroupNode | null {
+    for (const node of this.groupMapping) {
+      const result = this.findNodeByName(node, nodeName);
+      if (result) {
+        return result;
       }
     }
+    return null;
+  }
+
+  // Function to get account IDs from a specific node by its name
+  getAccountIdsFromNodeByName(nodeName: string): number[] {
+    const node = this.getNodeByName(nodeName);
+    console.log(node);
+    if (node) {
+      return this.extractAccountIds(node);
+    } else {
+      console.error('Node not found');
+      return [];
+    }
+  }
 }

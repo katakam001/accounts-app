@@ -27,7 +27,6 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class AccountListComponent implements OnInit {
   accounts = new MatTableDataSource<Account>();
-  originalData: Account[] = [];
   displayedColumns: string[] = ['name', 'gst_no', 'debit_balance', 'credit_balance', 'group', 'address', 'isDealer', 'actions'];
   financialYear: string;
   totalDebits: number = 0;
@@ -46,20 +45,12 @@ export class AccountListComponent implements OnInit {
   ngOnInit(): void {
     this.getFinancialYear();
   }
-  applyFilter(event: any) {
-    const filterValue = event.target.value.trim().toLowerCase();
-    if (!filterValue) {
-      // Reset data to the original if the search field is empty
-      this.accounts.data = [...this.originalData];
-    } else {
-      // Filter accounts based on name, GST number, or group
-      this.accounts.data = this.originalData.filter(account =>
-        account.name.toLowerCase().includes(filterValue) ||
-        account.gst_no?.toLowerCase().includes(filterValue) ||
-        account.group.name.toLowerCase().includes(filterValue)
-      );
-    }
+
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.accounts.filter = filterValue.trim().toLowerCase();
   }
+  
   getFinancialYear() {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
@@ -69,31 +60,45 @@ export class AccountListComponent implements OnInit {
   }
 
   fetchAccounts(userId: number, financialYear: string): void {
-    this.accountService.getAccountsByUserIdAndFinancialYear(userId, financialYear).subscribe((data: Account[]) => {
-      this.accounts.data = data;
-      this.originalData = [...this.accounts.data]; // Initialize filtered accounts
-      // 🧠 Sorting for nested fields
-      this.accounts.sortingDataAccessor = (item, property) => {
-        switch (property) {
-          case 'group': return item.group?.name?.toLowerCase() || '';
-          case 'address':
-            const city = item.address?.city?.toLowerCase() || '';
-            const street = item.address?.street?.toLowerCase() || '';
-            return `${city} ${street}`.trim();
-          case 'debit_balance':
-            return typeof item.debit_balance === 'number'
-              ? item.debit_balance
-              : parseFloat(item.debit_balance) || 0;
-          case 'credit_balance':
-            return typeof item.credit_balance === 'number'
-              ? item.credit_balance
-              : parseFloat(item.credit_balance) || 0;
-          default: return (item as any)[property];
-        }
-      };
+    this.accountService
+      .getAccountsByUserIdAndFinancialYear(userId, financialYear)
+      .subscribe((data: Account[]) => {
+        this.accounts.data = data;
+
+        // ✅ Unified filter logic
+        this.accounts.filterPredicate = (account, filter) => {
+          const normalized = filter.trim().toLowerCase();
+          return (
+            account.name?.toLowerCase().includes(normalized) ||
+            account.gst_no?.toLowerCase().includes(normalized) ||
+            account.group?.name?.toLowerCase().includes(normalized)
+          );
+        };
+
+        // 🧠 Sorting for nested fields
+        this.accounts.sortingDataAccessor = (item, property) => {
+          switch (property) {
+            case 'group':
+              return item.group?.name?.toLowerCase() || '';
+            case 'address':
+              const city = item.address?.city?.toLowerCase() || '';
+              const street = item.address?.street?.toLowerCase() || '';
+              return `${city} ${street}`.trim();
+            case 'debit_balance':
+              return typeof item.debit_balance === 'number'
+                ? item.debit_balance
+                : parseFloat(item.debit_balance) || 0;
+            case 'credit_balance':
+              return typeof item.credit_balance === 'number'
+                ? item.credit_balance
+                : parseFloat(item.credit_balance) || 0;
+            default:
+              return (item as any)[property];
+          }
+        };
       this.accounts.sort = this.sort; // Set the sort after fetching the data
-      this.calculateTotals();
-    });
+        this.calculateTotals();
+      });
   }
 
   calculateTotals(): void {
@@ -142,8 +147,6 @@ export class AccountListComponent implements OnInit {
         this.accountService.addAccount(result).subscribe({
           next: (response) => {
             this.accounts.data = [...this.accounts.data, response];
-            this.originalData = [...this.accounts.data]; // Initialize filtered accounts
-            this.accounts._updateChangeSubscription();
             this.calculateTotals();
             // Show success message
             this.snackBar.open(`Account "${response.name}" added successfully.`,'Close',{ duration: 3000 });
@@ -187,8 +190,6 @@ export class AccountListComponent implements OnInit {
     this.accountService.deleteAccount(id).subscribe({
       next: () => {
         this.accounts.data = this.accounts.data.filter(account => account.id !== id);
-        this.originalData = [...this.accounts.data]; // Initialize filtered accounts
-        this.accounts._updateChangeSubscription();
         this.calculateTotals();
         this.snackBar.open(`Account "${name}" deletion is successfully.`,'Close',{ duration: 3000 });
       },
@@ -207,8 +208,6 @@ updateAccount(updatedAccount: Account): void {
         const newData = [...this.accounts.data];
         newData[index] = response;
         this.accounts.data = newData;
-        this.originalData = [...this.accounts.data]; // Initialize filtered accounts
-        this.accounts._updateChangeSubscription(); // Refresh the table
         this.calculateTotals(); // Recalculate totals after update
         this.snackBar.open(`Account "${response.name}" updation is successfully.`,'Close',{ duration: 3000 });
       }

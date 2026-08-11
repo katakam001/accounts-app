@@ -1,0 +1,7 @@
+.profit-loss {
+  display: flex;
+  flex-direction: row;
+  gap: 0px; /* Remove gap between sections */
+  padding: 0px; /* Remove padding if not needed */
+  align-items: flex-start;
+}

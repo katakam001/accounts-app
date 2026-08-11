@@ -1,0 +1,50 @@
+<h2 mat-dialog-title>Create Copy Job</h2>
+<mat-dialog-content>
+  <form [formGroup]="createJobForm" class="create-job-form">
+    <!-- Date pickers -->
+    <mat-form-field appearance="fill" style="width: 100%;">
+      <mat-label>From Date</mat-label>
+      <input matInput [matDatepicker]="picker1" formControlName="from_date">
+      <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+      <mat-datepicker #picker1></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" style="width: 100%;">
+      <mat-label>To Date</mat-label>
+      <input matInput [matDatepicker]="picker2" formControlName="to_date">
+      <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+      <mat-datepicker #picker2></mat-datepicker>
+    </mat-form-field>
+
+    <!-- Source User -->
+    <mat-form-field appearance="fill" style="width: 100%;">
+      <mat-label>Source User</mat-label>
+      <input type="text" matInput formControlName="source_user_name" [matAutocomplete]="sourceAuto" />
+      <mat-autocomplete #sourceAuto="matAutocomplete"
+        (optionSelected)="onSourceUserSelectionChange($event.option.value)">
+        <mat-option *ngFor="let user of users | userFilter: createJobForm.get('source_user_name')?.value"
+          [value]="{ id: user.id, name: user.username}">
+          {{ user.username }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <!-- Target User -->
+    <mat-form-field appearance="fill" style="width: 100%;">
+      <mat-label>Target User</mat-label>
+      <input type="text" matInput formControlName="target_user_name" [matAutocomplete]="targetAuto" />
+      <mat-autocomplete #targetAuto="matAutocomplete"
+        (optionSelected)="onTargetUserSelectionChange($event.option.value)">
+        <mat-option *ngFor="let user of users | userFilter: createJobForm.get('target_user_name')?.value"
+          [value]="{ id: user.id, name: user.username}">
+          {{ user.username }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions fxLayout="row" fxLayoutAlign="space-between center" class="dialog-actions">
+  <button mat-button (click)="close()">Cancel</button>
+  <button mat-button color="primary" (click)="createJob()" [disabled]="loading">Create</button>
+</mat-dialog-actions>

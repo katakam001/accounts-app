@@ -30,7 +30,7 @@ export class LoginComponent implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private dialog: MatDialog
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loginForm = this.fb.group({
@@ -57,12 +57,22 @@ export class LoginComponent implements OnInit {
           this.roles = this.storageService.getUser().roles;
           console.log(this.roles);
 
-          // Navigate based on user role
-          if (this.roles.some(role => role === 'ROLE_ADMIN')) {
-            console.log("admin-dashboard");
-            this.router.navigate(['/admin-dashboard']);
+          // Check if profile is completed
+          if (!data.profile_completed) {
+            this.router.navigate(['/user-details'], {
+              queryParams: {
+                fromLogin: true,
+                isAdminFlow: this.roles.some(role => role === 'ROLE_ADMIN') // or however you determine admin role
+              }
+            });
           } else {
-            this.router.navigate(['/dashboard']);
+            // Navigate based on user role
+            if (this.roles.some(role => role === 'ROLE_ADMIN')) {
+              console.log("admin-dashboard");
+              this.router.navigate(['/admin-dashboard']);
+            } else {
+              this.router.navigate(['/dashboard']);
+            }
           }
         },
         error: err => {

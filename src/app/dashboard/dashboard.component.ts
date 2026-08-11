@@ -7,16 +7,19 @@ import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { EntryService } from '../services/entry.service';
 import { StorageService } from '../services/storage.service';
+import { Router } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective],
+  imports: [CommonModule, BaseChartDirective, MatIconModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent implements OnInit {
   financialYear: string;
+  isImpersonated = false;
   public barChartType: 'bar' = 'bar';
   // Graph configurations
   public barChartData!: ChartConfiguration<'bar'>['data'];
@@ -28,13 +31,21 @@ export class DashboardComponent implements OnInit {
     4: 'Sale Return',
     5: 'Credit Note',
     6: 'Debit Note',
+    8: 'Cash Sale',
   };
 
   constructor(private dialog: MatDialog, private datePipe: DatePipe,
-    private financialYearService: FinancialYearService, private entryService: EntryService, private storageService: StorageService) { }
+    private financialYearService: FinancialYearService, private entryService: EntryService, private storageService: StorageService,
+    private router: Router) { }
 
   ngOnInit(): void {
+    this.isImpersonated = this.storageService.isImpersonating();
     this.getFinancialYear();
+  }
+
+  backToAdmin(): void {
+    this.storageService.clearImpersonationState();
+    this.router.navigate(['/user-list']);
   }
 
   getFinancialYear() {
@@ -145,12 +156,11 @@ export class DashboardComponent implements OnInit {
       '#7FFF00', // Chartreuse
       '#FF69B4', // Hot Pink
     ];
-  
+
     // Pick a random color from the vibrant palette
     return vibrantColors[Math.floor(Math.random() * vibrantColors.length)];
   }
-  
-   
+
   openFinancialYearDialog() {
     const dialogRef = this.dialog.open(FinancialYearDialogComponent);
 

@@ -31,7 +31,86 @@
 }
 
 .generate-report-button {
-  margin-left: auto; /* Push the button to the end of the line */
+  background-color: #28a745;
+  color: white;
+  height: 56px;/* Match mat-form-field */
+  padding: 0 20px;/* Only horizontal padding */
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.generate-report-button:hover {
+  background-color: #28a745;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+}
+
+.generate-report-button:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: scale(0.98);
+}
+
+.pdf-button {
+  background-color: #dc3545;
+  color: white;
+  height: 56px;/* Match mat-form-field */
+  padding: 0 20px;/* Only horizontal padding */
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.pdf-button mat-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.pdf-button:hover {
+  background-color: #c82333;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+}
+
+.pdf-button:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: scale(0.98);
+}
+
+.back-button {
+  background-color: #ffc107;
+  color: white;
+  height: 56px;/* Match mat-form-field */
+  padding: 0 20px;/* Only horizontal padding */
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #ffc107;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+}
+
+.back-button:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: scale(0.98);
 }
 
 table {
@@ -145,4 +224,8 @@ tbody tr.active-row {
 .styled-table tbody tr:hover {
   background-color: #f1f1f1;
   cursor: pointer;
+}
+
+.spacer {
+  flex-grow: 1; /* Push buttons to the far right */
 }

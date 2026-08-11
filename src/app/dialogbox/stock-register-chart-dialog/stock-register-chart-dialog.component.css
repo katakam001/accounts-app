@@ -1,0 +1,36 @@
+.dialog-title {
+  display: flex;
+  justify-content: center; /* ⬅️ Center horizontally */
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 20px;
+  text-align: center;
+  width: 100%; /* ⬅️ Ensure full width for centering */
+}
+
+.context-icon {
+  font-size: 20px;
+  color: #3f51b5;
+  margin-right: 4px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: center; /* ⬅️ Center the button */
+  padding: 16px 0;
+}
+
+.close-button {
+  background-color: #dc3545;
+  color: white;
+  font-weight: bold;
+  padding: 6px 20px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.close-button:hover {
+  background-color: #c82333;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

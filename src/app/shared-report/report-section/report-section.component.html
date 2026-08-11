@@ -1,0 +1,71 @@
+<div class="report-section">
+  <h2 class="section-title">{{ title }}</h2>
+
+  <table class="report-table">
+    <thead *ngIf="showHeader">
+      <tr>
+        <th>Particulars</th>
+        <th>Item</th>
+        <th>Quantity</th>
+        <th>Amount (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let group of groups">
+        <ng-container *ngFor="let item of group.items; let i = index">
+          <tr [ngClass]="getGroupClass(group)">
+            <td [title]="i === 0 && group.groupMode === 'structured' ? group.group : item.label">
+              <ng-container *ngIf="group.groupMode === 'structured'">
+                {{ i === 0 ? group.group : '' }}
+              </ng-container>
+              <ng-container *ngIf="group.groupMode === 'flat'">
+                {{ item.label }}
+              </ng-container>
+            </td>
+            <td>
+              <ng-container *ngIf="group.groupMode === 'structured'">
+                {{ item.label }}
+              </ng-container>
+            </td>
+            <td>
+              <ng-container *ngIf="item.quantity !== undefined; else emptyQuantity">
+                {{ item.quantity | number:'1.2-2':'en-IN' }}
+              </ng-container>
+              <ng-template #emptyQuantity><span></span></ng-template>
+            </td>
+            <td class="amount">{{ item.amount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+          </tr>
+        </ng-container>
+      </ng-container>
+
+      <!-- Padding rows to align with other side -->
+      <tr *ngFor="let _ of getBlankRows()" class="blank-row">
+        <td colspan="4">&nbsp;</td>
+      </tr>
+
+      <!-- Summary Row -->
+
+      <tr *ngIf="showSummary" class="summary-row" [ngClass]="{
+  'summary-profit': summaryLabel === 'Gross Profit' || summaryLabel === 'Net Profit',
+  'summary-loss': summaryLabel === 'Gross Loss' || summaryLabel === 'Net Loss'
+         }">
+        <td>{{ summaryLabel }}</td>
+        <td></td>
+        <td></td>
+        <td>{{ summaryValue | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+      </tr>
+      <!-- Extra blank row if summary is not shown -->
+      <tr *ngIf="!showSummary" class="blank-row">
+        <td colspan="4">&nbsp;</td>
+      </tr>
+      <!-- Totals Row -->
+      <tr *ngIf="showTotals" class="totals-row">
+        <td></td>
+        <td></td>
+        <td>{{ totalQuantity | number:'1.2-2' }}</td>
+        <td>{{ totalAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}</td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>

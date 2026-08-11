@@ -12,6 +12,8 @@ import { AddEditItemDialogComponent } from '../../dialogbox/add-edit-item-dialog
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-item-list',
@@ -24,7 +26,9 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatButtonModule,
     MatIconModule,
     MatToolbarModule,
-    MatCardModule
+    MatCardModule,
+    FormsModule,
+    MatInputModule
   ],
   templateUrl: './item-list.component.html',
   styleUrls: ['./item-list.component.css']
@@ -50,6 +54,11 @@ export class ItemListComponent implements OnInit, AfterViewInit {
     this.getFinancialYear();
   }
 
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+  }
+
   ngAfterViewInit() {
     // Assign the MatSort instance to the MatTableDataSource
     this.dataSource.sort = this.sort;
@@ -68,6 +77,13 @@ export class ItemListComponent implements OnInit, AfterViewInit {
   loadItems(): void {
     this.itemsService.getItemsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
       this.dataSource.data = data;
+      // ✅ Unified filter logic
+      this.dataSource.filterPredicate = (item, filter) => {
+        const normalized = filter.trim().toLowerCase();
+        return (
+          item.name?.toLowerCase().includes(normalized)
+        );
+      };
     });
   }
 
@@ -98,32 +114,10 @@ export class ItemListComponent implements OnInit, AfterViewInit {
   }
 
   addItemToList(item: any): void {
-    this.itemsService.addItem(item).subscribe(response => {
-      // Create a *new* array with the added item
-      const newData = [...this.dataSource.data, response];
-      this.dataSource.data = newData; // Assign the new array
-      // Re-apply sort after data changes
-      if (this.dataSource.sort) {
-        const activeSort = this.dataSource.sort.active || 'name'; // Default to 'name' if no active sort
-        const sortDirection: SortDirection = this.dataSource.sort.direction || 'asc'; // Default to 'asc'
-
-        this.dataSource.sort.sort({
-          id: activeSort,
-          start: sortDirection,
-          disableClear: false // Crucial: Add disableClear property
-        });
-      }
-      this.snackBar.open(`Item "${response.name}" added successfully.`, 'Close', { duration: 3000 });
-    });
-  }
-
-  updateItem(item: any): void {
-    this.itemsService.editItem(item.id, item).subscribe(response => {
-      const index = this.dataSource.data.findIndex(i => i.id === response.id);
-      if (index !== -1) {
-        // Create a *new* array with the updated item
-        const newData = [...this.dataSource.data]; // Copy existing data
-        newData[index] = response; // Update the copied array
+    this.itemsService.addItem(item).subscribe({
+      next: (response) => {
+        // Create a *new* array with the added item
+        const newData = [...this.dataSource.data, response];
         this.dataSource.data = newData; // Assign the new array
         // Re-apply sort after data changes
         if (this.dataSource.sort) {
@@ -136,8 +130,42 @@ export class ItemListComponent implements OnInit, AfterViewInit {
             disableClear: false // Crucial: Add disableClear property
           });
         }
-        this.dataSource._updateChangeSubscription(); // Refresh the table
-        this.snackBar.open(`Item "${response.name}" updation is successfully.`, 'Close', { duration: 3000 });
+        this.snackBar.open(`Item "${response.name}" added successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  updateItem(item: any): void {
+    this.itemsService.editItem(item.id, item).subscribe({
+      next: (response) => {
+        const index = this.dataSource.data.findIndex(i => i.id === response.id);
+        if (index !== -1) {
+          // Create a *new* array with the updated item
+          const newData = [...this.dataSource.data]; // Copy existing data
+          newData[index] = response; // Update the copied array
+          this.dataSource.data = newData; // Assign the new array
+          // Re-apply sort after data changes
+          if (this.dataSource.sort) {
+            const activeSort = this.dataSource.sort.active || 'name'; // Default to 'name' if no active sort
+            const sortDirection: SortDirection = this.dataSource.sort.direction || 'asc'; // Default to 'asc'
+
+            this.dataSource.sort.sort({
+              id: activeSort,
+              start: sortDirection,
+              disableClear: false // Crucial: Add disableClear property
+            });
+          }
+          this.dataSource._updateChangeSubscription(); // Refresh the table
+          this.snackBar.open(`Item "${response.name}" updation is successfully.`, 'Close', { duration: 3000 });
+        }
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
       }
     });
   }

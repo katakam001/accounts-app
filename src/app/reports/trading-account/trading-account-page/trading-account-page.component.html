@@ -1,0 +1,39 @@
+<div class="trading-account-container">
+    <h2 class="report-title">Trading Account Report</h2>
+
+    <div class="filter-container">
+        <mat-form-field appearance="fill" class="custom-date-picker">
+            <mat-label>From Date</mat-label>
+            <input matInput [matDatepicker]="fromDatePicker" [matDatepickerFilter]="dateFilter" [formControl]="fromDate">
+            <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #fromDatePicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="custom-date-picker">
+            <mat-label>To Date</mat-label>
+            <input matInput [matDatepicker]="toDatePicker" [matDatepickerFilter]="dateFilter" [formControl]="toDate">
+            <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #toDatePicker></mat-datepicker>
+        </mat-form-field>
+
+        <span class="spacer"></span>
+
+        <button mat-raised-button color="primary" class="generate-report-button" (click)="loadReport()">
+            Generate Report
+        </button>
+
+        <button mat-stroked-button class="pdf-button" (click)="exportToPDF()">
+            <mat-icon>picture_as_pdf</mat-icon> PDF
+        </button>
+
+        <button mat-raised-button class="back-button" *ngIf="isGroupDrilldownActive" (click)="handleBackToMainReport()">
+            ← Back to Trading Account
+        </button>
+    </div>
+
+    <app-trading-account *ngIf="tradingData" [debitGroups]="tradingData.debitGroups"
+        [creditGroups]="tradingData.creditGroups" [grossProfit]="tradingData.grossProfit"
+        [grossLoss]="tradingData.grossLoss" [debitTotalQuantity]="tradingData.debitTotalQuantity"
+        [debitTotalAmount]="tradingData.debitTotalAmount" [creditTotalQuantity]="tradingData.creditTotalQuantity"
+        [creditTotalAmount]="tradingData.creditTotalAmount"></app-trading-account>
+</div>

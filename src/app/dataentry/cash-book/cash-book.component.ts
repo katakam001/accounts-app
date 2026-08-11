@@ -12,8 +12,10 @@ import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { CashEntriesService } from '../../services/cash-entries.service';
 import { AccountService } from '../../services/account.service';
-import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
-import { Subscription } from 'rxjs'; // Import Subscription
+import { forkJoin } from 'rxjs';
+
+// import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
+// import { Subscription } from 'rxjs'; // Import Subscription
 
 @Component({
   selector: 'app-cash-book',
@@ -23,7 +25,7 @@ import { Subscription } from 'rxjs'; // Import Subscription
   styleUrls: ['./cash-book.component.css']
 })
 export class CashBookComponent implements OnInit, OnDestroy {
-  private subscription: Subscription = new Subscription(); // Initialize the subscription
+  // private subscription: Subscription = new Subscription(); // Initialize the subscription
   transactions: MatTableDataSource<CashEntry>;
   displayedColumns: string[] = ['cash_credit', 'cash_entry_date', 'account_name', 'narration_description', 'cash_debit', 'balance', 'actions'];
   dateDisplayedColumns: string[] = ['cash_credit', 'account_name', 'narration_description', 'cash_debit', 'balance', 'actions'];
@@ -37,7 +39,7 @@ export class CashBookComponent implements OnInit, OnDestroy {
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
     private cashEntriesService: CashEntriesService,
-    private webSocketService: WebSocketService, // Inject WebSocket service
+    // private webSocketService: WebSocketService, // Inject WebSocket service
     private accountService: AccountService,
   ) {
     this.transactions = new MatTableDataSource<CashEntry>([]);
@@ -45,12 +47,12 @@ export class CashBookComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.getFinancialYear();
-    this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
+    // this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe(); // Clean up the subscription
-    this.webSocketService.close();
+    // this.subscription.unsubscribe(); // Clean up the subscription
+    // this.webSocketService.close();
   }
 
   getFinancialYear() {
@@ -77,67 +79,140 @@ export class CashBookComponent implements OnInit, OnDestroy {
 
   subscribeToWebSocketEvents(): void {
     console.log("hello");
+
     const currentUserId = this.storageService.getUser().id;
     const currentFinancialYear = this.financialYear;
-  
-    const handleEvent = (data: any, action: 'INSERT' | 'UPDATE' | 'DELETE') => {
+
+    const handleEvent = (data: any, action: 'BULK_INSERT' | 'UPDATE' | 'DELETE') => {
       console.log(`Handling event: ${action}`, data);
+
       if (data.entryType === 'cash' && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
-        if (action === 'INSERT' || action === 'UPDATE') {
-          this.accountService.getAccount(currentUserId, currentFinancialYear, undefined, data.data.account_id).subscribe(account => {
-            const accountName = account ? account.name : 'Unknown Account';
-            const formattedEntry: CashEntry = {
-              ...data.data,
-              cash_entry_date: new Date(data.data.cash_date),
-              narration_description: data.data.narration,
-              cash_debit: data.data.type ? 0 : data.data.amount,
-              cash_credit: data.data.type ? data.data.amount : 0,
-              balance: 0, // Initial balance, will be recalculated
-              account_name: accountName
-            };
-  
-            switch (action) {
-              case 'INSERT':
-                console.log('Processing INSERT event');
-                this.transactions.data = [...this.transactions.data, formattedEntry];
-                console.log('Inserted data:', this.transactions.data);
-                break;
-              case 'UPDATE':
-                console.log('Processing UPDATE event');
-                const updateIndex = this.transactions.data.findIndex(entry => entry.unique_entry_id === formattedEntry.unique_entry_id);
-                if (updateIndex !== -1) {
-                  this.transactions.data[updateIndex] = {
-                    ...this.transactions.data[updateIndex],
-                    ...formattedEntry,
-                  };
-                  this.transactions.data = [...this.transactions.data];
-                  console.log('Updated data:', this.transactions.data);
-                }
-                break;
-            }
-            this.groupedTransactions = this.groupEntriesByDate(this.transactions.data);
-            this.recalculateBalances();
-            console.log('Grouped transactions:', this.groupedTransactions);
-          });
-        } else if (action === 'DELETE') {
-          console.log('Processing DELETE event');
-          const deleteIndex = this.transactions.data.findIndex(entry => entry.unique_entry_id === data.data.unique_entry_id);
-          if (deleteIndex !== -1) {
-            this.transactions.data.splice(deleteIndex, 1);
-            this.transactions.data = [...this.transactions.data]; // Ensure the array is updated
-            console.log('Deleted data:', this.transactions.data); // Add this line
-          }
-          this.groupedTransactions = this.groupEntriesByDate(this.transactions.data);
-          this.recalculateBalances();
-          console.log('Grouped transactions:', this.groupedTransactions);
+        switch (action) {
+          case 'BULK_INSERT':
+            this.handleBulkCashInsert(data);
+            break;
+          case 'UPDATE':
+            this.handleCashUpdate(data);
+            break;
+          case 'DELETE':
+            this.handleCashDelete(data);
+            break;
         }
       }
     };
-  
-    this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
-    this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
-    this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
+
+    // this.subscription.add(this.webSocketService.onEvent('INSERT').subscribe((data: any) => handleEvent(data, 'INSERT')));
+    // this.subscription.add(this.webSocketService.onEvent('UPDATE').subscribe((data: any) => handleEvent(data, 'UPDATE')));
+    // this.subscription.add(this.webSocketService.onEvent('DELETE').subscribe((data: any) => handleEvent(data, 'DELETE')));
   }
+
+  handleCashInsert(data: any): void {
+    this.accountService.getAccount(data.user_id, data.financial_year, undefined, data.data.account_id).subscribe(account => {
+      const accountName = account ? account.name : 'Unknown Account';
+      const formattedEntry: CashEntry = {
+        ...data.data,
+        cash_entry_date: new Date(data.data.cash_date),
+        narration_description: data.data.narration,
+        cash_debit: data.data.type ? 0 : data.data.amount,
+        cash_credit: data.data.type ? data.data.amount : 0,
+        balance: 0,
+        account_name: accountName
+      };
+      console.log('Processing INSERT event');
+
+      this.transactions.data = [...this.transactions.data, formattedEntry];
+      this.groupedTransactions = this.groupEntriesByDate(this.transactions.data);
+      this.recalculateBalances();
+      console.log('Inserted data:', this.transactions.data);
+      console.log('Grouped transactions:', this.groupedTransactions);
+
+    });
+  }
+
+
+  handleBulkCashInsert(data: any): void {
+
+    const uniqueAccountIds: number[] = Array.from(
+      new Set(data.data.map((entry: any) => entry.account_id))
+    );
+
+    const accountRequests = uniqueAccountIds.map(accountId =>
+      this.accountService.getAccount(data.user_id, data.financial_year, undefined, accountId)
+    );
+
+    forkJoin(accountRequests).subscribe(accountResponses => {
+      const accountMap = new Map<number, string>();
+      accountResponses.forEach(account => {
+        if (account) {
+          accountMap.set(account.id, account.name);
+        }
+      });
+
+      const formattedEntries: CashEntry[] = data.data.map((entry: any) => ({
+        ...entry,
+        cash_entry_date: new Date(data.cash_date),
+        narration_description: entry.narration,
+        cash_debit: entry.type ? 0 : entry.amount,
+        cash_credit: entry.type ? entry.amount : 0,
+        balance: 0,
+        account_name: accountMap.get(entry.account_id) || 'Unknown Account'
+      }));
+
+      console.log('Processing BULK_INSERT event');
+
+      this.transactions.data = [...this.transactions.data, ...formattedEntries];
+      this.groupedTransactions = this.groupEntriesByDate(this.transactions.data);
+      this.recalculateBalances();
+
+      console.log('Inserted bulk entries:', formattedEntries);
+      console.log('Grouped transactions:', this.groupedTransactions);
+    });
+  }
+
+
+  handleCashUpdate(data: any): void {
+    this.accountService.getAccount(data.user_id, data.financial_year, undefined, data.data.account_id).subscribe(account => {
+      const accountName = account ? account.name : 'Unknown Account';
+      const formattedEntry: CashEntry = {
+        ...data.data,
+        cash_entry_date: new Date(data.data.cash_date),
+        narration_description: data.data.narration,
+        cash_debit: data.data.type ? 0 : data.data.amount,
+        cash_credit: data.data.type ? data.data.amount : 0,
+        balance: 0,
+        account_name: accountName
+      };
+
+      const updateIndex = this.transactions.data.findIndex(entry => entry.unique_entry_id === formattedEntry.unique_entry_id);
+      if (updateIndex !== -1) {
+        this.transactions.data[updateIndex] = {
+          ...this.transactions.data[updateIndex],
+          ...formattedEntry,
+        };
+        this.transactions.data = [...this.transactions.data];
+      }
+      console.log('Updated data:', this.transactions.data);
+
+      this.groupedTransactions = this.groupEntriesByDate(this.transactions.data);
+      this.recalculateBalances();
+      console.log('Grouped transactions:', this.groupedTransactions);
+
+    });
+  }
+
+  handleCashDelete(data: any): void {
+    console.log('Processing DELETE event');
+    const deleteIndex = this.transactions.data.findIndex(entry => entry.unique_entry_id === data.data.unique_entry_id);
+    if (deleteIndex !== -1) {
+      this.transactions.data.splice(deleteIndex, 1);
+      this.transactions.data = [...this.transactions.data]; // Ensure the array is updated
+      console.log('Deleted data:', this.transactions.data); // Add this line
+    }
+    this.groupedTransactions = this.groupEntriesByDate(this.transactions.data);
+    this.recalculateBalances();
+    console.log('Grouped transactions:', this.groupedTransactions);
+  }
+
 
   groupEntriesByDate(entries: CashEntry[]): { date: Date, transactions: CashEntry[], runningBalance: number }[] {
     // Sort entries by date in ascending order
@@ -165,13 +240,13 @@ export class CashBookComponent implements OnInit, OnDestroy {
 
   addCashEntry(): void {
     const dialogRef = this.dialog.open(AddCashBookDialogComponent, {
-      width: '900px',
+      width: '1000px',
       data: { currentBalance: this.currentBalance, financialYear: this.financialYear }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.addTransaction(result);
+        this.handleBulkCashInsert(result);
       }
     });
   }
@@ -184,58 +259,18 @@ export class CashBookComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.updateTransaction(result);
+        this.handleCashUpdate(result);
       }
     });
   }
 
-  addTransaction(transaction: CashEntry): void {
-    const newEntry: CashEntry = {
-      cash_entry_date: transaction.cash_entry_date,
-      account_id: transaction.account_id,
-      account_name: transaction.account_name,
-      narration_description: transaction.narration_description,
-      type: transaction.cash_debit > 0 ? false : true,
-      cash_debit: transaction.cash_debit,
-      cash_credit: transaction.cash_credit,
-      amount: transaction.cash_debit > 0 ? transaction.cash_debit : transaction.cash_credit,
-      balance: 0, // Initial balance, will be recalculated
-      user_id: this.storageService.getUser().id,
-      financial_year: this.financialYear,
-      group_id:transaction.group_id,
-      cash_account_id: transaction.cash_account_id, // ✅ Added
-      cash_group_id: transaction.cash_group_id      // ✅ Added
-    };
-
-    this.cashEntriesService.addCashEntry(newEntry).subscribe();
-  }
-
-  updateTransaction(updatedTransaction: CashEntry): void {
-    const updatedEntry = {
-      id: updatedTransaction.id!,
-      unique_entry_id:updatedTransaction.unique_entry_id!,
-      cash_entry_date: updatedTransaction.cash_entry_date,
-      account_id: updatedTransaction.account_id,
-      account_name: updatedTransaction.account_name,
-      narration_description: updatedTransaction.narration_description,
-      type: updatedTransaction.cash_debit > 0 ? false : true,
-      cash_debit: updatedTransaction.cash_debit,
-      cash_credit: updatedTransaction.cash_credit,
-      amount: updatedTransaction.cash_debit > 0 ? updatedTransaction.cash_debit : updatedTransaction.cash_credit,
-      balance: 0, // Initial balance, will be recalculated
-      user_id: this.storageService.getUser().id,
-      financial_year: this.financialYear,
-      group_id:updatedTransaction.group_id,
-      cash_account_id: updatedTransaction.cash_account_id, // ✅ Added
-      cash_group_id: updatedTransaction.cash_group_id      // ✅ Added
-    };
-
-    this.cashEntriesService.updateCashEntry(updatedEntry.unique_entry_id, updatedEntry).subscribe();
-  }
-
   deleteTransaction(transaction: CashEntry): void {
     if (transaction.unique_entry_id) {
-      this.cashEntriesService.deleteCashEntry(transaction.unique_entry_id).subscribe();
+      this.cashEntriesService.deleteCashEntry(transaction.unique_entry_id).subscribe((result) => {
+        if (result) {
+          this.handleCashDelete(result);
+        }
+      });
     }
   }
 

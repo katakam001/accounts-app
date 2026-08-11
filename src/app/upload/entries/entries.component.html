@@ -6,18 +6,53 @@
   <h3 class="select-invoice-title">Select Invoice Type</h3>
   <div class="invoice-type-section">
     <div class="invoice-type-options">
+
+      <!-- Purchase Invoice Option -->
       <div class="invoice-option purchase-invoice" [class.active]="selectedInvoiceType === 'purchase'"
-        (click)="selectedInvoiceType = 'purchase'" matTooltip="Upload invoices for purchases from suppliers">
+        (click)="selectedInvoiceType = 'purchase'; selectedSaleMode = 'credit'"
+        matTooltip="Upload invoices for purchases from suppliers">
         <mat-icon class="invoice-icon">shopping_cart</mat-icon>
         <span>Purchase Bulk Upload</span>
       </div>
 
+      <!-- Sales Invoice Option -->
       <div class="invoice-option sales-invoice" [class.active]="selectedInvoiceType === 'sales'"
-        (click)="selectedInvoiceType = 'sales'" matTooltip="Upload invoices for sales to customers">
+        (click)="selectedInvoiceType = 'sales'; selectedSaleMode = 'credit'"
+        matTooltip="Upload invoices for sales to customers">
         <mat-icon class="invoice-icon">store</mat-icon>
         <span>Sales Bulk Upload</span>
       </div>
+
+      <!-- Credit Note Option -->
+      <div class="invoice-option credit-note" [class.active]="selectedInvoiceType === 'creditNote'"
+        (click)="selectedInvoiceType = 'creditNote'; selectedSaleMode = 'credit'"
+        matTooltip="Upload credit notes issued to customers">
+        <mat-icon class="invoice-icon">receipt_long</mat-icon>
+        <span>Credit Note Upload</span>
+      </div>
+
+      <!-- Debit Note Option -->
+      <div class="invoice-option debit-note" [class.active]="selectedInvoiceType === 'debitNote'"
+        (click)="selectedInvoiceType = 'debitNote'; selectedSaleMode = 'credit'"
+        matTooltip="Upload debit notes received from suppliers">
+        <mat-icon class="invoice-icon">receipt</mat-icon>
+        <span>Debit Note Upload</span>
+      </div>
+
     </div>
+  </div>
+
+  <!-- Sale Mode Selection (Visible Only for Sales) -->
+  <div *ngIf="selectedInvoiceType === 'sales'" class="sale-mode-section">
+    <h3 class="select-sale-mode-title">Select Sale Mode</h3>
+    <mat-button-toggle-group [(ngModel)]="selectedSaleMode" name="selectedSaleMode" aria-label="Sale Mode">
+      <mat-button-toggle value="credit">
+        <mat-icon>credit_card</mat-icon> Credit Sale
+      </mat-button-toggle>
+      <mat-button-toggle value="cash">
+        <mat-icon>payments</mat-icon> Cash Sale
+      </mat-button-toggle>
+    </mat-button-toggle-group>
   </div>
 
   <!-- Tax Type Selection -->
@@ -26,6 +61,8 @@
     <mat-button-toggle-group [(ngModel)]="selectedTaxType" name="selectedTaxType" aria-label="Tax Type">
       <mat-button-toggle value="cgst"> <mat-icon>account_balance</mat-icon> CGST / SGST</mat-button-toggle>
       <mat-button-toggle value="igst"> <mat-icon>public</mat-icon> IGST</mat-button-toggle>
+      <mat-button-toggle value="tcs" *ngIf="selectedInvoiceType === 'purchase'">
+        <mat-icon>savings</mat-icon>TCS</mat-button-toggle>
     </mat-button-toggle-group>
   </div>
 
@@ -41,6 +78,7 @@
   <p *ngIf="selectedFile" class="file-info">
     <mat-icon class="file-info-icon">insert_drive_file</mat-icon>
     <span>{{ selectedFile.name }}</span>
+      <span *ngIf="fileUploadCompleted" class="upload-tag">(Uploaded)</span>
   </p>
 
   <!-- Download Template Section -->
@@ -48,28 +86,30 @@
     <button mat-raised-button class="download-template-button" [disabled]="!selectedInvoiceType || !selectedTaxType"
       (click)="downloadTemplate()">
       <mat-icon>file_download</mat-icon>
-      Download {{ selectedInvoiceType | titlecase }} - {{ selectedTaxType | titlecase }} Template
+      Download {{ invoiceTypeLabels[selectedInvoiceType || ''] }} - {{ selectedTaxType | titlecase }} -
+      {{selectedInvoiceType ===
+      'sales' ? selectedSaleMode : 'credit' | titlecase}} Template
     </button>
   </div>
 
   <!-- Buttons Section with Improved Spacing -->
   <div class="button-group">
     <!-- Validate Button -->
-    <button mat-raised-button color="accent" class="validate-button" [disabled]="!selectedFile || isUploading"
+    <button mat-raised-button color="accent" class="validate-button" [disabled]="!selectedFile || isUploading || fileUploadCompleted"
       (click)="validateFile()">
       <mat-icon>check_circle</mat-icon> Validate File
     </button>
 
     <!-- Upload Button -->
     <button mat-raised-button color="primary" class="upload-button"
-      [disabled]="!selectedFile || !canUpload() || isUploading" (click)="uploadFile()">
+      [disabled]="!selectedFile || !canUpload() || isUploading || fileUploadCompleted" (click)="uploadFile()">
       <mat-icon>cloud_upload</mat-icon> {{ isUploading ? 'Uploading...' : 'Upload Invoices' }}
     </button>
   </div>
 
   <!-- Override Checkbox Section -->
   <div class="override-checkbox-container">
-    <mat-checkbox class="override-checkbox" [(ngModel)]="userOverride" name="userOverride">
+    <mat-checkbox class="override-checkbox" [disabled]="!enableOverride" [(ngModel)]="userOverride" name="userOverride">
       Override Validation
     </mat-checkbox>
   </div>

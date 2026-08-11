@@ -1,0 +1,119 @@
+<div class="uploads-container">
+  <mat-toolbar color="primary">
+    <span>Upload History</span>
+    <span class="spacer"></span>
+  </mat-toolbar>
+
+  <mat-card class="uploads-card">
+    <mat-card-content>
+      <div class="filter-container">
+        <mat-form-field appearance="fill" class="custom-date-picker">
+          <mat-label>From Date</mat-label>
+          <input matInput [matDatepicker]="fromDatePicker" [formControl]="fromDate">
+          <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #fromDatePicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="custom-date-picker">
+          <mat-label>To Date</mat-label>
+          <input matInput [matDatepicker]="toDatePicker" [formControl]="toDate">
+          <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #toDatePicker></mat-datepicker>
+        </mat-form-field>
+        <span class="spacer"></span>
+
+        <button mat-raised-button color="primary" class="generate-report-button" (click)="loadUploads()">
+          Get History
+        </button>
+      </div>
+      <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
+
+        <!-- File Name -->
+        <ng-container matColumnDef="file_name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>File Name</th>
+          <td mat-cell *matCellDef="let upload">
+            <span matTooltip="{{ upload.file_name }}">
+              {{ upload.file_name | slice:0:30 }}{{ upload.file_name.length > 30 ? '...' : '' }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- File Type -->
+        <ng-container matColumnDef="file_type">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Type</th>
+          <td mat-cell *matCellDef="let upload"> {{ upload.file_type || '—' }} </td>
+        </ng-container>
+
+        <!-- Total Messages -->
+        <ng-container matColumnDef="total_messages">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Total Messages</th>
+          <td mat-cell *matCellDef="let upload"> {{ upload.total_messages }} </td>
+        </ng-container>
+
+        <!-- Processed Messages -->
+        <ng-container matColumnDef="processed_messages">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Processed</th>
+          <td mat-cell *matCellDef="let upload">
+            {{ upload.processed_messages ?? '—' }}
+          </td>
+        </ng-container>
+
+        <!-- Skipped Messages -->
+        <ng-container matColumnDef="skipped_messages">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Skipped</th>
+          <td mat-cell *matCellDef="let upload">
+            {{ upload.skipped_messages ?? '—' }}
+          </td>
+        </ng-container>
+
+        <!-- Status -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+          <td mat-cell *matCellDef="let upload"> {{ getStatusLabel(upload.status) }} </td>
+        </ng-container>
+
+        <!-- Started At -->
+        <ng-container matColumnDef="started_at">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Started At</th>
+          <td mat-cell *matCellDef="let upload">
+            {{ upload.started_at ? (upload.started_at | date:'dd-MM-yyyy, h:mm:ss a') : '—' }}
+          </td>
+        </ng-container>
+
+        <!-- Completed At -->
+        <ng-container matColumnDef="completed_at">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Completed At</th>
+          <td mat-cell *matCellDef="let upload">
+            {{ upload.completed_at ? (upload.completed_at | date:'dd-MM-yyyy, h:mm:ss a') : '—' }}
+          </td>
+        </ng-container>
+
+        <!-- Error Message -->
+        <ng-container matColumnDef="error_message">
+          <th mat-header-cell *matHeaderCellDef>Error</th>
+          <td mat-cell *matCellDef="let upload">
+            <span *ngIf="upload.error_message" matTooltip="{{ upload.error_message }}" class="error-message">
+              ⚠️ {{ upload.error_message | slice:0:30 }}...
+            </span>
+            <span *ngIf="!upload.error_message">—</span>
+          </td>
+        </ng-container>
+
+        <!-- Action -->
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef>Action</th>
+          <td mat-cell *matCellDef="let upload">
+            <button mat-raised-button class="run-ledger-button"
+              *ngIf="upload.status === 7 && ['cashSaleCgst', 'cashSaleIgst'].includes(upload.file_type)"
+              (click)="onTriggerLedger(upload.id)">
+              <mat-icon>play_arrow</mat-icon>Run Ledger Job
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

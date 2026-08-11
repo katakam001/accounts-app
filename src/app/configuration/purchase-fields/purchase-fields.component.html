@@ -10,30 +10,16 @@
   <mat-card class="purchase-fields-card">
     <mat-card-content>
       <div class="filter-container">
-        <mat-form-field appearance="fill" class="filter-field">
-          <mat-label>Category</mat-label>
-          <mat-select [(value)]="selectedCategory" (selectionChange)="applyFilter()">
-            <mat-option *ngFor="let category of categories" [value]="category">{{ category }}</mat-option>
-          </mat-select>
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search Field Mapping</mat-label>
+          <input matInput (keyup)="applyFilter($event)" placeholder="Search by Category,Field Name,Field Type or Account Name">
+          <button mat-icon-button matSuffix>
+            <mat-icon color="primary">search</mat-icon>
+          </button>
         </mat-form-field>
-
-        <mat-form-field appearance="fill" class="filter-field">
-          <mat-label>Field Type</mat-label>
-          <mat-select [(value)]="selectedFieldType" (selectionChange)="applyFilter()">
-            <mat-option *ngFor="let fieldType of fieldTypes" [value]="fieldType">{{ fieldType }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill" class="filter-field">
-          <mat-label>Field Category</mat-label>
-          <mat-select [(value)]="selectedFieldCategory" (selectionChange)="applyFilter()">
-            <mat-option *ngFor="let fieldCategory of fieldCategories" [value]="fieldCategory">{{ fieldCategory }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-checkbox class="filter-checkbox" [(ngModel)]="excludeFromTotal" (change)="applyFilter()">Exclude from Total</mat-checkbox>
-        <mat-checkbox class="filter-checkbox" [(ngModel)]="mandatory" (change)="applyFilter()">Mandatory</mat-checkbox>
-        <button mat-raised-button class="reset-button" (click)="resetFilters()">Reset Filters</button>
+      </div>
+      <div *ngIf="financialYear" class="financial-year-container">
+        <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
       </div>
       <table mat-table [dataSource]="fields" matSort class="mat-elevation-z8">
         <ng-container matColumnDef="category_name">
@@ -57,7 +43,7 @@
         </ng-container>
 
         <ng-container matColumnDef="account_name">
-          <th mat-header-cell *matHeaderCellDef> Account Name </th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Account Name </th>
           <td mat-cell *matCellDef="let field"> {{field.account_name}} </td>
         </ng-container>        
 

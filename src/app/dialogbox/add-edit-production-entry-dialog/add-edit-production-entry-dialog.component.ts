@@ -13,6 +13,7 @@ import { ConversionService } from '../../services/conversion.service';
 import { UnitService } from '../../services/unit.service';
 import { DatePipe } from '@angular/common';
 import { ItemsService } from '../../services/items.service';
+import moment from 'moment';
 
 @Component({
   selector: 'app-add-edit-production-entry-dialog',
@@ -39,12 +40,12 @@ export class AddEditProductionEntryDialogComponent implements OnInit {
     public dialogRef: MatDialogRef<AddEditProductionEntryDialogComponent>,
     private datePipe: DatePipe, // Inject DatePipe
     @Inject(MAT_DIALOG_DATA) public data: any
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.productionEntryForm = this.fb.group({
       raw_item_id: [this.data.entry ? this.data.entry.raw_item_id : '', Validators.required],
-      production_date: [this.data.entry ? this.data.entry.production_date : '', Validators.required],
+      production_date: [this.data.entry ? moment(this.data.entry.production_date) : '', Validators.required],
       quantity: [this.data.entry ? this.data.entry.quantity : '', Validators.required],
       unit_id: [this.data.entry ? this.data.entry.unit_id : '', Validators.required],
       processedItems: this.fb.array(this.data.entry ? this.data.entry.processedItems.map((item: any) => this.createProcessedItemGroup(item)) : [])
@@ -59,13 +60,29 @@ export class AddEditProductionEntryDialogComponent implements OnInit {
     return this.productionEntryForm.get('processedItems') as FormArray;
   }
 
+  dateFilter = (date: Date | null): boolean => {
+    if (!date || !this.data.financialYear) {
+      return false;
+    }
+
+    const [startYear, endYear] = this.data.financialYear.split('-').map(Number);
+    const startDate = moment(`${startYear}-04-01`).startOf('day');   // April 1st
+    const endDate = moment(`${endYear}-03-31`).endOf('day');         // March 31st
+
+    const selectedDate = moment.isMoment(date) ? date : moment(date);
+
+    return selectedDate.isBetween(startDate, endDate, undefined, '[]'); // inclusive
+  };
+
   createProcessedItemGroup(item: any): FormGroup {
     return this.fb.group({
       item_id: [item.item_id],
       item_name: [item.item_name],
       quantity: [item.quantity],
       unit_id: [item.unit_id],
-      unit_name: [item.unit_name]
+      unit_name: [item.unit_name],
+      conversion_id: [item.conversion_id],
+      percentage: [item.percentage]
     });
   }
 
@@ -75,7 +92,9 @@ export class AddEditProductionEntryDialogComponent implements OnInit {
       item_name: '',
       quantity: '',
       unit_id: '',
-      unit_name: ''
+      unit_name: '',
+      conversion_id: null,
+      percentage: null
     }));
   }
 
@@ -116,7 +135,7 @@ export class AddEditProductionEntryDialogComponent implements OnInit {
 
     if (yieldData) {
       this.processedItems.clear();
-      yieldData.processedItems.forEach((processedItem : any)=> {
+      yieldData.processedItems.forEach((processedItem: any) => {
         let quantity;
         if (processedItem.conversion) {
           quantity = this.productionEntryForm.get('quantity')?.value * processedItem.conversion.rate;
@@ -128,7 +147,9 @@ export class AddEditProductionEntryDialogComponent implements OnInit {
           item_name: processedItem.item_name,
           quantity: quantity,
           unit_id: processedItem.unit_id,
-          unit_name: processedItem.unit_name
+          unit_name: processedItem.unit_name,
+          conversion_id: processedItem.conversion_id,
+          percentage: processedItem.percentage
         }));
       });
     }
@@ -158,7 +179,17 @@ export class AddEditProductionEntryDialogComponent implements OnInit {
         production_date: this.datePipe.transform(this.productionEntryForm.get('production_date')?.value, 'yyyy-MM-dd', 'en-IN') // Transform the date
       };
 
-      this.dialogRef.close(productionEntry);
+      if (this.data.entry) {
+        productionEntry.production_seq_id = this.data.entry.production_seq_id;
+        console.log(productionEntry);
+        this.productionService.updateEntry(this.data.entry.id, productionEntry).subscribe((response) => {
+          this.dialogRef.close(response);
+        });
+      } else {
+        this.productionService.addEntry(productionEntry).subscribe((response) => {
+          this.dialogRef.close(response);
+        });
+      }
     }
   }
 

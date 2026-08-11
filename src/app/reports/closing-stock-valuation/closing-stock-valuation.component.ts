@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
@@ -41,8 +41,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatProgressSpinnerModule
   ]
 })
-export class ClosingStockValuationComponent implements OnInit, AfterViewInit {
-  displayedColumns: string[] = ['itemName', 'value', 'isManual', 'actions'];
+export class ClosingStockValuationComponent implements OnInit {
+  displayedColumns: string[] = ['itemName', 'opening_stock_valuation', 'closing_stock_valuation', 'isManual', 'actions'];
   dataSource = new MatTableDataSource<any>();
   userId: number;
   financialYear: string;
@@ -50,7 +50,7 @@ export class ClosingStockValuationComponent implements OnInit, AfterViewInit {
   toDate = new FormControl();
   financialYearstartDate: Date;
   financialYearendDate: Date;
-    isLoading = false;
+  isLoading = false;
 
   @ViewChild(MatSort) sort: MatSort;
 
@@ -65,10 +65,6 @@ export class ClosingStockValuationComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.getFinancialYear();
     this.applyFilter();
-  }
-
-  ngAfterViewInit() {
-    this.dataSource.sort = this.sort;
   }
 
   getFinancialYear() {
@@ -97,11 +93,14 @@ export class ClosingStockValuationComponent implements OnInit, AfterViewInit {
     const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string;
 
     if (fromDateStr && toDateStr) {
-            this.isLoading = true;
-             this.closingStockValuationService.generateClosingStock(this.userId, this.financialYear, fromDateStr, toDateStr)
+      this.isLoading = true;
+      this.closingStockValuationService.generateClosingStock(this.userId, this.financialYear, fromDateStr, toDateStr)
         .subscribe({
           next: (data: any[]) => {
             this.dataSource.data = data;
+            setTimeout(() => {
+              this.dataSource.sort = this.sort;
+            });
             this.isLoading = false;
           },
           error: () => {

@@ -29,15 +29,6 @@
   z-index: -1; /* Layer background below content */
 }
 
-.form-row {
-  display: flex;
-  justify-content: space-between;
-}
-
-.form-field {
-  width: 48%;
-}
-
 .signup-button {
   width: 100%;
   display: flex;
@@ -93,4 +84,20 @@ mat-form-field {
   background: rgba(255, 255, 255, 0.8);
   border-radius: 5px;
   padding: 10px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.form-field {
+  flex: 1 1 45%;
+  min-width: 250px;
+}
+
+.center {
+  justify-content: center;
 }

@@ -1,0 +1,198 @@
+.report-section.balance-sheet-horizontal {
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fafafa;
+}
+
+.report-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.report-table td:nth-child(1),
+.report-table td:nth-child(4) {
+  width: 25%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.report-table td:nth-child(2),
+.report-table td:nth-child(5),
+.report-table td:nth-child(3),
+.report-table td:nth-child(6) {
+  width: 12.5%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.report-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+  color: #222;
+}
+
+.amount {
+  font-weight: bold;
+  color: #333;
+}
+
+.totals-row td {
+  font-weight: 600;
+  font-size: 14px;
+  color: #444;
+  background-color: #f9f9f9;
+}
+
+.bg-structured {
+  background-color: #e3f2fd;
+}
+
+.bg-flat {
+  background-color: #fff3e0;
+}
+
+.bg-default {
+  background-color: #ffffff;
+}
+
+.balance-sheet-container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filter-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.custom-date-picker {
+  margin-right: 20px;
+  background-color: #f0f4f8;
+  border-radius: 5px;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-flex {
+  background-color: #ffffff;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-underline {
+  background-color: #009879;
+}
+
+.mat-form-field-appearance-fill .mat-form-field-label {
+  color: #009879;
+}
+
+.generate-report-button {
+  background-color: #28a745;
+  color: white;
+  height: 56px;
+  padding: 0 20px;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.generate-report-button:hover {
+  background-color: #28a745;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+}
+
+.generate-report-button:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: scale(0.98);
+}
+
+.pdf-button {
+  background-color: #dc3545;
+  color: white;
+  height: 56px;
+  padding: 0 20px;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.pdf-button mat-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.pdf-button:hover {
+  background-color: #c82333;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+}
+
+.pdf-button:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: scale(0.98);
+}
+
+.back-button {
+  background-color: #ffc107;
+  color: white;
+  height: 56px;
+  padding: 0 20px;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: #ffc107;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+}
+
+.back-button:active {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: scale(0.98);
+}
+
+.spacer {
+  flex-grow: 1; /* Push buttons to the far right */
+}
+
+.header-row th.side-label {
+  font-weight: bold;
+  font-size: 16px;
+  color: #333;
+  padding: 8px 12px;
+  background-color: #e0e0e0;
+  text-align: left;
+}
+
+.report-title {
+  font-size: 2.5em; /* Larger font size */
+  font-weight: bold; /* Bold text */
+  color: #009879; /* Eye-catching color */
+  text-align: center; /* Center alignment */
+  margin-bottom: 20px; /* Space below the title */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}

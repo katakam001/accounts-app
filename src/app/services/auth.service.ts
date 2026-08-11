@@ -12,7 +12,7 @@ const AUTH_API = `${baseUrl}/api/auth/`;
 })
 export class AuthService {
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   login(username: string, password: string): Observable<any> {
     return this.http.post<any>(
@@ -26,16 +26,14 @@ export class AuthService {
     );
   }
 
-  register(firstname: string, middlename: string, lastname: string, username: string, email: string, password: string,role: string, adminId: number | null): Observable<any> {
+  register(username: string, email: string, password: string, contact_number: string, role: string, adminId: number | null): Observable<any> {
     return this.http.post<any>(
       AUTH_API + 'signup',
       {
-        firstname,
-        middlename,
-        lastname,
         username,
         email,
         password,
+        contact_number,
         role: role, // Pass the selected role
         adminId: adminId // Pass the admin ID if applicable
       }
@@ -68,17 +66,23 @@ export class AuthService {
     );
   }
 
+  updateProfile(data: any) {
+    return this.http.put(AUTH_API + 'profile', data).pipe(
+      catchError(this.handleError)
+    );
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'Something went wrong; please try again later.';
 
     if (error.error && typeof error.error === 'object' && 'message' in error.error) {
-        errorMessage = error.error.message; // ✅ Properly extract the message from backend
+      errorMessage = error.error.message; // ✅ Properly extract the message from backend
     } else {
-        errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
     }
 
     // console.error('An error occurred:', errorMessage);
     return throwError(() => new Error(errorMessage)); // ✅ Ensure proper error propagation
-}
+  }
 
 }

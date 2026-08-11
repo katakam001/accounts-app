@@ -7,16 +7,19 @@ import { PasswordResetComponent } from './password-reset/password-reset.componen
 import { AccountInformationComponent } from './account-information/account-information.component';
 import { ChangePasswordComponent } from './change-password/change-password.component';
 import { AdminAuthGuard } from './guards/admin-auth.guard';
+import { UserDetailsFormComponent } from './user-details-form/user-details-form.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'user-details', component: UserDetailsFormComponent },
   { path: 'accountInfo', component: AccountInformationComponent },
   { path: 'changePassword', component: ChangePasswordComponent },
   { path: 'password-reset/confirm', component: PasswordResetComponent },
   { path: 'home', component: HomeComponent, title: 'Home page' },
   { path: 'user-list', loadChildren: () => import('./admin/user-list/user-list.module').then(m => m.UserListModule), title: 'User List page', canActivate: [AdminAuthGuard] },
+  { path: 'copyJob-list', loadChildren: () => import('./admin/copy-job-list/copy-job-list.module').then(m => m.CopyJobListModule), title: 'Copy Job List page', canActivate: [AdminAuthGuard] },
   { path: 'dashboard', loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule), title: 'Dashboard page', canActivate: [AuthGuard] },
   { path: 'admin-dashboard', loadChildren: () => import('./admin/admin-dashboard/admin-dashboard.module').then(m => m.AdminDashboardModule), title: 'Admin Dashboard page', canActivate: [AdminAuthGuard] },
   { path: 'accountList', loadChildren: () => import('./configuration/account-list/account-list.module').then(m => m.AccountListModule), title: 'Account List page', canActivate: [AuthGuard] },
@@ -35,6 +38,7 @@ export const routes: Routes = [
   { path: 'conversionList', loadChildren: () => import('./configuration/conversion/conversion.module').then(m => m.ConversionModule), title: 'Conversion List page', canActivate: [AuthGuard] },
   { path: 'journalEntries', loadChildren: () => import('./dataentry/journal-list/journal-list.module').then(m => m.JournalListModule), title: 'Journal Entry page', canActivate: [AuthGuard] },
   { path: 'cashBook', loadChildren: () => import('./dataentry/cash-book/cash-book.module').then(m => m.CashBookModule), title: 'Cash Book page', canActivate: [AuthGuard] },
+  { path: 'cashSaleEntry', loadChildren: () => import('./dataentry/cash-sale-entry/cash-sale-entry.module').then(m => m.CashSaleEntryModule), title: 'Cash Sale Entry page', canActivate: [AuthGuard] },
   { path: 'purchaseEntry', loadChildren: () => import('./dataentry/purchase-entry/purchase-entry.module').then(m => m.PurchaseEntryModule), title: 'Purchase Entry page', canActivate: [AuthGuard] },
   { path: 'saleEntry', loadChildren: () => import('./dataentry/sale-entry/sale-entry.module').then(m => m.SaleEntryModule), title: 'Sale Entry page', canActivate: [AuthGuard] },
   { path: 'purchaseReturn', loadChildren: () => import('./dataentry/purchase-return/purchase-return.module').then(m => m.PurchaseReturnModule), title: 'Purchase Return page', canActivate: [AuthGuard] },
@@ -44,11 +48,18 @@ export const routes: Routes = [
   { path: 'productionEntry', loadChildren: () => import('./dataentry/production-entry/production-entry.module').then(m => m.ProductionEntryModule), title: 'Production Entry page', canActivate: [AuthGuard] },
   { path: 'trailBalance', loadChildren: () => import('./reports/trail-balance/trail-balance.module').then(m => m.TrailBalanceModule), title: 'Trail Balance page', canActivate: [AuthGuard] },
   { path: 'stockRegister', loadChildren: () => import('./reports/stock-register/stock-register.module').then(m => m.StockRegisterModule), title: 'Stock Register page', canActivate: [AuthGuard] },
-  { path: 'closingStock', loadChildren: () => import('./reports/closing-stock-valuation/closing-stock-valuation.module').then(m => m.ClosingStockValuationModule), title: 'Closing stock Valuation page', canActivate: [AuthGuard] },
+  { path: 'stockValuation', loadChildren: () => import('./reports/closing-stock-valuation/closing-stock-valuation.module').then(m => m.ClosingStockValuationModule), title: 'Stock Valuation page', canActivate: [AuthGuard] },
   { path: 'yieldStatement', loadChildren: () => import('./reports/yield-statement/yield-statement.module').then(m => m.YieldStatementModule), title: 'Yield Statment page', canActivate: [AuthGuard] },
   { path: 'daybook', loadChildren: () => import('./reports/daybook/daybook.module').then(m => m.DayBookModule), title: 'Day Book page', canActivate: [AuthGuard] },
   { path: 'accountCopy', loadChildren: () => import('./reports/account-copy/account-copy.module').then(m => m.AccountCopyModule), title: 'Account Copy page', canActivate: [AuthGuard] },
   { path: 'ledger', loadChildren: () => import('./reports/ledger/ledger.module').then(m => m.LedgerModule), title: 'Ledger page', canActivate: [AuthGuard] },
+  { path: 'tradingAccount', loadChildren: () => import('./reports/trading-account/trading-account-page/trading-account-page.module').then(m => m.TradingAccountPageModule), title: 'Trading Account page', canActivate: [AuthGuard] },
+  { path: 'profitAndLoss', loadChildren: () => import('./reports/profit-loss/profit-loss-page/profit-loss-page.module').then(m => m.ProfitLossPageModule), title: 'Profit And Loss page', canActivate: [AuthGuard] },
+  { path: 'tradingAccProfitAndLoss', loadChildren: () => import('./reports/combined/trading-account-profit-loss/trading-account-profit-loss.module').then(m => m.TradingAccountProfitLossModule), title: 'Trading Account And Profit And Loss page', canActivate: [AuthGuard] },
+  { path: 'balanceSheet', loadChildren: () => import('./reports/balance-sheet-horizontal/balance-sheet-horizontal.module').then(m => m.BalanceSheetHorizontalModule), title: 'Horizontal Balance Sheet', canActivate: [AuthGuard] },
   { path: 'bankStatement', loadChildren: () => import('./upload/bank-statement/bank-statement.module').then(m => m.BankStatementModule), title: 'Bank Statement page', canActivate: [AuthGuard] },
   { path: 'entriesUpload', loadChildren: () => import('./upload/entries/entries.module').then(m => m.EntriesModule), title: 'Entries upload page', canActivate: [AuthGuard] },
+  { path: 'export-history', loadChildren: () => import('./download/export-history/export-history.module').then(m => m.ExportHistoryModule), title: 'Export history page', canActivate: [AuthGuard] },
+  { path: 'upload-history', loadChildren: () => import('./tracking/upload-history/upload-history.module').then(m => m.UploadHistoryModule), title: 'Upload history page', canActivate: [AuthGuard] },
+
 ];

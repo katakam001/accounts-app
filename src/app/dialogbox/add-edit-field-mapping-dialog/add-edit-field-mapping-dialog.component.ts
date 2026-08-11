@@ -42,7 +42,6 @@ export class AddEditFieldMappingDialogComponent implements OnInit {
   fields: any[] = []; // Add fields array
   groupMapping: any[] = []; // Add fields array
   accounts: Account[] = [];
-  accountsMap: { [key: number]: Account[] } = {}; // Store units for each categoryId
   userId: number;
   financialYear: string;
   showAccountField: boolean = false;
@@ -100,9 +99,11 @@ export class AddEditFieldMappingDialogComponent implements OnInit {
   fetchGroupMapping(): void {
     this.groupMappingService.getGroupMappingTree(this.userId, this.financialYear).subscribe(data => {
       this.groupMapping = data;
-      const accountIds = this.getAccountIdsFromNodeByName('Indirect Expenses');
-      this.fetchAccounts(accountIds);
-      console.log('Accounts:', accountIds);
+      const taxAccountIds = this.getAccountIdsFromNodeByName('Indirect Expenses');
+      const tcsAccountsIds = this.getAccountIdsFromNodeByName('Advance Tax & TDS');
+      const combinedAccountIds = taxAccountIds.concat(tcsAccountsIds);
+      this.fetchAccounts(combinedAccountIds);
+      console.log('Accounts:', combinedAccountIds);
     });
   }
   fetchAccounts(accountIds: number[]): void {
@@ -115,23 +116,23 @@ export class AddEditFieldMappingDialogComponent implements OnInit {
     this.showAccountField = event.value === 1; // Show account field only if field_category is 'Tax'
   }
   onFieldSelectionChange(event: any): void {
-      this.fieldForm.patchValue({
-        field_id: event.id,
-        field_name:event.name
-      });
+    this.fieldForm.patchValue({
+      field_id: event.id,
+      field_name: event.name
+    });
   }
   onCategorySelectionChange(event: any): void {
     this.fieldForm.patchValue({
       category_id: event.id,
-      category_name:event.name
+      category_name: event.name
     });
-}
-onAccountSelectionChange(event: any): void {
-  this.fieldForm.patchValue({
-    account_id: event.id,
-    account_name:event.name
-  });
-}
+  }
+  onAccountSelectionChange(event: any): void {
+    this.fieldForm.patchValue({
+      account_id: event.id,
+      account_name: event.name
+    });
+  }
 
   setFieldCategoryDisplayValue(): void {
     const fieldCategory = this.fieldForm.get('field_category')?.value;
@@ -158,18 +159,11 @@ onAccountSelectionChange(event: any): void {
     if (this.fieldForm.valid) {
       const field = {
         ...this.fieldForm.value,
+        id: this.data.field?.id,
         user_id: this.userId,
         financial_year: this.financialYear
       };
-      if (this.data.field) {
-        this.fieldMappingService.updateFieldMapping(this.data.field.id, field).subscribe((response) => {
-          this.dialogRef.close(response);
-        });
-      } else {
-        this.fieldMappingService.addFieldMapping(field).subscribe((response) => {
-          this.dialogRef.close(response);
-        });
-      }
+      this.dialogRef.close(field);
     } else {
       this.identifyInvalidFields(this.fieldForm);
       this.snackBar.open('Please fill all required fields.', 'Close', {

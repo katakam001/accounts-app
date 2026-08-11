@@ -18,7 +18,7 @@ export class GroupService {
   private lastCacheTime: number = this.getLastCacheTime();
   private groupCache: Group[] = this.loadFromLocalStorage(); // Cache for groups
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getGroupsByUserIdAndFinancialYear(userId: number, financialYear: string): Observable<Group[]> {
     const currentTime = Date.now();
@@ -47,7 +47,15 @@ export class GroupService {
         this.groupCache = [...this.groupCache, newGroup];
         this.saveToLocalStorage();
       }),
-      catchError(this.handleError<Group>('addGroup'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already exists')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to add group. Please try again later.'));
+        }
+      })
     );
   }
 
@@ -60,7 +68,15 @@ export class GroupService {
           this.saveToLocalStorage();
         }
       }),
-      catchError(this.handleError<Group>('updateGroup'))
+      catchError((error: any) => {
+        if (error.error && error.error.message && error.error.message.includes('already exists')) {
+          // Handle duplicate error specifically
+          return throwError(() => new Error(error.error.message)); // Re-throw error if needed
+        } else {
+          // Handle other errors
+          return throwError(() => new Error('Failed to update group. Please try again later.'));
+        }
+      })
     );
   }
 
@@ -96,7 +112,7 @@ export class GroupService {
   switchUserAndFinancialYear(userId: number, financialYear: string): Observable<any> {
     this.clearCache();
     return this.getGroupsByUserIdAndFinancialYear(userId, financialYear);
-  }  
+  }
 
   private clearCacheIfStale(currentTime: number): void {
     if ((currentTime - this.lastCacheTime) >= this.cacheTTL) {

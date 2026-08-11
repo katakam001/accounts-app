@@ -30,7 +30,7 @@ export class EntryService {
     return this.http.get<{ entries: any[], nextStartRow: number, hasMore: boolean }>(`${this.apiUrl}`, { params });
   }
   // Method to call getTaxSummary
-  getTaxSummary(userId: number, financialYear: string, type: number,fromDate?: string, toDate?: string ): Observable<any> {
+  getTaxSummary(userId: number, financialYear: string, type: number, fromDate?: string, toDate?: string): Observable<any> {
     let params = new HttpParams()
       .set('userId', userId.toString())
       .set('financialYear', financialYear)
@@ -44,7 +44,7 @@ export class EntryService {
     }
     return this.http.get(`${this.apiUrl}/getTaxSummary`, { params });
   }
-  getEntryTypeSummary (userId: number, financialYear: string, fromDate?: string, toDate?: string ): Observable<any> {
+  getEntryTypeSummary(userId: number, financialYear: string, fromDate?: string, toDate?: string): Observable<any> {
     let params = new HttpParams()
       .set('userId', userId.toString())
       .set('financialYear', financialYear)
@@ -76,15 +76,33 @@ export class EntryService {
   }
   // New method to add multiple entries
   addEntries(entries: any[]): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/bulk`, { entries });
+    return this.http.post<any>(`${this.apiUrl}/bulkEntries`, { entries });
+  }
+
+  // New method to add multiple entries
+  addCashEntries(entries: any[]): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/bulkCashEntries`, { entries });
   }
 
   // New method to update multiple entries
   updateEntries(entries: any[]): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/bulk`, { entries });
+    return this.http.put<any>(`${this.apiUrl}/bulkEntries`, { entries });
+  }
+
+  // New method to update multiple entries
+  updateCashEntries(entries: any[]): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/bulkCashEntries`, { entries });
   }
 
   deleteEntries(invoice_seq_id: number, type: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/${invoice_seq_id}/${type}`);
+    return this.http.delete<any>(`${this.apiUrl}/bulkEntries/${invoice_seq_id}/${type}`);
+  }
+
+  deleteCashEntries(invoice_seq_id: number, type: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/bulkCashEntries/${invoice_seq_id}/${type}`);
+  }
+
+  triggerLedgerJob(uploadId: number) {
+    return this.http.post(`${this.apiUrl}/ledgerProcess/${uploadId}`, {});
   }
 }

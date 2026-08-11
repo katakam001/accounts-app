@@ -1,0 +1,10 @@
+<h2 mat-dialog-title class="dialog-title">
+  <mat-icon class="context-icon">show_chart</mat-icon>
+  Stock Register Chart — {{ contextLabel }}
+</h2>
+<mat-dialog-content>
+    <app-stock-register-chart [chartData]="chartData"></app-stock-register-chart>
+</mat-dialog-content>
+<mat-dialog-actions class="dialog-actions">
+  <button mat-button class="close-button" mat-dialog-close>Close</button>
+</mat-dialog-actions>

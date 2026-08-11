@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,9 +15,9 @@ import { ItemsService } from '../../services/items.service';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { StockRegisterChartComponent } from "../../charts/stock-register-chart/stock-register-chart.component";
 import { ChartData } from 'chart.js';
-import { ScrollingModule } from '@angular/cdk/scrolling'; // Import ScrollingModule
+import { MatDialog } from '@angular/material/dialog';
+import { StockRegisterChartDialogComponent } from '../../dialogbox/stock-register-chart-dialog/stock-register-chart-dialog.component';
 
 @Component({
   selector: 'app-stock-register',
@@ -31,23 +31,70 @@ import { ScrollingModule } from '@angular/cdk/scrolling'; // Import ScrollingMod
     MatToolbarModule,
     MatCardModule,
     MatSelectModule,
-    MatProgressSpinnerModule,
-    StockRegisterChartComponent,
-    ScrollingModule // Include ScrollingModule
+    MatProgressSpinnerModule
   ],
   templateUrl: './stock-register.component.html',
   styleUrls: ['./stock-register.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class StockRegisterComponent implements OnInit, AfterViewInit {
+export class StockRegisterComponent implements OnInit {
   displayedColumns: string[] = ['Date', 'Item', 'Opening Stock', 'Purchase', 'Sale Return', 'Received From Process', 'Total', 'Sales', 'Purchase Return', 'Dispatch To Process', 'Closing Stock'];
-  dataSource: MatTableDataSource<any>;
+  dataSource = new MatTableDataSource<any>();
+  columnTotals: { [key: string]: number } = {};
+  summaryColumns = [
+    'Purchase',
+    'Sale Return',
+    'Received From Process',
+    'Sales',
+    'Purchase Return',
+    'Dispatch To Process'
+  ];
+  amountColumns = [
+    'Opening Stock',
+    'Purchase',
+    'Sale Return',
+    'Received From Process',
+    'Total',
+    'Sales',
+    'Purchase Return',
+    'Dispatch To Process',
+    'Closing Stock'
+  ];
+  selectedMonth: number | null = null; // null means full financial year
+  months = [
+    { value: 4, label: 'April' },
+    { value: 5, label: 'May' },
+    { value: 6, label: 'June' },
+    { value: 7, label: 'July' },
+    { value: 8, label: 'August' },
+    { value: 9, label: 'September' },
+    { value: 10, label: 'October' },
+    { value: 11, label: 'November' },
+    { value: 12, label: 'December' },
+    { value: 1, label: 'January' },
+    { value: 2, label: 'February' },
+    { value: 3, label: 'March' }
+  ];
+  monthLabel: { [key: number]: string } = {
+    1: 'January',
+    2: 'February',
+    3: 'March',
+    4: 'April',
+    5: 'May',
+    6: 'June',
+    7: 'July',
+    8: 'August',
+    9: 'September',
+    10: 'October',
+    11: 'November',
+    12: 'December'
+  };
   items: any[] = [];
   selectedItemId: number;
   userId: number;
   financialYear: string;
   isLoading = false;
-
+  isStockGenerated = false;
   public chartLabels: string[] = [];
   public chartData: ChartData<'line'> = {
     labels: this.chartLabels,
@@ -61,21 +108,15 @@ export class StockRegisterComponent implements OnInit, AfterViewInit {
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
     private itemsService: ItemsService,
+    public dialog: MatDialog,
     private cdr: ChangeDetectorRef // Inject ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.userId = this.storageService.getUser().id;
     this.getFinancialYear();
     this.loadItems();
-    
-  }
 
-  ngAfterViewInit() {
-    console.log(this.sort); // Check if MatSort instance is available
-    if (this.dataSource) {
-      this.dataSource.sort = this.sort;
-    }
   }
 
   getFinancialYear() {
@@ -97,32 +138,63 @@ export class StockRegisterComponent implements OnInit, AfterViewInit {
     );
   }
 
+  openChartDialog(): void {
+    const dialogPayload = {
+      chartData: this.chartData,
+      viewType: this.selectedMonth ? 'monthly' : 'financial_year',
+      contextLabel: this.selectedMonth
+        ? `${this.monthLabel[this.selectedMonth]} (${this.financialYear})`
+        : `Full Financial Year (${this.financialYear})`
+    };
+
+    this.dialog.open(StockRegisterChartDialogComponent, {
+      width: '90%',
+      data: dialogPayload
+    });
+  }
+
   generateStockRegister(): void {
-    if (this.selectedItemId) {
-      this.isLoading = true;
-      this.stockRegisterService.getStockRegister(this.financialYear, this.selectedItemId, this.userId).subscribe(
+    if (!this.selectedItemId) return;
+
+    this.isLoading = true;
+    this.isStockGenerated = false;
+
+    this.stockRegisterService
+      .getStockRegister(this.financialYear, this.selectedItemId, this.userId, this.selectedMonth ?? undefined)
+      .subscribe(
         (data: any[]) => {
-          this.dataSource = new MatTableDataSource(data);
-          console.log(this.dataSource); // Check if dataSource is set correctly
-          this.dataSource.sort = this.sort;
-          console.log(this.dataSource); // Check if dataSource is set correctly
-          this.prepareChartData(data);
+          this.dataSource.data = data;
+          this.columnTotals = {};
+          this.summaryColumns.forEach(col => {
+            const total = data.reduce((sum, row) => {
+              const value = parseFloat(row[col] || '0');
+              return sum + value;
+            }, 0);
+            this.columnTotals[col] = total.toFixed(4); // store as string with 4 decimals
+          });
+          console.log(this.columnTotals);
+          setTimeout(() => {
+            this.dataSource.sort = this.sort;
+          });
+
+          this.prepareChartData(data); // Optional: chart logic
           this.isLoading = false;
-          this.cdr.detectChanges(); // Manually trigger change detection
+          this.isStockGenerated = true;
+          this.cdr.detectChanges();
         },
         error => {
-          console.error('Error fetching stock register data:', error);
+          console.error('❌ Error fetching stock register data:', error);
           this.isLoading = false;
-          this.cdr.detectChanges(); // Manually trigger change detection
+          this.isStockGenerated = false;
+          this.cdr.detectChanges();
         }
       );
-    }
   }
-  
+
   trackById(index: number, item: any): number {
     return item.id;
   }
-  
+
   prepareChartData(data: any[]): void {
     this.chartData = {
       labels: [],
@@ -134,20 +206,20 @@ export class StockRegisterComponent implements OnInit, AfterViewInit {
         tension: 0.1
       }]
     };
-  
+
     data.forEach(record => {
       const date = new Date(record.Date);
       const isoDate = date.toISOString(); // Format date as ISO string
       this.chartData.labels?.push(isoDate);
       this.chartData.datasets[0].data?.push(record['Closing Stock']);
-      
+
       // Set the border color based on the closing stock value
       const color = record['Closing Stock'] < 0 ? 'rgb(255, 204, 204)' : 'rgb(204, 255, 204)';
       (this.chartData.datasets[0].borderColor as string[]).push(color); // Assert borderColor as string[]
     });
-  
+
     this.cdr.detectChanges(); // Manually trigger change detection after preparing chart data
-  }  
+  }
 
   exportToExcel() {
     const formattedData = this.dataSource.data.map(record => ({
@@ -166,7 +238,7 @@ export class StockRegisterComponent implements OnInit, AfterViewInit {
     doc.text('Stock Register for Item: ' + this.selectedItemId, 14, 22); // Add item name to header
     doc.setFontSize(12);
     doc.text(`Generated on: ${new DatePipe('en-US').transform(new Date(), 'dd-MM-yyyy')}`, 14, 30);
-  
+
     const data = this.dataSource.data.map(record => {
       const rowColor = record['Closing Stock'] < 0 ? [255, 204, 204] : [204, 255, 204]; // Light red for negative, light green for positive
       return [
@@ -182,7 +254,7 @@ export class StockRegisterComponent implements OnInit, AfterViewInit {
         { content: record['Closing Stock'], styles: { fillColor: rowColor as [number, number, number] } }
       ];
     });
-  
+
     autoTable(doc, {
       startY: 40, // Adjust start position to avoid overlapping with header
       head: [['Date', 'Opening Stock', 'Purchase', 'Sale Return', 'Received From Process', 'Total', 'Sales', 'Purchase Return', 'Dispatch To Process', 'Closing Stock']],
@@ -192,16 +264,16 @@ export class StockRegisterComponent implements OnInit, AfterViewInit {
         lineColor: [0, 0, 0] // Add border color
       },
       columnStyles: {
-            0: { cellWidth: 22, halign: 'center' }, // Date
-            1: { cellWidth: 30, halign: 'center' }, // Opening Stock
-            2: { cellWidth: 25, halign: 'center' }, // Purchase
-            3: { cellWidth: 25, halign: 'center' }, // Sale Return
-            4: { cellWidth: 25, halign: 'center' }, // Received From Process
-            5: { cellWidth: 30, halign: 'center' }, // Total
-            6: { cellWidth: 25, halign: 'center' }, // Sales
-            7: { cellWidth: 25, halign: 'center' }, // Purchase Return
-            8: { cellWidth: 25, halign: 'center' }, // Dispatch To Process
-            9: { cellWidth: 30, halign: 'center' } // Closing Stock
+        0: { cellWidth: 22, halign: 'center' }, // Date
+        1: { cellWidth: 30, halign: 'center' }, // Opening Stock
+        2: { cellWidth: 25, halign: 'center' }, // Purchase
+        3: { cellWidth: 25, halign: 'center' }, // Sale Return
+        4: { cellWidth: 25, halign: 'center' }, // Received From Process
+        5: { cellWidth: 30, halign: 'center' }, // Total
+        6: { cellWidth: 25, halign: 'center' }, // Sales
+        7: { cellWidth: 25, halign: 'center' }, // Purchase Return
+        8: { cellWidth: 25, halign: 'center' }, // Dispatch To Process
+        9: { cellWidth: 30, halign: 'center' } // Closing Stock
       },
       headStyles: {
         cellWidth: 20,
@@ -216,7 +288,7 @@ export class StockRegisterComponent implements OnInit, AfterViewInit {
         halign: 'center' // Center-align cell values
       }
     });
-  
+
     const timestamp = new DatePipe('en-US').transform(new Date(), 'dd-MM-yyyy_HH-mm-ss');
     doc.save(`StockRegister_${timestamp}.pdf`);
   }

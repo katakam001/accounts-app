@@ -92,35 +92,53 @@ button.mat-button {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); /* Enhanced shadow on hover */
 }
 
-.reset-button {
-  align-self: center;
-  margin-left: auto;
-  background-color: #2196f3; /* Blue background */
-  color: white;
-  border-radius: 4px;
-  padding: 8px 16px;
-  transition: background-color 0.3s ease;
-}
-.reset-button:hover {
-  background-color: #1976d2; /* Darker blue on hover */
-}
-
 .category-units-card {
   margin-top: 20px;
-  background-color: #e0e0e0; /* Light gray background */
-  border: 1px solid #bdbdbd; /* Gray border */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.financial-year-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  background-color: #2196f3; /* Brighter blue color for more attraction */
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Enhanced shadow for depth */
+  margin-top: 8px; /* Reduced margin between elements */
+  margin-bottom: 16px; /* Keep a slight gap for balance */
+}
+
+.financial-year-text {
+  font-size: 24px; /* Slightly larger font size */
+  font-weight: bold; /* Make the text stand out */
+  color: white; /* White text for better contrast */
 }
 
 .filter-container {
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 20px;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 4px; /* Reduced space */
 }
 
-.filter-field {
-  flex: 1 1 200px;
+.search-field {
+  width: 800px;
+  max-width: 100%;
+  border-radius: 4px; /* Rounded corners */
+}
+mat-form-field {
+  margin-bottom: 0; /* Remove extra space below search bar */
+}
+
+@media (max-width: 768px) {
+  .search-field {
+    width: 100%;
+  }
+  .financial-year-container {
+    font-size: 16px;
+    padding: 12px;
+  }
 }
 
 .mat-elevation-z8 {

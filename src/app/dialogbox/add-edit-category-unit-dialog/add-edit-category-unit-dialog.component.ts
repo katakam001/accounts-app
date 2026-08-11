@@ -1,7 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
-import { CategoryUnitService } from '../../services/category-unit.service';
 import { CategoryService } from '../../services/category.service';
 import { UnitService } from '../../services/unit.service';
 import { CommonModule } from '@angular/common';
@@ -24,7 +23,6 @@ export class AddEditCategoryUnitDialogComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private categoryUnitService: CategoryUnitService,
     private categoryService: CategoryService,
     private unitService: UnitService,
     public dialogRef: MatDialogRef<AddEditCategoryUnitDialogComponent>,
@@ -61,13 +59,20 @@ export class AddEditCategoryUnitDialogComponent implements OnInit {
   onSave(): void {
     if (this.categoryUnitForm.valid) {
       const formValue = this.categoryUnitForm.value;
+
+      const selectedCategory = this.categories.find(c => c.id === formValue.category_id);
+      const selectedUnit = this.units.find(u => u.id === formValue.unit_id);
+
       const updatedCategoryUnit = {
         id: this.data.categoryUnit?.id,
         category_id: formValue.category_id,
         unit_id: formValue.unit_id,
         user_id: this.userId,
-        financial_year: this.financialYear
+        financial_year: this.financialYear,
+        category_name: selectedCategory?.name,
+        unit_name: selectedUnit?.name
       };
+
       this.dialogRef.close(updatedCategoryUnit);
     }
   }

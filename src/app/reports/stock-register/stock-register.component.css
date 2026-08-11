@@ -1,20 +1,18 @@
-/* stock-register.component.css */
 .stock-register-container {
   padding: 20px;
   margin-top: 0;
 }
 
-.toolbar-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.toolbar {
+.toolbar-row {
   background-color: #3f51b5;
   color: white;
-  padding: 0;
+  padding: 4px 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-height: 48px;
 }
 
 .custom-dropdown {
@@ -56,66 +54,55 @@ mat-form-field {
   flex: 1;
   max-width: 300px;
   height: auto;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .mat-mdc-form-field {
   display: flex;
   align-items: center;
   height: auto;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
-.export-buttons {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
+.action-button {
+  color: white;
+  border-radius: 5px;
+  padding: 8px 16px;
+  font-size: 15px;   
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  transition: background-color 0.3s, box-shadow 0.3s;
 }
 
 .generate-button {
   background-color: #ff9800;
-  color: white;
-  border-radius: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  display: inline-flex;
-  align-items: center;
-  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.chart-button {
+  background-color: #1976d2;
 }
 
 .excel-button {
   background-color: #28a745;
-  color: white;
-  border-radius: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  display: inline-flex;
-  align-items: center;
-  transition: background-color 0.3s, box-shadow 0.3s;
 }
 
 .pdf-button {
   background-color: #dc3545;
-  color: white;
-  border-radius: 5px;
-  padding: 10px 20px;
-  font-size: 16px;
-  font-weight: bold;
-  display: inline-flex;
-  align-items: center;
-  transition: background-color 0.3s, box-shadow 0.3s;
 }
 
-.generate-button mat-icon,
-.excel-button mat-icon,
-.pdf-button mat-icon {
-  margin-right: 10px;
+.action-button mat-icon {
+  margin-right: 8px;
+  font-size: 18px;
 }
 
 .generate-button:hover {
   background-color: #fb8c00;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.chart-button:hover {
+  background-color: #1565c0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -129,19 +116,26 @@ mat-form-field {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.spinner-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100px;
-}
-
 .table-container {
+  position: relative;
   margin-top: 20px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
   border: 1px solid #ccc;
   border-radius: 8px;
   overflow: hidden;
+}
+
+.spinner-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.6);
+  z-index: 1000; 
 }
 
 table {
@@ -185,15 +179,100 @@ tr.positive-stock {
 }
 
 .example-viewport {
-  height: 400px; /* Adjust the height as needed */
+  height: 400px;
   width: 100%;
   border: 1px solid #ccc;
 }
+
 .report-title {
-  font-size: 2.5em; /* Larger font size */
-  font-weight: bold; /* Bold text */
-  color: #009879; /* Eye-catching color */
-  text-align: center; /* Center alignment */
+  font-size: 2.2em;
+  font-weight: bold;
+  color: #009879;
+  text-align: center;
   margin-bottom: 20px; /* Space below the title */
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.report-context {
+  font-size: 0.9em;
+  font-weight: bold;
+  color: #009879;
+}
+
+.context-icon {
+  font-size: 20px;
+  color: #3f51b5;
+}
+
+.amount-column {
+  text-align: right;
+  width: 120px;
+}
+
+.date-column {
+  white-space: nowrap;
+  width: 120px;
+}
+
+.item-column {
+  width: 200px;
+}
+
+/* Month dropdown styling */
+.month-dropdown {
+  width: 200px;
+  margin-right: 10px;
+}
+
+/* Ensure consistent appearance with item dropdown */
+::ng-deep .mat-mdc-select-value {
+  font-weight: 500;
+  color: #3f51b5;
+}
+
+.view-label {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin: 12px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.faint {
+  color: #666;
+  font-weight: 400;
+}
+
+.context-icon {
+  font-size: 20px;
+  color: #3f51b5;
+}
+
+.spacer {
+  flex-grow: 1;
+}
+
+tr[mat-footer-row] {
+  background-color: #e0f2f1;
+  font-weight: bold;
+  border-top: 2px solid #26a69a;
+}
+
+tr[mat-footer-row] td {
+  color: #004d40;
+  padding: 10px;
+  font-size: 15px;
+  text-align: right;
+  border: 1px solid #b2dfdb;
+}
+
+.hidden-footer {
+  display: none;
 }

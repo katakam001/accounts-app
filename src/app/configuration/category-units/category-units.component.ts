@@ -12,22 +12,19 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatInputModule } from '@angular/material/input';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-category-units',
   standalone: true,
-  imports: [MatTableModule, MatToolbarModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule, MatSortModule],
+  imports: [MatTableModule, MatToolbarModule, MatCardModule, MatSelectModule, MatIconModule, CommonModule, MatSortModule,FormsModule,MatInputModule],
   templateUrl: './category-units.component.html',
   styleUrls: ['./category-units.component.css']
 })
 export class CategoryUnitsComponent implements OnInit, AfterViewInit {
   categoryUnits = new MatTableDataSource<any>();
-  originalData: any[] = [];
   displayedColumns: string[] = ['category_name', 'unit_name', 'actions'];
-  categories: string[] = [];
-  units: string[] = [];
-  selectedCategory: string = '';
-  selectedUnit: string = '';
   userId: number;
   financialYear: string;
 
@@ -45,6 +42,11 @@ export class CategoryUnitsComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.userId = this.storageService.getUser().id;
     this.getFinancialYear();
+  }
+
+  applyFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.categoryUnits.filter = filterValue.trim().toLowerCase();
   }
 
   ngAfterViewInit() {
@@ -65,36 +67,18 @@ export class CategoryUnitsComponent implements OnInit, AfterViewInit {
 
   fetchCategoryUnits(): void {
     this.categoryUnitService.getCategoryUnitsByUserIdAndFinancialYear(this.userId, this.financialYear).subscribe((data: any[]) => {
-      this.originalData = data;
       this.categoryUnits.data = data;
-      this.extractFilterOptions(data);
+      // ✅ Unified filter logic
+      this.categoryUnits.filterPredicate = (categoryUnit, filter) => {
+        const normalized = filter.trim().toLowerCase();
+        return (
+          categoryUnit.category_name?.toLowerCase().includes(normalized) ||
+          categoryUnit.unit_name?.toLowerCase().includes(normalized)
+        );
+      };
     });
   }
 
-  extractFilterOptions(data: any[]): void {
-    this.categories = [...new Set(data.map(unit => unit.category_name))];
-    this.units = [...new Set(data.map(unit => unit.unit_name))];
-  }
-
-  applyFilter(): void {
-    let filteredData = this.originalData;
-
-    if (this.selectedCategory) {
-      filteredData = filteredData.filter(unit => unit.category_name === this.selectedCategory);
-    }
-
-    if (this.selectedUnit) {
-      filteredData = filteredData.filter(unit => unit.unit_name === this.selectedUnit);
-    }
-
-    this.categoryUnits.data = filteredData;
-  }
-
-  resetFilters(): void {
-    this.selectedCategory = '';
-    this.selectedUnit = '';
-    this.categoryUnits.data = this.originalData;
-  }
 
   openAddCategoryUnitDialog(): void {
     const dialogRef = this.dialog.open(AddEditCategoryUnitDialogComponent, {
@@ -123,32 +107,10 @@ export class CategoryUnitsComponent implements OnInit, AfterViewInit {
   }
 
   addCategoryUnitToList(categoryUnit: any): void {
-    this.categoryUnitService.addCategoryUnit(categoryUnit).subscribe(response => {
-      // Create a *new* array with the added category unit
-      const newData = [...this.categoryUnits.data, response];
-      this.categoryUnits.data = newData; // Assign the new array
-      // Re-apply sort after data changes
-      if (this.categoryUnits.sort) {
-        const activeSort = this.categoryUnits.sort.active || 'category_name'; // Default to 'name' if no active sort
-        const sortDirection: SortDirection = this.categoryUnits.sort.direction || 'asc'; // Default to 'asc'
-
-        this.categoryUnits.sort.sort({
-          id: activeSort,
-          start: sortDirection,
-          disableClear: false // Crucial: Add disableClear property
-        });
-      }
-      this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation addition is successfully.`, 'Close', { duration: 3000 });
-    });
-  }
-
-  updateCategoryUnit(categoryUnit: any): void {
-    this.categoryUnitService.updateCategoryUnit(categoryUnit.id, categoryUnit).subscribe(response => {
-      const index = this.categoryUnits.data.findIndex(unit => unit.id === response.id);
-      if (index !== -1) {
-        // Create a *new* array with the updated category unit
-        const newData = [...this.categoryUnits.data]; // Copy existing data
-        newData[index] = response; // Update the copied array
+    this.categoryUnitService.addCategoryUnit(categoryUnit).subscribe({
+      next: (response) => {
+        // Create a *new* array with the added category unit
+        const newData = [...this.categoryUnits.data, response];
         this.categoryUnits.data = newData; // Assign the new array
         // Re-apply sort after data changes
         if (this.categoryUnits.sort) {
@@ -161,7 +123,41 @@ export class CategoryUnitsComponent implements OnInit, AfterViewInit {
             disableClear: false // Crucial: Add disableClear property
           });
         }
-        this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation updation is successfully.`, 'Close', { duration: 3000 });
+        this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation addition is successfully.`, 'Close', { duration: 3000 });
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
+      }
+    });
+  }
+
+  updateCategoryUnit(categoryUnit: any): void {
+    this.categoryUnitService.updateCategoryUnit(categoryUnit.id, categoryUnit).subscribe({
+      next: (response) => {
+        const index = this.categoryUnits.data.findIndex(unit => unit.id === response.id);
+        if (index !== -1) {
+          // Create a *new* array with the updated category unit
+          const newData = [...this.categoryUnits.data]; // Copy existing data
+          newData[index] = response; // Update the copied array
+          this.categoryUnits.data = newData; // Assign the new array
+          // Re-apply sort after data changes
+          if (this.categoryUnits.sort) {
+            const activeSort = this.categoryUnits.sort.active || 'category_name'; // Default to 'name' if no active sort
+            const sortDirection: SortDirection = this.categoryUnits.sort.direction || 'asc'; // Default to 'asc'
+
+            this.categoryUnits.sort.sort({
+              id: activeSort,
+              start: sortDirection,
+              disableClear: false // Crucial: Add disableClear property
+            });
+          }
+          this.snackBar.open(`Category "${response.category_name}" to Unit "${response.unit_name}" relation updation is successfully.`, 'Close', { duration: 3000 });
+        }
+      },
+      error: (error) => {
+        // Display the error directly from the service response
+        this.snackBar.open(error.message, 'Close', { duration: 5000 });
       }
     });
   }

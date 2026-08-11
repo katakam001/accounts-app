@@ -1,63 +1,78 @@
-<!-- cash-book-dialog.component.html -->
-<div mat-dialog-content>
+<h2 mat-dialog-title>Add Cash Entries</h2>
+<mat-dialog-content>
   <form [formGroup]="cashBookForm" class="cash-book-form">
-    <div class="form-row">
-      <mat-form-field appearance="fill" class="form-field">
-        <mat-label>Cash Entry Date</mat-label>
-        <input matInput [matDatepicker]="picker" formControlName="cash_entry_date"  [matDatepickerFilter]="dateFilter" required>
-        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-datepicker #picker></mat-datepicker>
-        <mat-error *ngIf="cashBookForm.get('cash_entry_date')?.hasError('required')">Date is required</mat-error>
-      </mat-form-field>
+    <!-- Fixed Date -->
+    <mat-form-field appearance="fill" style="width: 100%;">
+      <mat-label>Cash Entry Date</mat-label>
+      <input matInput [matDatepicker]="picker" formControlName="cash_entry_date" [matDatepickerFilter]="dateFilter">
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
 
-      <mat-form-field appearance="fill" class="form-field">
-        <mat-label>Account Name</mat-label>
-        <input type="text" matInput formControlName="account_name" [matAutocomplete]="auto" />
-        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onAccountSelectionChange($event.option.value)">
-            <mat-option *ngFor="let account of accountList | supplierFilter: cashBookForm.get('account_name')?.value" [value]="{ id: account.id, name: account.name,group_id:account.group_id}">
-            {{ account.name }}
-          </mat-option>
-        </mat-autocomplete>
-        <mat-error *ngIf="cashBookForm.get('account_name')?.hasError('required')">Account name is required</mat-error>
-      </mat-form-field>
+    <!-- Entries Array -->
+    <div formArrayName="entries" class="entries-section">
+      <div *ngFor="let entry of entries.controls; let i = index" [formGroupName]="i" class="entry-group">
+        <div fxLayout="row" fxLayoutGap="16px">
+          <!-- Account Name -->
+          <mat-form-field fxFlex="25%" appearance="fill">
+            <mat-label>Account Name</mat-label>
+            <input type="text" matInput formControlName="account_name" [matAutocomplete]="auto" />
+            <mat-autocomplete #auto="matAutocomplete"
+              (optionSelected)="onAccountSelectionChange($event.option.value, i)">
+              <mat-option *ngFor="let account of accountList | supplierFilter: entry.get('account_name')?.value"
+                [value]="{ id: account.id, name: account.name, group_id: account.group_id }">
+                {{ account.name }}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
 
-      <mat-form-field appearance="fill" class="form-field">
-        <mat-label>Narration</mat-label>
-        <mat-select formControlName="narration" required (selectionChange)="onNarrationChange($event.value)">
-          <mat-option *ngFor="let narration of narrations" [value]="narration">{{ narration }}</mat-option>
-        </mat-select>
-        <mat-error *ngIf="cashBookForm.get('narration')?.hasError('required')">Narration is required</mat-error>
-      </mat-form-field>
-    </div>
+          <!-- Narration -->
+          <mat-form-field fxFlex="25%" appearance="fill">
+            <mat-label>Narration</mat-label>
+            <mat-select formControlName="narration" (selectionChange)="onNarrationChange($event.value, i)">
+              <mat-option *ngFor="let narration of narrations" [value]="narration">{{ narration }}</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-    <div class="form-row">
-      <mat-form-field appearance="fill" class="form-field full-width">
-        <mat-label>Narration Description</mat-label>
-        <textarea matInput formControlName="narration_description" [readonly]="!isCustomNarration" [maxlength]="100" rows="3"></textarea>
-        <mat-error *ngIf="cashBookForm.get('narration_description')?.hasError('required')">Narration description is required</mat-error>
-      </mat-form-field>
-    </div>
+          <!-- Debit -->
+          <mat-form-field fxFlex="25%" appearance="fill">
+            <mat-label>Debit</mat-label>
+            <input matInput formControlName="cash_debit" (input)="updateRunningBalance()" />
+          </mat-form-field>
 
-    <div class="form-row responsive-row">
-      <mat-form-field appearance="fill" class="form-field responsive-field">
-        <mat-label>Cash Debit</mat-label>
-        <input matInput formControlName="cash_debit" (input)="updateRunningBalance()" required>
-        <mat-error *ngIf="cashBookForm.get('cash_debit')?.hasError('required')">Cash debit is required</mat-error>
-      </mat-form-field>
+          <!-- Credit -->
+          <mat-form-field fxFlex="25%" appearance="fill">
+            <mat-label>Credit</mat-label>
+            <input matInput formControlName="cash_credit" (input)="updateRunningBalance()" />
+          </mat-form-field>
+        </div>
 
-      <mat-form-field appearance="fill" class="form-field responsive-field">
-        <mat-label>Cash Credit</mat-label>
-        <input matInput formControlName="cash_credit" (input)="updateRunningBalance()" required>
-        <mat-error *ngIf="cashBookForm.get('cash_credit')?.hasError('required')">Cash credit is required</mat-error>
-      </mat-form-field>
-
-      <div class="running-balance responsive-field">
-        <p>Running Balance: {{ runningBalance | currency:'INR':'symbol':'1.2-2':'en-IN' }}</p>
+        <div fxLayout="row" fxLayoutAlign="space-between center" fxFlex="100%">
+          <mat-form-field appearance="fill" style="width: 95%;">
+            <mat-label>Narration</mat-label>
+            <textarea matInput formControlName="narration_description" [readonly]="!isCustomNarration" rows="2"
+              maxlength="100"></textarea>
+          </mat-form-field>
+          <button mat-icon-button color="warn" (click)="removeEntry(i)" class="remove-button">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
       </div>
     </div>
+
+    <!-- Add Entry Button -->
+    <div fxLayoutAlign="start center" style="margin-top: 16px;">
+      <button mat-button (click)="addEntry()" class="add-entry-button">Add Entry</button>
+    </div>
+
+    <!-- Running Balance -->
+    <div fxLayoutAlign="end center" style="margin-top: 16px;">
+      <strong>Running Balance:</strong> {{ runningBalance | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+    </div>
   </form>
-</div>
-<div mat-dialog-actions align="end">
-  <button mat-button class="cancel-button" (click)="onCancel()">Cancel</button>
-  <button mat-raised-button color="primary" class="save-button" [disabled]="cashBookForm.invalid" (click)="onSave()">Save</button>
-</div>
+</mat-dialog-content>
+
+<mat-dialog-actions fxLayout="row" fxLayoutAlign="space-between center" class="dialog-actions">
+  <button mat-button (click)="onCancel()" class="cancel-button">Cancel</button>
+  <button mat-raised-button (click)="onSave()" class="save-button">Save</button>
+</mat-dialog-actions>

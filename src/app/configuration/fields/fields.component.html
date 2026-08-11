@@ -9,6 +9,18 @@
 
   <mat-card class="fields-card">
     <mat-card-content>
+            <div class="filter-container">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search Fields</mat-label>
+          <input matInput (keyup)="applyFilter($event)" placeholder="Search by field name">
+          <button mat-icon-button matSuffix>
+            <mat-icon color="primary">search</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+      <div *ngIf="financialYear" class="financial-year-container">
+        <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
+      </div>
       <table mat-table [dataSource]="dataSource" matSort class="mat-elevation-z8">
         <ng-container matColumnDef="field_name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Field Name </th>

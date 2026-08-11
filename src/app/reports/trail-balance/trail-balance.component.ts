@@ -10,6 +10,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { UploadService } from '../../services/upload.service';
 
 @Component({
   selector: 'app-trail-balance',
@@ -17,7 +20,8 @@ import { MatInputModule } from '@angular/material/input';
   imports: [CommonModule, ReactiveFormsModule, MatDatepickerModule,
     MatFormFieldModule,
     MatInputModule,
-    MatButtonModule],
+    MatButtonModule,
+    MatIconModule],
   templateUrl: './trail-balance.component.html',
   styleUrls: ['./trail-balance.component.css']
 })
@@ -25,6 +29,8 @@ export class TrailBalanceComponent implements OnInit {
   trailBalanceReport: TrailBalanceReport[] = [];
   userId: number;
   financialYear: string;
+  companyName: string;
+  city: string;
   fromDate = new FormControl();
   toDate = new FormControl();
   financialYearstartDate: Date;
@@ -39,6 +45,8 @@ export class TrailBalanceComponent implements OnInit {
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
     private datePipe: DatePipe,
+    private snackBar: MatSnackBar,
+    private uploadService: UploadService,
     private route: ActivatedRoute,
     private router: Router // Inject Router
   ) { }
@@ -49,7 +57,7 @@ export class TrailBalanceComponent implements OnInit {
       if (params['fromDate']) {
         this.fromDate.patchValue(new Date(params['fromDate']));
         this.toDate.patchValue(new Date(params['toDate']));
-        this.getTrailBalanceReport(); // 💫 Re-populates main report
+        this.navigateToJournalEntry(null,params['groupId']); // 💫 Re-populates main report
       }
     });
   }
@@ -58,6 +66,8 @@ export class TrailBalanceComponent implements OnInit {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
       this.financialYear = storedFinancialYear;
+      this.companyName = this.storageService.getUser().user_details.company_name;
+      this.city = this.storageService.getUser().user_details.city;
       this.userId = this.storageService.getUser().id;
       const [startYear, endYear] = this.financialYear.split('-').map(Number);
       this.financialYearstartDate = new Date(startYear, 3, 1); // April 1st of start year
@@ -102,6 +112,28 @@ export class TrailBalanceComponent implements OnInit {
     });
   }
 
+  exportToPDF(): void {
+    const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string;
+    const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string;
+
+    this.trailBalanceService.exportTrailBalanceToPDF(this.userId, this.financialYear, this.companyName, this.city, fromDateStr, toDateStr).subscribe({
+      next: data => {
+        console.log(data);
+        this.snackBar.open('Pdf generation is started please check the status in Download screen.', 'Close', {
+          duration: 3000,
+        });
+        // Step 3: Call Start Monitoring API here
+        this.uploadService.startMonitoring().subscribe(
+          () => console.log('Monitoring started successfully!'),
+          error => console.error('Error starting monitoring:', error)
+        );
+      },
+      error: err => {
+        console.error('Error impersonating user:', err);
+      }
+    });
+  }
+
   getDifferenceClass(): string {
     let type = 'difference-neutral';
     if (this.overallDebit > this.overallCredit) {
@@ -112,13 +144,13 @@ export class TrailBalanceComponent implements OnInit {
     return type;
   }
 
-  navigateToJournalEntry(accountId: number | null, groupId: number, groupName: string): void {
+  navigateToJournalEntry(accountId: number | null, groupId: number): void {
     console.log(accountId);
     console.log(groupId);
     const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN') as string;
     const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN') as string;
 
-    if (accountId == null && (groupName === 'Sundry Debtors' || groupName === 'Sundry Creditors')) {
+    if (accountId == null && groupId !== null) {
       this.trailBalanceService.getAccountsForGroup(groupId, this.userId, fromDateStr, toDateStr, this.financialYear).subscribe((data: TrailBalanceReport[]) => {
         this.overallDebit = 0;
         this.overallCredit = 0;
@@ -147,6 +179,7 @@ export class TrailBalanceComponent implements OnInit {
       this.router.navigate(['/accountCopy'], {
         queryParams: {
           accountId: accountId,
+          groupId: groupId,
           fromDate: fromDateStr,
           toDate: toDateStr
         }
@@ -155,8 +188,8 @@ export class TrailBalanceComponent implements OnInit {
   }
 
   handleBackToMainReport(): void {
-  this.isGroupDrilldownActive = false;
-  this.getTrailBalanceReport(); // 💫 Re-populates main report
-}
+    this.isGroupDrilldownActive = false;
+    this.getTrailBalanceReport(); // 💫 Re-populates main report
+  }
 
 }

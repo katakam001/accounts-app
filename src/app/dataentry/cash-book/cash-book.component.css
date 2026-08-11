@@ -11,20 +11,23 @@
   }
   
   .add-button {
-    background-color: #ff4081;
-    color: white;
-    border-radius: 25px;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: bold;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s ease, transform 0.3s ease;
-  }
-  
-  .add-button:hover {
-    background-color: #e91e63;
-    transform: scale(1.05);
-  }
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; /* spacing between icon and text */
+  background-color: #ff4081;
+  color: white;
+  border-radius: 25px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.add-button:hover {
+  background-color: #e91e63;
+  transform: scale(1.05);
+}
   
   .mat-card {
     margin-top: 20px;

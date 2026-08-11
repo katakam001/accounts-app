@@ -12,16 +12,17 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
+// import { WebSocketService } from '../../services/websocket.service'; // Import WebSocket service
 import { BalanceService } from '../../services/balance.service';
 import { MatDialog } from '@angular/material/dialog';
 import { EditCashBookDialogComponent } from '../../dialogbox/edit-cash-book-dialog/edit-cash-book-dialog.component';
 import { EditJournalEntryDialogComponent } from '../../dialogbox/edit-journal-entry-dialog/edit-journal-entry-dialog.component';
 import { AddEditEntryDialogComponent } from '../../dialogbox/add-edit-entry-dialog/add-edit-entry-dialog.component';
-import { Subscription } from 'rxjs'; // Import Subscription
+// import { Subscription } from 'rxjs'; // Import Subscription
 import { DatePipe } from '@angular/common';
 import saveAs from 'file-saver';
-import { CashEntriesService } from '../../services/cash-entries.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { UploadService } from '../../services/upload.service';
 
 @Component({
   selector: 'app-daybook',
@@ -40,12 +41,14 @@ import { CashEntriesService } from '../../services/cash-entries.service';
   styleUrls: ['./daybook.component.css']
 })
 export class DayBookComponent implements OnInit, OnDestroy {
-  private subscription: Subscription = new Subscription(); // Initialize the subscription
+  // private subscription: Subscription = new Subscription(); // Initialize the subscription
   combinedEntries: any[] = [];
   dayBookEntries: any[] = []; // Initialize as an empty array
   groupedDayBookEntries: any[] = [];
   userId: number;
   financialYear: string;
+  companyName: string;
+  city: string;
   limit: number = 400; // Align limit with pageSize
   offset: number = 0; // Example offset
   totalPages: number = 0;
@@ -78,13 +81,14 @@ export class DayBookComponent implements OnInit, OnDestroy {
   dbHasNextPage: boolean = false; // Variable to keep track of hasNextPage state from the database
   constructor(
     private journalService: JournalService,
-    private cashEntriesService: CashEntriesService,
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
     private balanceService: BalanceService,
     private accountService: AccountService, // Add AccountService to the constructor
     private dbService: NgxIndexedDBService,
-    private webSocketService: WebSocketService, // Inject WebSocket service
+    private uploadService: UploadService,
+    private snackBar: MatSnackBar,
+    // private webSocketService: WebSocketService, // Inject WebSocket service
     public dialog: MatDialog,
     private datePipe: DatePipe, // Inject DatePipe
   ) { }
@@ -95,17 +99,19 @@ export class DayBookComponent implements OnInit, OnDestroy {
     this.fetchCurrentBalance();
     this.fetchOpeningBalance(); // Fetch opening balance once
     this.fetchEntries();
-    this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
+    // this.subscribeToWebSocketEvents(); // Subscribe to WebSocket events
   }
   ngOnDestroy() {
-    this.subscription.unsubscribe(); // Clean up the subscription
-    this.webSocketService.close();
+    // this.subscription.unsubscribe(); // Clean up the subscription
+    // this.webSocketService.close();
   }
   getFinancialYear(): void {
     const storedFinancialYear = this.financialYearService.getStoredFinancialYear();
     if (storedFinancialYear) {
       this.financialYear = storedFinancialYear;
       this.userId = this.storageService.getUser().id; // Ensure userId is initialized
+      this.companyName = this.storageService.getUser().user_details.company_name;
+      this.city = this.storageService.getUser().user_details.city;
       const [startYear, endYear] = this.financialYear.split('-').map(Number);
       this.financialYearstartDate = new Date(startYear, 3, 1); // April 1st of start year
       this.financialYearendDate = new Date(endYear, 2, 31); // March 31st of end year
@@ -169,10 +175,21 @@ export class DayBookComponent implements OnInit, OnDestroy {
   }
 
   exportToPDF() {
-    this.journalService.exportToPDF(this.userId, this.financialYear).subscribe((response: Blob) => {
-      saveAs(response, `daybook_${this.userId}_${this.financialYear}.pdf`);
-    }, error => {
-      console.error('Error exporting PDF:', error);
+    this.journalService.exportToPDF(this.userId, this.financialYear, this.companyName, this.city).subscribe({
+      next: data => {
+        console.log(data);
+        this.snackBar.open('Pdf generation is started please check the status in Download screen.', 'Close', {
+          duration: 3000,
+        });
+        // Step 3: Call Start Monitoring API here
+        this.uploadService.startMonitoring().subscribe(
+          () => console.log('Monitoring started successfully!'),
+          error => console.error('Error starting monitoring:', error)
+        );
+      },
+      error: err => {
+        console.error('Error impersonating user:', err);
+      }
     });
   }
   exportToExcel() {
@@ -397,6 +414,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
     this.currentPage++;
     this.offset = (this.currentPage - 1) * this.limit;
     this.totalPages = Math.max(this.totalPages, this.currentPage);
+    this.fetchEntries();
     // this.fetchEntriesSubject.next();
   }
 
@@ -405,6 +423,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
       this.currentPage--;
       this.offset = (this.currentPage - 1) * this.limit;
       this.hasNextPage = true; // Update hasNextPage to true when moving to the previous page
+      this.fetchEntries();
       // console.log(this.hasNextPage);
       // this.fetchEntriesSubject.next();
     }
@@ -421,30 +440,30 @@ export class DayBookComponent implements OnInit, OnDestroy {
     const entryTypes = ['entry', 'journal', 'cash'];
 
     entryTypes.forEach(type => {
-      this.subscription.add(
-        this.webSocketService.onEvent('INSERT').subscribe(async (data: any) => {
-          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
-            console.log("first");
-            await this.handleInsertEvent(data.data, type);
-          }
-        })
-      );
-      this.subscription.add(
-        this.webSocketService.onEvent('UPDATE').subscribe(async (data: any) => {
-          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
-            console.log("second");
-            await this.handleUpdateEvent(data.data, type);
-          }
-        })
-      );
-      this.subscription.add(
-        this.webSocketService.onEvent('DELETE').subscribe(async (data: any) => {
-          if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
-            console.log("third");
-            await this.handleDeleteEvent(data.data, type);
-          }
-        })
-      );
+      // this.subscription.add(
+      //   this.webSocketService.onEvent('INSERT').subscribe(async (data: any) => {
+      //     if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+      //       console.log("first");
+      //       await this.handleInsertEvent(data.data, type);
+      //     }
+      //   })
+      // );
+      // this.subscription.add(
+      //   this.webSocketService.onEvent('UPDATE').subscribe(async (data: any) => {
+      //     if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+      //       console.log("second");
+      //       await this.handleUpdateEvent(data.data, type);
+      //     }
+      //   })
+      // );
+      // this.subscription.add(
+      //   this.webSocketService.onEvent('DELETE').subscribe(async (data: any) => {
+      //     if (data.entryType === type && data.user_id === currentUserId && data.financial_year === currentFinancialYear) {
+      //       console.log("third");
+      //       await this.handleDeleteEvent(data.data, type);
+      //     }
+      //   })
+      // );
     });
   }
 
@@ -866,6 +885,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         // Handle the result from the dialog
+        this.handleUpdateEvent(result.data, result.entryType);
         console.log('Dialog result:', result);
       }
     });
@@ -882,8 +902,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.journalService.updateJournalEntry(result).subscribe();
-        console.log('Dialog result:', result);
+        this.handleUpdateEvent(result.data, result.entryType);
       }
     });
   }
@@ -897,8 +916,7 @@ export class DayBookComponent implements OnInit, OnDestroy {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         // Handle the result from the dialog
-        this.cashEntriesService.updateCashEntry(result.unique_entry_id, result).subscribe();
-        console.log('Dialog result:', result);
+        this.handleUpdateEvent(result.data, result.entryType);
       }
     });
   }

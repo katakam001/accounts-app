@@ -1,0 +1,27 @@
+<div class="profit-loss">
+  <app-report-section
+    [title]="''"
+    [groups]="debitGroups"
+    [showHeader]="showHeader"
+    [showTotals]="true"
+    [showSummary]="isNetProfit()"
+    [summaryLabel]="getSummaryLabel()"
+    [summaryValue]="getSummaryValue()"
+    [totalQuantity]="debitTotalQuantity"
+    [totalAmount]="debitTotalAmount"
+    [maxRowCount]="getMaxRowCount()">
+  </app-report-section>
+
+  <app-report-section
+    [title]="''"
+    [groups]="creditGroups"
+    [showHeader]="showHeader"
+    [showTotals]="true"
+    [showSummary]="isNetLoss()"
+    [summaryLabel]="getSummaryLabel()"
+    [summaryValue]="getSummaryValue()"
+    [totalQuantity]="creditTotalQuantity"
+    [totalAmount]="creditTotalAmount"
+    [maxRowCount]="getMaxRowCount()">
+  </app-report-section>
+</div>

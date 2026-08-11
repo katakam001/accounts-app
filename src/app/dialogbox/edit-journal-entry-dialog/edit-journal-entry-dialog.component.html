@@ -42,13 +42,13 @@
           <!-- Debit Amount Field -->
           <mat-form-field fxFlex="25%" appearance="fill">
             <mat-label>Debit Amount</mat-label>
-            <input matInput formControlName="debit_amount">
+            <input matInput formControlName="debit_amount" type="number" (change)="onDebitAmtChange(i)">
           </mat-form-field>
 
           <!-- Credit Amount Field -->
           <mat-form-field fxFlex="25%" appearance="fill">
             <mat-label>Credit Amount</mat-label>
-            <input matInput formControlName="credit_amount">
+            <input matInput formControlName="credit_amount" type="number" (change)="onCreditAmtChange(i)">
           </mat-form-field>
         </div>
 
@@ -68,7 +68,7 @@
     <div fxLayoutAlign="start center" style="margin-top: 16px;">
       <button mat-button (click)="addItem()" class="add-item-button">Add Item</button>
     </div>
-        <!-- 💡 Add Totals Display Here -->
+    <!-- 💡 Add Totals Display Here -->
     <div fxLayout="row" fxLayoutAlign="space-between center" style="margin-top: 16px;"
       [ngClass]="{ 'mismatch': totalDebit !== totalCredit }">
       <div><strong>Total Debit:</strong> {{ totalDebit | currency:'INR':'symbol':'1.2-2':'en-IN' }}</div>

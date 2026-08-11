@@ -1,0 +1,74 @@
+<div class="business-details-container">
+  <div class="business-background"></div>
+
+  <mat-card class="business-card">
+    <mat-card-header>
+      <mat-card-title>Business Details</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="detailsForm" (ngSubmit)="onSubmit()">
+        <div class="form-row">
+          <mat-form-field appearance="fill" class="form-field">
+            <mat-label>Company Name</mat-label>
+            <input matInput formControlName="company_name" required>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="form-field">
+            <mat-label>Owner Name</mat-label>
+            <input matInput formControlName="owner_name">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="fill" class="form-field">
+            <mat-label>User Type</mat-label>
+            <mat-select formControlName="user_type">
+              <mat-option [value]="0">Proprietor</mat-option>
+              <mat-option [value]="1">Managing Partner</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="form-field">
+            <mat-label>PAN Number</mat-label>
+            <input matInput formControlName="pan_number">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="fill" class="form-field">
+            <mat-label>GST Number</mat-label>
+            <input matInput formControlName="gst_number">
+          </mat-form-field>
+
+          <mat-form-field appearance="fill" class="form-field">
+            <mat-label>City</mat-label>
+            <input matInput formControlName="city">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="fill" class="form-field">
+            <mat-label>Jurisdiction</mat-label>
+            <input matInput formControlName="jurisdiction">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row center">
+          <button mat-raised-button color="primary" type="submit" class="business-button">
+            <mat-icon>save</mat-icon>
+            Save Details
+          </button>
+        </div>
+      </form>
+
+      <mat-card *ngIf="isSuccessful" class="success-message">
+        <mat-card-content>Details saved successfully!</mat-card-content>
+      </mat-card>
+
+      <mat-card *ngIf="isFailed" class="error-message">
+        <mat-card-content>{{ errorMessage }}</mat-card-content>
+      </mat-card>
+    </mat-card-content>
+  </mat-card>
+</div>
