@@ -1,39 +1,49 @@
 .create-job-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 8px 0;
+  gap: 20px; /* slightly more breathing room */
+  padding: 12px 0;
 }
 
-mat-form-field.form-field,
 mat-form-field {
   width: 100%;
 }
 
+mat-slide-toggle {
+  margin-top: 8px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Dialog title */
+h2[mat-dialog-title] {
+  font-weight: 600;
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+
 .dialog-actions {
-  margin-top: 16px;
-  padding: 8px 0;
+  margin-top: 20px;
+  padding: 12px 0;
   border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px; /* spacing between buttons */
 }
 
 button[mat-button] {
-  min-width: 100px;
-}
-
-.loading {
-  color: #555;
-  font-style: italic;
-  margin-top: 8px;
+  min-width: 110px;
+  font-weight: 500;
 }
 
 /* Snackbar styles */
 .snackbar-success {
-  background-color: #4caf50 !important; /* green */
+  background-color: #4caf50 !important;
   color: #fff !important;
 }
 
 .snackbar-error {
-  background-color: #f44336 !important; /* red */
+  background-color: #f44336 !important;
   color: #fff !important;
 }
 
@@ -47,18 +57,42 @@ button[mat-button] {
   background-color: #f5f5f5;
 }
 
-/* Dialog title */
-h2[mat-dialog-title] {
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
 /* Responsive adjustments */
 @media (max-width: 600px) {
   .create-job-form {
-    gap: 12px;
+    gap: 14px;
   }
   button[mat-button] {
-    min-width: 80px;
+    min-width: 90px;
   }
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end; /* Align buttons to the right */
+  margin-top: 20px; /* Add space above the buttons */
+}
+
+.cancel-button, .save-button {
+  background-color: #f44336; /* Default background color */
+  color: white;
+  font-size: 14px; /* Reduce font size */
+  padding: 10px 20px; /* Adjust padding for better appearance */
+  border-radius: 25px;
+  margin-right: 10px;
+  transition: background-color 0.3s, box-shadow 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.cancel-button:hover, .save-button:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.save-button {
+  background-color: #4caf50; /* Green background for save button */
+  margin-left: 10px; /* Margin on the left for spacing */
+}
+
+.save-button:hover {
+  background-color: #388e3c; /* Darker green on hover */
 }

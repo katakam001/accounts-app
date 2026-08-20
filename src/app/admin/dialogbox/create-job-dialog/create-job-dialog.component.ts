@@ -12,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import moment from 'moment';
 import { UserFilterPipe } from '../../../pipe/user-filter.pipe';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 @Component({
   selector: 'app-create-job-dialog',
@@ -25,6 +26,7 @@ import { UserFilterPipe } from '../../../pipe/user-filter.pipe';
     MatSelectModule,
     MatDatepickerModule,
     MatAutocompleteModule,
+    MatSlideToggleModule,
     UserFilterPipe
   ],
   templateUrl: './create-job-dialog.component.html',
@@ -49,7 +51,8 @@ export class CreateJobDialogComponent implements OnInit {
       source_user_id: [null, Validators.required],
       source_user_name: ['', Validators.required],
       target_user_id: [null, Validators.required],
-      target_user_name: ['', Validators.required]
+      target_user_name: ['', Validators.required],
+      is_backup: [false] // default false
     });
   }
 
@@ -94,7 +97,8 @@ export class CreateJobDialogComponent implements OnInit {
         this.createJobForm.get('to_date')?.value,
         'yyyy-MM-dd',
         'en-IN'
-      )
+      ),
+      is_backup: this.createJobForm.get('is_backup')?.value // ✅ include flag
     };
 
     this.loading = true;

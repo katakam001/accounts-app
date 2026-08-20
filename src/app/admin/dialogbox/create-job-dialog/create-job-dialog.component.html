@@ -41,10 +41,16 @@
         </mat-option>
       </mat-autocomplete>
     </mat-form-field>
+
+    <mat-slide-toggle formControlName="is_backup" color="primary">
+      Backup Job (Override)
+    </mat-slide-toggle>
+
   </form>
 </mat-dialog-content>
 
-<mat-dialog-actions fxLayout="row" fxLayoutAlign="space-between center" class="dialog-actions">
-  <button mat-button (click)="close()">Cancel</button>
-  <button mat-button color="primary" (click)="createJob()" [disabled]="loading">Create</button>
-</mat-dialog-actions>
+<!-- Dialog Actions -->
+<div mat-dialog-actions class="button-container">
+  <button mat-button class="cancel-button" (click)="close()">Cancel</button>
+  <button mat-button class="save-button" (click)="createJob()" [disabled]="loading">{{ loading ? 'Saving...' : 'Save' }}</button>
+</div>

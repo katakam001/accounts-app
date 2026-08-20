@@ -664,7 +664,8 @@ export class AddEditEntryDialogComponent implements OnInit {
           invoiceNumber: formValues.invoiceNumber, // Include invoiceNumber
           account_id: formValues.account_id,       // Include account_id
           dynamicFields: dynamicFields, // Include dynamic fields for each entry
-          ...(this.data.sNo ? { s_no: this.data.sNo } : {}) // ✅ only include if defined
+          ...(this.data.group?.sNo ? { s_no: this.data.group.sNo } : {})
+
         };
       });
 

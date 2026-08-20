@@ -1,6 +1,7 @@
 node_modules
 .angular
 dist_current_prod
+dist_actual_prod
 dist_v2
 dist
 deleteFiles.ps1

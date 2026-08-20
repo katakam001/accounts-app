@@ -36,6 +36,7 @@ export class CopyJobListComponent implements OnInit, AfterViewInit {
     'toDate',
     'status',
     'stage',
+    'isBackup',
     'actions'
   ];
 

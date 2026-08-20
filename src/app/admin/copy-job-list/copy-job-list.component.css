@@ -51,3 +51,11 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
+
+.mat-icon[color="primary"] {
+  color: #4caf50; /* green check */
+}
+
+.mat-icon[color="warn"] {
+  color: #f44336; /* red cross */
+}
