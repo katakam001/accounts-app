@@ -20,6 +20,16 @@ export class CreateJobService {
     return this.http.get<any[]>(this.apiUrl);
   }
 
+  // ✅ Drill-down: tables for a given job
+  getJobTables(jobId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${jobId}/tables`);
+  }
+
+  // ✅ Drill-down: chunks for a given table
+  getJobChunks(tableId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/tables/${tableId}/chunks`);
+  }
+
   // Retry a failed job (dummy for now, wire later)
   retryJob(jobId: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${jobId}/retry`, {});

@@ -20,6 +20,8 @@ export const routes: Routes = [
   { path: 'home', component: HomeComponent, title: 'Home page' },
   { path: 'user-list', loadChildren: () => import('./admin/user-list/user-list.module').then(m => m.UserListModule), title: 'User List page', canActivate: [AdminAuthGuard] },
   { path: 'copyJob-list', loadChildren: () => import('./admin/copy-job-list/copy-job-list.module').then(m => m.CopyJobListModule), title: 'Copy Job List page', canActivate: [AdminAuthGuard] },
+  { path: 'copyJobs/:jobId/details', loadChildren: () => import('./admin/copy-job-list/copy-job-details/copy-job-details.module').then(m => m.CopyJobDetailsModule), title: 'Copy Job Details page', canActivate: [AdminAuthGuard] },
+  { path: 'copyJobs/:jobId/tables/:tableId/chunks', loadChildren: () => import('./admin/copy-job-list/copy-job-chunks/copy-job-chunks.module').then(m => m.CopyJobChunksModule), title: 'Copy Job table chunks', canActivate: [AdminAuthGuard] },
   { path: 'dashboard', loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule), title: 'Dashboard page', canActivate: [AuthGuard] },
   { path: 'admin-dashboard', loadChildren: () => import('./admin/admin-dashboard/admin-dashboard.module').then(m => m.AdminDashboardModule), title: 'Admin Dashboard page', canActivate: [AdminAuthGuard] },
   { path: 'accountList', loadChildren: () => import('./configuration/account-list/account-list.module').then(m => m.AccountListModule), title: 'Account List page', canActivate: [AuthGuard] },

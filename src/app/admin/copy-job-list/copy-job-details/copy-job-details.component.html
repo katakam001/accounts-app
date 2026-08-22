@@ -1,0 +1,52 @@
+<div class="job-container">
+  <mat-toolbar color="primary">
+    <span>Job {{ jobId }} Details</span>
+    <span class="spacer"></span>
+    <button mat-raised-button class="back-button" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      <span>Back</span>
+    </button>
+  </mat-toolbar>
+
+  <mat-card class="job-card" *ngFor="let group of groupedTables" [ngClass]="getStageClass(group.stage)">
+    <mat-card-header>
+      <mat-card-title>Stage {{ group.stage }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <table mat-table [dataSource]="group.tables" class="mat-elevation-z8 job-details-table">
+
+        <!-- Alias -->
+        <ng-container matColumnDef="alias">
+          <th mat-header-cell *matHeaderCellDef>Table</th>
+          <td mat-cell *matCellDef="let g">{{ g.alias }}</td>
+        </ng-container>
+
+        <!-- Counts -->
+        <ng-container matColumnDef="counts">
+          <th mat-header-cell *matHeaderCellDef>Counts</th>
+          <td mat-cell *matCellDef="let g">
+            Total: {{g.total}} |
+            Processed: {{g.processed}} |
+            Inserted: {{g.inserted}} |
+            Skipped: {{g.skipped}} |
+            Deleted: {{g.deleted}}
+          </td>
+        </ng-container>
+
+        <!-- Actions -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let g">
+            <button mat-button color="accent" (click)="viewChunks(g.id)">
+              <mat-icon>visibility</mat-icon>
+              <span>View Chunks</span>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="['alias','counts','actions']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['alias','counts','actions']"></tr>
+      </table>
+    </mat-card-content>
+  </mat-card>
+</div>

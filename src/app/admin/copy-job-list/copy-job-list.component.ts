@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CreateJobService } from '../../services/create-job.service';
 import { CreateJobDialogComponent } from '../dialogbox/create-job-dialog/create-job-dialog.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-copy-job-list',
@@ -50,7 +51,7 @@ export class CopyJobListComponent implements OnInit, AfterViewInit {
     private jobService: CreateJobService,
     public dialog: MatDialog,
     private snackBar: MatSnackBar,
-
+    private router: Router,
   ) { }
 
   ngOnInit(): void {
@@ -78,6 +79,10 @@ export class CopyJobListComponent implements OnInit, AfterViewInit {
         this.loadJobs();
       }
     });
+  }
+  
+  viewDetails(jobId: number): void {
+    this.router.navigate(['/copyJobs', jobId, 'details']);
   }
 
   retryJob(jobId: number): void {
