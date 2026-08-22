@@ -9,11 +9,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+
 
 @Component({
   selector: 'app-home',
   standalone: true,
-imports: [
+  imports: [
     CommonModule,
     MatToolbarModule,
     MatCardModule,
@@ -21,14 +23,24 @@ imports: [
     MatIconModule,
     MatGridListModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatFormFieldModule,
+    ReactiveFormsModule,
+
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
   isFreshUser: boolean = false;
-  constructor(private router: Router, private storageService: StorageService, private route: ActivatedRoute) { }
+  contactForm: FormGroup;
+  constructor(private router: Router, private storageService: StorageService, private route: ActivatedRoute, private fb: FormBuilder,) {
+    this.contactForm = this.fb.group({
+      name: [''],
+      email: [''],
+      message: ['']
+    });
+  }
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
@@ -51,4 +63,20 @@ export class HomeComponent implements OnInit {
       }
     }
   }
+  // Hero button action
+  getStarted() {
+    // Navigate to signup page (or dashboard if logged in)
+    this.router.navigate(['/register']);
+  }
+
+  // Contact form submission
+  onSubmit() {
+    if (this.contactForm.valid) {
+      console.log('Contact form submitted:', this.contactForm.value);
+      // TODO: send data to backend service
+      alert('Thank you for contacting us! We will get back to you soon.');
+      this.contactForm.reset();
+    }
+  }
 }
+

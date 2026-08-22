@@ -1,167 +1,180 @@
+/* General layout */
+.content {
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+  background-color: #fafafa;
+}
+
 .spacer {
   flex: 1 1 auto;
 }
 
-.content {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 40px;
+/* Hero Section */
+.hero {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  text-align: center;
+  padding: 60px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-mat-card {
-  padding: 20px;
-  margin: 20px auto;
-  max-width: 1000px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-}
-
-mat-card-title {
-  font-size: 26px;
-  font-weight: 600;
+.hero mat-card-title {
+  font-size: 36px;
+  font-weight: 700;
   color: #003366;
   margin-bottom: 20px;
 }
 
-.hero {
-  background: #e3f2fd;
-  text-align: center;
-}
-
-ul {
-  padding-left: 20px;
-}
-
-.step h3,
-.reason h3 {
+.hero p {
   font-size: 18px;
-  margin-top: 10px;
-  line-height: 1.4;
-}
-
-.step p,
-.reason p {
-  font-size: 16px;
   color: #333;
-  line-height: 1.6;
-
+  margin-bottom: 30px;
 }
 
-.step,
-.reason {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 20px;
-}
-
-mat-grid-tile {
-  display: flex;
-  align-items: stretch;
-}
-
-.step mat-icon, .reason mat-icon {
-  font-size: 48px;
-  margin-bottom: 10px;
-  display: block;
-  color: #3f51b5;
-  opacity: 0.9;
-}
-
-.testimonial {
-  background-color: #f9f9f9;
-  padding: 15px;
-  border-left: 5px solid #3f51b5;
+.hero button {
+  font-size: 18px;
+  padding: 12px 28px;
+  background-color: #c2185b;
+  color: #fff;
   border-radius: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.testimonial:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
   transition: all 0.3s ease;
 }
 
-.testimonial mat-card-content {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 100%;
+.hero button:hover {
+  background-color: #ad1457;
+  transform: translateY(-2px);
+  cursor: pointer;
 }
 
-.testimonial p {
-  margin: 0 0 10px;
-  font-style: italic;
+/* Section Titles */
+section h2, mat-card-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #003366;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Service / Report / Auditor grids */
+.service-grid, .report-grid, .auditor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-top: 20px;
+}
+
+mat-card {
+  padding: 25px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+mat-card:hover {
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  transform: translateY(-4px);
+}
+
+mat-card mat-icon {
+  font-size: 48px;
+  color: #3f51b5;
+  margin-bottom: 15px;
+}
+
+mat-card h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+mat-card p {
   font-size: 16px;
+  color: #555;
   line-height: 1.6;
 }
 
-.testimonial p:last-child {
-  margin-top: 5px;
-  font-weight: bold;
-  font-style: normal;
+/* Contact Section */
+#contact p {
+  font-size: 16px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
 }
 
 .contact-form {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  margin-top: 20px;
+  gap: 20px;
+  margin-top: 30px;
 }
 
 .full-width {
   width: 100%;
 }
 
+/* Footer */
 .footer {
   text-align: center;
-  padding: 20px;
+  padding: 25px;
   background-color: #f5f5f5;
   font-size: 14px;
   color: #666;
+  margin-top: 40px;
 }
 
-mat-grid-list {
-  width: 100%;
-}
-
-mat-grid-tile {
-  display: flex;
-  align-items: stretch;
-}
-
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  mat-grid-list {
-    grid-template-columns: 1fr !important;
+  .hero mat-card-title {
+    font-size: 28px;
+  }
+  section h2 {
+    font-size: 24px;
+  }
+  mat-card h3 {
+    font-size: 18px;
   }
 }
 
-.hero button {
-  margin-top: 20px;
-  font-size: 16px;
-  padding: 10px 20px;
-  background-color: #c2185b;
-  color: #fff;
-}
-
-.hero button:hover {
-  background-color: #ad1457;
-  cursor: pointer;
-}
-
+/* Reset mat-icon globally */
 mat-icon {
-  min-height: 48px;
-  min-width: 48px;
+  font-family: 'Material Icons', 'Material Symbols Outlined' !important;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  display: inline-flex;        /* inline-flex keeps alignment without breaking grid */
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
 }
 
-* {
-  box-sizing: border-box;
+/* Larger icons inside cards */
+mat-card mat-icon {
+  font-size: 48px;
+  color: #3f51b5;
+  margin-bottom: 15px;
+  display: inline-flex;        /* don’t force block, keeps horizontal grid intact */
 }
 
-html {
-  scroll-behavior: smooth;
+/* Inline icons for Contact section */
+#contact mat-icon {
+  font-size: 20px;
+  color: #3f51b5;
+  margin-right: 8px;
+  vertical-align: middle;
 }
+
+/* Hero section (if you add icons later) */
+.hero mat-icon {
+  font-size: 56px;
+  color: #003366;
+  margin-bottom: 20px;
+}
+

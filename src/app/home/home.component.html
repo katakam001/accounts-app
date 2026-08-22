@@ -1,186 +1,105 @@
-<mat-toolbar color="primary" class="mat-elevation-z4">
-    <span>my company</span>
-    <span class="spacer"></span>
-    <a mat-button href="#about">About</a>
-    <a mat-button href="#services">Services</a>
-    <a mat-button href="#contact">Contact</a>
-</mat-toolbar>
-
 <div class="content">
-    <!-- Hero Section -->
-    <mat-card class="hero">
-        <mat-card-title>We are Accounting Experts</mat-card-title>
-        <mat-card-content>
-            <p>Helping SMEs automate GST compliance and financial reporting with cloud-based solutions.</p>
-            <button mat-raised-button color="accent">Get Started</button>
-        </mat-card-content>
-    </mat-card>
 
-    <!-- About Us -->
-    <section id="about">
-        <mat-card>
-            <mat-card-title>About Us</mat-card-title>
-            <mat-card-content>
-                <p>We provide cloud‑based accounting solutions for SMEs, helping them automate GST compliance and
-                    financial reporting.</p>
-            </mat-card-content>
-        </mat-card>
-    </section>
+  <!-- Hero -->
+  <section class="hero">
+    <h1>Cloud Accounting Experts</h1>
+    <p>
+      Automate invoices, journal entries, cash entries, and product entries with batch processing
+      and direct bank statement uploads.
+    </p>
+    <button mat-raised-button color="accent" (click)="getStarted()">Get Started</button>
+  </section>
 
-    <!-- Services -->
-    <section id="services">
-        <mat-card>
-            <mat-card-title>Our Services</mat-card-title>
-            <mat-card-content>
-                <ul>
-                    <li>Automated Invoice Management</li>
-                    <li>GST Filing and Compliance</li>
-                    <li>Real‑time Financial Dashboards</li>
-                    <li>Secure Cloud Data Storage</li>
-                </ul>
-            </mat-card-content>
-        </mat-card>
-    </section>
-    <section id="process">
-        <mat-card>
-            <mat-card-title>How It Works</mat-card-title>
-            <mat-card-content>
-                <mat-grid-list cols="3" rowHeight="250px" gutterSize="20px">
-                    <mat-grid-tile>
-                        <div class="step">
-                            <mat-icon color="primary">search</mat-icon>
-                            <h3>Step 1: Consultation</h3>
-                            <p>We understand your business needs and GST setup to tailor the right solution.</p>
-                        </div>
-                    </mat-grid-tile>
-                    <mat-grid-tile>
-                        <div class="step">
-                            <mat-icon color="primary">settings</mat-icon>
-                            <h3>Step 2: Setup & Automation</h3>
-                            <p>We configure your account and automate invoice tracking, filing, and reporting.</p>
-                        </div>
-                    </mat-grid-tile>
-                    <mat-grid-tile>
-                        <div class="step">
-                            <mat-icon color="primary">check_circle</mat-icon>
-                            <h3>Step 3: Peace of Mind</h3>
-                            <p>Enjoy accurate compliance, real-time dashboards, and expert support whenever needed.</p>
-                        </div>
-                    </mat-grid-tile>
-                </mat-grid-list>
-            </mat-card-content>
-        </mat-card>
-    </section>
-    <section id="testimonials">
-        <mat-card>
-            <mat-card-title>What Our Clients Say</mat-card-title>
-            <mat-card-content>
-                <mat-grid-list cols="2" rowHeight="250px" gutterSize="20px">
-                    <mat-grid-tile>
-                        <mat-card class="testimonial">
-                            <mat-card-content>
-                                <p>"The GST automation saved us hours every month. Their dashboard is a game changer!"
-                                </p>
-                                <p><strong>— Rajesh, Bengaluru</strong></p>
-                            </mat-card-content>
-                        </mat-card>
-                    </mat-grid-tile>
-                    <mat-grid-tile>
-                        <mat-card class="testimonial">
-                            <mat-card-content>
-                                <p>"Reliable, secure, and easy to use. We’ve never missed a filing deadline since
-                                    switching."</p>
-                                <p><strong>— Priya, Chennai</strong></p>
-                            </mat-card-content>
-                        </mat-card>
-                    </mat-grid-tile>
-                    <mat-grid-tile>
-                        <mat-card class="testimonial">
-                            <mat-card-content>
-                                <p>"Their support team is fantastic. They helped us migrate from spreadsheets in just
-                                    two days."</p>
-                                <p><strong>— Ankit, Mumbai</strong></p>
-                            </mat-card-content>
-                        </mat-card>
-                    </mat-grid-tile>
-                    <mat-grid-tile>
-                        <mat-card class="testimonial">
-                            <mat-card-content>
-                                <p>"We trust them with our entire financial backend. Highly recommended for any SME."
-                                </p>
-                                <p><strong>— Saho, Hyderabad</strong></p>
-                            </mat-card-content>
-                        </mat-card>
-                    </mat-grid-tile>
-                </mat-grid-list>
-            </mat-card-content>
-        </mat-card>
-    </section>
-    <section id="why-choose-us">
-        <mat-card>
-            <mat-card-title>Why Choose Us</mat-card-title>
-            <mat-card-content>
-                <mat-grid-list cols="3" rowHeight="250px" gutterSize="30px">
-                    <mat-grid-tile>
-                        <div class="reason">
-                            <mat-icon color="primary">security</mat-icon>
-                            <h3>Secure & Reliable</h3>
-                            <p>Your financial data is protected with enterprise‑grade security and encrypted storage.
-                            </p>
-                        </div>
-                    </mat-grid-tile>
-                    <mat-grid-tile>
-                        <div class="reason">
-                            <mat-icon color="primary">attach_money</mat-icon>
-                            <h3>Affordable</h3>
-                            <p>Transparent pricing designed for SMEs — no hidden fees, pay only for what you use.</p>
-                        </div>
-                    </mat-grid-tile>
-                    <mat-grid-tile>
-                        <div class="reason">
-                            <mat-icon color="primary">support_agent</mat-icon>
-                            <h3>Expert Support</h3>
-                            <p>Our team is available to guide you through GST compliance and financial reporting.</p>
-                        </div>
-                    </mat-grid-tile>
-                </mat-grid-list>
-            </mat-card-content>
-        </mat-card>
-    </section>
-    <section id="contact">
-        <mat-card>
-            <mat-card-title>Contact Us</mat-card-title>
-            <mat-card-content>
-                <p>Email: <a href="mailto:info&#64;yourcompany.com">info&#64;yourcompany.com</a></p>
-                <p>Address: 123 Business Park, Bengaluru, India</p>
-                <p>Phone: +91 98765 43210</p>
+  <!-- Services -->
+  <section id="services">
+    <h2>Our Services</h2>
+    <div class="service-grid">
+      <mat-card>
+        <mat-icon fontSet="material-icons" color="primary">receipt_long</mat-icon>
+        <h3>Invoice & Journal Feeding</h3>
+        <p>Quickly feed invoices, journal entries, cash entries, and product entries.</p>
+      </mat-card>
+      <mat-card>
+        <mat-icon fontSet="material-icons" color="primary">cloud_upload</mat-icon>
+        <h3>Batch Processing</h3>
+        <p>Upload templates for faster batch processing of accounting data.</p>
+      </mat-card>
+      <mat-card>
+        <mat-icon fontSet="material-icons" color="primary">account_balance</mat-icon>
+        <h3>Bank Statement Integration</h3>
+        <p>Upload bank statements to auto‑generate journal and cash entries.</p>
+      </mat-card>
+    </div>
+  </section>
 
-                <!-- Optional: Contact Form -->
-                <form class="contact-form">
-                    <mat-form-field appearance="outline" class="full-width">
-                        <mat-label>Name</mat-label>
-                        <input matInput placeholder="Your Name">
-                    </mat-form-field>
+  <!-- Reports -->
+  <section id="reports">
+    <h2>Comprehensive Reporting</h2>
+    <div class="report-grid">
+      <mat-card>
+        <mat-icon fontSet="material-icons">bar_chart</mat-icon>
+        <h3>Trial Balance</h3>
+        <p>Instantly generate accurate trial balances.</p>
+      </mat-card>
+      <mat-card>
+        <mat-icon fontSet="material-icons">show_chart</mat-icon>
+        <h3>Profit & Loss</h3>
+        <p>Real‑time profit and loss reporting.</p>
+      </mat-card>
+      <mat-card>
+        <mat-icon fontSet="material-icons">account_balance_wallet</mat-icon>
+        <h3>Balance Sheet</h3>
+        <p>Horizontal & Vertical formats available.</p>
+      </mat-card>
+    </div>
+  </section>
 
-                    <mat-form-field appearance="outline" class="full-width">
-                        <mat-label>Email</mat-label>
-                        <input matInput type="email" placeholder="Your Email">
-                    </mat-form-field>
+  <!-- Auditor/Admin -->
+  <section id="auditor">
+    <h2>Auditor & Admin Operations</h2>
+    <div class="auditor-grid">
+      <mat-card>
+        <mat-icon fontSet="material-icons">sync_alt</mat-icon>
+        <h3>Copy Jobs</h3>
+        <p>Copy jobs from source client to target client.</p>
+      </mat-card>
+      <mat-card>
+        <mat-icon fontSet="material-icons">backup</mat-icon>
+        <h3>Backup Facility</h3>
+        <p>Secure backup of existing client data.</p>
+      </mat-card>
+    </div>
+  </section>
 
-                    <mat-form-field appearance="outline" class="full-width">
-                        <mat-label>Message</mat-label>
-                        <textarea matInput rows="4" placeholder="Your Message"></textarea>
-                    </mat-form-field>
+  <!-- Contact -->
+  <section id="contact">
+    <h2>Contact Us</h2>
+    <p><mat-icon fontSet="material-icons">mail</mat-icon> info&#64;taxservice4u.com</p>
+    <p><mat-icon fontSet="material-icons">call</mat-icon> +91 9848162475</p>
+    <p><mat-icon fontSet="material-icons">location_on</mat-icon> Sipani royal heritage,I-206,Chandapur, Bengaluru, India</p>
 
-                    <button mat-raised-button color="primary">Send Message</button>
-                </form>
-            </mat-card-content>
-        </mat-card>
-    </section>
+    <form class="contact-form" [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Message</mat-label>
+        <textarea matInput rows="4" formControlName="message"></textarea>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" type="submit">Send Message</button>
+    </form>
+  </section>
 
 </div>
 
-<!-- Footer -->
 <footer class="footer">
-    <p>&copy; 2025 my company. All rights reserved.</p>
+  <p>&copy; 2026 NM Tax services. All rights reserved.</p>
 </footer>
