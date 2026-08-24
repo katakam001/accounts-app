@@ -10,6 +10,8 @@ import { MatInputModule } from '@angular/material/input';
 import { FinancialYearService } from '../../services/financial-year.service';
 import { StorageService } from '../../services/storage.service';
 import { BalanceSheetService } from '../../services/balance-sheet.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { UploadService } from '../../services/upload.service';
 
 @Component({
   selector: 'app-balance-sheet-horizontal',
@@ -47,7 +49,9 @@ export class BalanceSheetHorizontalComponent implements OnInit {
     private balanceSheetService: BalanceSheetService,
     private financialYearService: FinancialYearService,
     private storageService: StorageService,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    private snackBar: MatSnackBar,
+    private uploadService: UploadService,
   ) { }
 
   ngOnInit(): void {
@@ -90,7 +94,25 @@ export class BalanceSheetHorizontalComponent implements OnInit {
   }
 
   exportToPDF(): void {
-    console.log('Export to PDF clicked');
+    const fromDateStr = this.datePipe.transform(this.fromDate.value, 'yyyy-MM-dd', 'en-IN')!;
+    const toDateStr = this.datePipe.transform(this.toDate.value, 'yyyy-MM-dd', 'en-IN')!;
+
+    this.balanceSheetService.exportHorizontalToPDF(this.userId, this.financialYear, this.companyName, this.city, fromDateStr, toDateStr).subscribe({
+      next: data => {
+        console.log(data);
+        this.snackBar.open('Pdf generation is started please check the status in Download screen.', 'Close', {
+          duration: 3000,
+        });
+        // Step 3: Call Start Monitoring API here
+        this.uploadService.startMonitoring().subscribe(
+          () => console.log('Monitoring started successfully!'),
+          error => console.error('Error starting monitoring:', error)
+        );
+      },
+      error: err => {
+        console.error('Error impersonating user:', err);
+      }
+    });
   }
 
   handleBackToMainReport(): void {
@@ -109,6 +131,11 @@ export class BalanceSheetHorizontalComponent implements OnInit {
   get rightTotal(): number {
     return this.rightGroups.reduce((sum, g) => sum + (g?.outerAmount || 0), 0);
   }
+
+  showAmount(group: any): boolean {
+    return !(group?.innerAmount === 0 && group?.outerAmount === 0);
+  }
+
 
   getGroupClass(group: any): string {
     return group?.groupMode === 'structured'

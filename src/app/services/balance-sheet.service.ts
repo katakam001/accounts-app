@@ -10,7 +10,6 @@ import { environment } from '../../environments/environment';
 })
 export class BalanceSheetService {
 
-  // private apiUrl = 'http://localhost:8080/api/profit-and-loss';
   private baseUrl = environment.apiUrl;
   private apiUrl = `${this.baseUrl}/api/balance-sheet`; // Append the path to the base URL
 
@@ -20,5 +19,21 @@ export class BalanceSheetService {
     const params = { userId, fromDate, toDate, financialYear };
     console.log(params);
     return this.http.post<any>(`${this.apiUrl}/horizontal`, params);
+  }
+  // 🔹 Add this for PDF export
+  exportHorizontalToPDF(userId: number, financialYear: string, companyName: string, city: string, fromDate?: string, toDate?: string): Observable<any> {
+    let params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('financialYear', financialYear)
+      .set('companyName', companyName)
+      .set('city', city);
+    // Add fromDate and toDate to the params if they are provided
+    if (fromDate) {
+      params = params.set('fromDate', fromDate); // Use ISO string format
+    }
+    if (toDate) {
+      params = params.set('toDate', toDate); // Use ISO string format
+    }
+    return this.http.get<any>(`${this.apiUrl}/export-horizontal-to-pdf`,  { params });
   }
 }

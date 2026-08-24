@@ -50,20 +50,28 @@
                         {{ leftGroups[idx]?.label || '' }}
                     </td>
                     <td class="amount">
-                        {{ leftGroups[idx]?.innerAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                        <span *ngIf="showAmount(leftGroups[idx])">
+                            {{ leftGroups[idx]?.innerAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                        </span>
                     </td>
                     <td class="amount">
-                        {{ leftGroups[idx]?.outerAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                        <span *ngIf="showAmount(leftGroups[idx])">
+                            {{ leftGroups[idx]?.outerAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                        </span>
                     </td>
 
                     <td [ngClass]="getGroupClass(rightGroups[idx])">
                         {{ rightGroups[idx]?.label || '' }}
                     </td>
                     <td class="amount">
-                        {{ rightGroups[idx]?.innerAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                        <span *ngIf="showAmount(rightGroups[idx])">
+                            {{ rightGroups[idx]?.innerAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                        </span>
                     </td>
                     <td class="amount">
-                        {{ rightGroups[idx]?.outerAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                        <span *ngIf="showAmount(rightGroups[idx])">
+                            {{ rightGroups[idx]?.outerAmount | currency:'INR':'symbol':'1.2-2':'en-IN' }}
+                        </span>
                     </td>
                 </tr>
 
