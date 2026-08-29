@@ -12,10 +12,17 @@
 <!-- Financial Year Display -->
 <div *ngIf="financialYear" class="financial-year-container">
   <p class="financial-year-text">Current Financial Year: {{ financialYear }}</p>
+  <p class="financial-year-status">Status: {{ financialYearStatus }}</p>
+  <p *ngIf="financialYearError" class="financial-year-error">Error: {{ financialYearError }}</p>
+
+  <!-- Retry button if failed -->
+  <button *ngIf="financialYearStatus === 'Failed'" mat-button (click)="openFinancialYearDialog()">
+    Retry Financial Year
+  </button>
 </div>
 
 <!-- Dashboard Chart -->
-<div class="dashboard-container">
+<div class="dashboard-container" *ngIf="financialYearStatus === 'Ready'">
   <div class="dashboard-section">
     <h3>Entry Type Summary</h3>
     <canvas

@@ -16,6 +16,8 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class FinancialYearDialogComponent {
   dateControl = new FormControl();
+  financialYearStatus: string | null = null;
+  financialYearError: string | null = null;
 
   constructor(
     public dialogRef: MatDialogRef<FinancialYearDialogComponent>,
@@ -28,8 +30,17 @@ export class FinancialYearDialogComponent {
     if (selectedDate) {
       const financialYear = this.generateFinancialYear(selectedDate.toDate());
       const userId = this.storageService.getUser().id;
-      this.financialYearService.setFinancialYear(financialYear, userId);
-      this.dialogRef.close();
+
+      // Call backend and capture status + error
+      this.financialYearService.setFinancialYear(financialYear, userId).subscribe(res => {
+        this.financialYearStatus = this.mapStatus(res.status);
+        this.financialYearError = res.error_message;
+        this.dialogRef.close({ 
+          financialYear, 
+          status: this.financialYearStatus, 
+          error: this.financialYearError 
+        });
+      });
     }
   }
 
@@ -40,6 +51,16 @@ export class FinancialYearDialogComponent {
       return `${year}-${year + 1}`;
     } else {
       return `${year - 1}-${year}`;
+    }
+  }
+
+  mapStatus(status: number): string {
+    switch (status) {
+      case 1: return 'Seeded';
+      case 2: return 'Processing';
+      case 3: return 'Ready';
+      case 4: return 'Failed';
+      default: return 'Unknown';
     }
   }
 }
